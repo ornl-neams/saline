@@ -137,8 +137,8 @@ double Default_Data_Store::cp_h(Id, double enthalpy, double p) const
 double Default_Data_Store::mu(Id id, double t, double p) const
 {
     const auto& d = compounds[id].data.front();
-    // mu(t) =  a ^ (b/t)
-    return d.mu_a + d.mu_b * t;
+    // mu(t) =  a e ^(b/t)
+    return d.mu_a * std::exp(d.mu_b / t);
 }
 double Default_Data_Store::mu_h(Id id, double enthalpy, double p) const
 {
