@@ -36,6 +36,7 @@ The Data_Store has a convience class `View` to insulate Data_Store access.
 Using any C++ 11 compliant compiler you can perform the following:
 
 ```bash
+cd src/tests
 g++ tstdefault_data_store.cc -std=c++11 -g -O0 ../*.{cc,hh} -o tstdefault_data_store
 ./tstdefault_data_store
 ```
