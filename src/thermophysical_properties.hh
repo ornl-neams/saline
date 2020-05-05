@@ -69,8 +69,8 @@ class Thermophysical_Properties
     double h_t(double temperature) const;
 
     // temperature
-    double t_h(double enthalpy) const;    
-
+    double t_h(double enthalpy) const;
+  
     // list of specifies for which properties are being tracked
     const Vec_Name& species() const {return m_comp_names;}
 

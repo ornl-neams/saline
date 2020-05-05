@@ -163,10 +163,11 @@ double Default_Data_Store::Data::h_to_t(double h) const
 {
     if (m_h.empty()) return std::numeric_limits<double>::quiet_NaN();
 
-    if (h < 0) return m_h.front();
-
     auto x = std::lower_bound(m_h.begin(), m_h.end(), h);
-    if (x == m_h.end() ) return m_h[m_h.size() - 1];
+
+    if (h < 0) x = m_h.begin();
+    
+    else if (x == m_h.end() ) x = m_h.end()-2; 
 
     double y0 = m_melt + std::distance(m_h.begin(), x) * m_dt;
     double y1 = y0 + m_dt;
