@@ -65,6 +65,12 @@ class Thermophysical_Properties
     double rho(double temperature, double pressure = 101.325) const;    
     double rho_h(double enthalpy, double pressure = 101.325) const;
 
+    // enthalpy
+    double h_t(double temperature) const;
+
+    // temperature
+    double t_h(double enthalpy) const;    
+
     // list of specifies for which properties are being tracked
     const Vec_Name& species() const {return m_comp_names;}
 

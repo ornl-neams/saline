@@ -1,6 +1,6 @@
 #include "default_data_store.hh"
 
-#include <cmath>
+#include <algorithm>
 
 namespace saline
 {
@@ -27,19 +27,19 @@ void Default_Data_Store::add(const std::vector<std::string>& names,
     c.names = names;
     c.data.resize(c.data.size()+1);
     auto& d = c.data.back();
-    d.mole_percents = mole_percent;
-    d.melt = melt;
-    d.boil = boil;    
-    d.rho_a = rho_a;
-    d.rho_b = rho_b;
-    d.mu_a = mu_a;
-    d.mu_b = mu_b;
-    d.k_a  = k_a ;
-    d.k_b  = k_b ;
-    d.cp_a = cp_a;
-    d.cp_b = cp_b;
-    d.cp_c = cp_c;
-    d.cp_d = cp_d;
+    d.m_mole_percents = mole_percent;
+    d.m_melt = melt;
+    d.m_boil = boil;    
+    d.m_rho_a = rho_a;
+    d.m_rho_b = rho_b;
+    d.m_mu_a = mu_a;
+    d.m_mu_b = mu_b;
+    d.m_k_a  = k_a ;
+    d.m_k_b  = k_b ;
+    d.m_cp_a = cp_a;
+    d.m_cp_b = cp_b;
+    d.m_cp_c = cp_c;
+    d.m_cp_d = cp_d;
 }
 //---------------------------------------------------------------------------//
 /*!
@@ -116,7 +116,66 @@ Default_Data_Store::Default_Data_Store()
     add({"UCl3"},{1},1110,2000,13.652,0.0013017,0.0,0.0,0.0,0.0,129.704,0.0,0.0,0.0);
     add({"UF3"},{1},1700,2550,0.0,0.0,0.0,0.0,0.0,0.0,134,0.0,0.0,0.0);
     add({"UF4"},{1},1309,1690,7.784,0.000992,0.010775,58222.17086,0.0,0.0,167,0.0,0.0,0.0);
+
+    setup_enthalpy_tables();
 } 
+
+// setup the enthalpy 2 temperature interpolation tables
+void Default_Data_Store::setup_enthalpy_tables()
+{
+    for (auto& c : compounds)
+    {
+        for (auto &d  : c.data)
+        {
+            d.calc_h_t(100);
+        }
+    }
+}
+
+void Default_Data_Store::Data::calc_h_t(size_t table_size)
+{
+    if (m_melt == 0 || m_boil == 0) return;
+    m_h_t.resize(table_size);
+    m_dt = (m_boil - m_melt) / m_h_t.size();
+    
+    double melt2 = m_melt * m_melt;
+    double melt3 = m_melt * melt2;
+    // E = a * melt + b * melt^2  + d * melt^3 - c / melt;
+    double m_e = m_cp_a * m_melt + m_cp_b * melt2 + m_cp_d * melt3 - m_cp_c / m_melt;
+    // h(melt) = 0
+    m_h_t[0] = 0.0;
+    size_t i = 1;
+    for (double t = m_melt + m_dt; t < m_boil; t+=m_dt, ++i)
+    {        
+        m_h_t[i] = h_t(t);
+    }
+}
+
+double Default_Data_Store::Data::h_t(double t) const
+{
+
+    double t2 = t * t;
+    double t3 = t * t3;
+    // h(t) = a * t + b t^2 - c / t + d * t^3 - E;
+    return m_cp_a * t + m_cp_b * t2 - m_cp_c / t + m_cp_d * t3 - m_e;
+}
+
+double Default_Data_Store::Data::h_to_t(double h) const
+{
+    if (m_h_t.empty()) return std::numeric_limits<double>::quiet_NaN();
+
+    if (h < 0) return m_h_t.front();
+
+    auto x = std::lower_bound(m_h_t.begin(), m_h_t.end(), h);
+    if (x == m_h_t.end() ) return m_h_t[m_h_t.size() - 1];
+
+    double y0 = std::distance(m_h_t.begin(), x) * m_dt;
+    double y1 = y0 + m_dt;
+    double x0 = *x; x++;
+    double x1 = *x;
+
+    return y0 + (h-x0) * (y1-y0) / (x1-x0);
+}
 
 // specific heat 
 double Default_Data_Store::cp(Id id, double t, double p) const
@@ -126,23 +185,24 @@ double Default_Data_Store::cp(Id id, double t, double p) const
     double t_2 = 1.0/t2;
 
     // cp(t) = a + b * T + c * T^-2 + d * T^2
-    return d.cp_a + d.cp_b * t + d.cp_c * t_2 + d.cp_d * t2;
+    return d.cp(t);
 }
-double Default_Data_Store::cp_h(Id, double enthalpy, double p) const
+double Default_Data_Store::cp_h(Id id, double enthalpy, double p) const
 {
-    return std::numeric_limits<double>::quiet_NaN();
+    const auto& d = compounds[id].data.front();
+    return d.cp_h(enthalpy);
 }
 
 // viscosity
 double Default_Data_Store::mu(Id id, double t, double p) const
 {
-    const auto& d = compounds[id].data.front();
-    // mu(t) =  a e ^(b/t)
-    return d.mu_a * std::exp(d.mu_b / t);
+    const auto& d = compounds[id].data.front();    
+    return d.mu(t);
 }
 double Default_Data_Store::mu_h(Id id, double enthalpy, double p) const
 {
-    return std::numeric_limits<double>::quiet_NaN();
+    const auto& d = compounds[id].data.front();
+    return d.mu_h(enthalpy);
 }
 
 // conductivity
@@ -150,36 +210,51 @@ double Default_Data_Store::k(Id id, double t, double p) const
 {
        const auto& d = compounds[id].data.front();
        // k(t) = a + b * t
-       return d.k_a + d.k_b * t;
+       return d.k(t);
 }
 double Default_Data_Store::k_h(Id id, double enthalpy, double p) const
 {
-    return std::numeric_limits<double>::quiet_NaN();
+    const auto& d = compounds[id].data.front();
+    return d.k_h(enthalpy);
 }
 
 // density
 double Default_Data_Store::rho(Id id, double t, double p) const
 {
-    const auto& d = compounds[id].data.front();
-    // rho(t) = a - b * t
-    return d.rho_a - d.rho_b * t;
+    const auto& d = compounds[id].data.front();    
+    return d.rho(t);
 }
 double Default_Data_Store::rho_h(Id id, double enthalpy, double p) const
 {
-    return std::numeric_limits<double>::quiet_NaN();
+    const auto& d = compounds[id].data.front();
+    return d.rho_h(enthalpy);
+}
+
+// enthalpy
+double Default_Data_Store::h_t(Id id, double temperature) const
+{
+    const auto& d = compounds[id].data.front();
+    return d.h_t(temperature);
+}
+
+// temperature
+double Default_Data_Store::t_h(Id id, double enthalpy) const
+{
+    const auto& d = compounds[id].data.front();
+    return d.h_to_t(enthalpy);
 }
 
 // melting temperature
 double Default_Data_Store::melt(Id id) const
 {
     const auto& d = compounds[id].data.front();
-    return d.melt;
+    return d.melt();
 }
 
 // boiling temperature
 double Default_Data_Store::boil(Id id) const
 {
     const auto& d = compounds[id].data.front();
-    return d.boil;
+    return d.boil();
 }
 } // namespace saline

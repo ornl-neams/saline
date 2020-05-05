@@ -97,6 +97,16 @@ double Data_Store::View::rho_h(double enthalpy, double pressure) const
     d->rho_h(id, enthalpy, pressure);
 }
 
+double Data_Store::View::h_t(double temperature) const
+{
+    d->h_t(id, temperature);
+}
+
+double Data_Store::View::t_h(double enthalpy) const
+{
+    d->t_h(id, enthalpy);
+}
+
 // melting temperature
 double Data_Store::View::melt() const
 {

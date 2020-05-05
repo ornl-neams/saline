@@ -73,6 +73,12 @@ class Data_Store
         double rho(double temperature, double pressure = 101.325) const;
         double rho_h(double enthalpy, double pressure = 101.325) const;
 
+        // enthalpy given temperature
+        double h_t(double t) const;
+
+        // temperature given 
+        double t_h(double temperature) const;
+
         // melting temperature
         double melt() const;
 
@@ -106,6 +112,12 @@ class Data_Store
     virtual double rho(Id, double temperature, double pressure = 101.325) const = 0;
     virtual double rho_h(Id, double enthalpy, double pressure = 101.325) const = 0;
 
+    // enthalpy
+    virtual double h_t(Id, double temperature) const = 0;
+
+    // temperature
+    virtual double t_h(Id, double enthalpy) const = 0;
+
     // melting temperature
     virtual double melt(Id id) const = 0;
 
@@ -120,7 +132,11 @@ class Data_Store
 
     // is the id valid 
     bool valid(Id id) const {return id < size();}   
-    
+
+  private:
+
+    // >>> DATA   
+
 }; // Data_Store
 
 } // namespace saline

@@ -98,6 +98,24 @@ double Thermophysical_Properties::rho_h(double enthalpy, double pressure) const
     return m_impl.rho_h(enthalpy, pressure);
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * \brief enthalpy given temperature
+ */
+double Thermophysical_Properties::h_t(double temperature) const
+{
+    return m_impl.h_t(temperature);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * \brief temperature given enthalpy
+ */
+double Thermophysical_Properties::t_h(double enthalpy) const
+{
+    return m_impl.t_h(enthalpy);
+}
+
 // set the mole % and select the composition
 bool Thermophysical_Properties::setComposition(const Vec_Name& names, 
                         const Vec_Mole& mole_percents)

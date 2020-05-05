@@ -1,5 +1,6 @@
 #include "../default_data_store.hh"
 #include "../thermophysical_properties.hh"
+#include "../utils.hh"
 
 #include <iostream>
 #include <iomanip>
@@ -25,8 +26,21 @@ int main()
     ASSERT_TRUE(tp.initialize(&d));
 
     ASSERT_TRUE(tp.setComposition({"BeCl2"},{1.0}));
-
+    std::cout <<"BeCl2 ... "  <<std::endl;
     std::cout << "rho : "<< tp.rho(973.15) << " to " << tp.rho(2000) << std::endl;
+    std::cout << "enthalpy : " << tp.h_t(973.15) << " to " << tp.h_t(2000) << std::endl;
+    std::cout << "temperature : " << tp.t_h(tp.h_t(973.15)) << " to " << tp.t_h(tp.h_t(2000)) << std::endl;
+    
+    std::cout << "rho_h : " << tp.rho_h(0) << " to " << tp.rho_h(100) << std::endl;
+
+    ASSERT_TRUE(tp.setComposition({"KCl","MgCl2"},{0.68,0.32}));
+    std::cout <<"MgCl2-KCl..." << std::endl;
+
+    // expecting ~0.47 and ~.43 + or - 3 W/m K
+    std::cout << tp.mu(utils::c2k(450)) <<  " " << tp.mu(utils::c2k(800)) << std::endl;
+
+    // expecting ~1680 and ~1490 + or - 25 kg/m^3
+    std::cout << tp.rho(utils::c2k(450)) <<  " " << tp.rho(utils::c2k(800)) << std::endl;
 
     ASSERT_EQ(1.205535, tp.rho(973.15));
     ASSERT_EQ(0.076, tp.rho(2000));
