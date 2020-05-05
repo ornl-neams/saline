@@ -33,7 +33,7 @@ namespace saline
  *   Conductivity  - Watts per Meter-Kelvin (W/m K)
  *   Pressure      - Kilopascal (kPa)
  *   Temperature   - Kelvin (K)
- *   Enthalpy      - Joule per Kilogram (J/kg)
+ *   Enthalpy      - Joule per mole (J/mole)
  *   Viscosity     - Centipoise (cP) or milli Newton-second per square Meter (mN.s/m^2)
  *   Specific Heat - Joules per Kelvin Mole (J/K mole)
  *   Density       - Grams per Cubic Centimeter (g/cc)
@@ -109,8 +109,8 @@ class Default_Data_Store : public Data_Store
         const Vec_Mole& mole_percents() const {return m_mole_percents;};
 
         // enthalpy to temperature table
-        std::vector<double>& h_t() {return m_h_t;}
-        const std::vector<double>& h_t() const {return m_h_t;}
+        std::vector<double>& h_t() {return m_h;}
+        const std::vector<double>& h_t() const {return m_h;}
 
         double melt() const {return m_melt;}
         double boil() const {return m_boil;}  
@@ -139,7 +139,7 @@ class Default_Data_Store : public Data_Store
         double k_a() const {return m_k_a;}
         double k_b() const {return m_k_b;}
 
-        // specific heat
+        // specific heat 
         double cp(double t) const {double t2 = t * t;
                                   return m_cp_a + m_cp_b * t + m_cp_c * 1/(t2) + m_cp_d * t2;}
         double cp_h(double h) const {return cp(h_to_t(h));}
@@ -186,7 +186,7 @@ class Default_Data_Store : public Data_Store
         double m_cp_d;
 
         // enthalpy to temperature table
-        std::vector<double> m_h_t; 
+        std::vector<double> m_h; 
 
         // delta temperature
         double m_dt;

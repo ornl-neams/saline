@@ -42,7 +42,5 @@ int main()
     // expecting ~1680 and ~1490 + or - 25 kg/m^3
     std::cout << tp.rho(utils::c2k(450)) <<  " " << tp.rho(utils::c2k(800)) << std::endl;
 
-    ASSERT_EQ(1.205535, tp.rho(973.15));
-    ASSERT_EQ(0.076, tp.rho(2000));
     return 0;   
 }

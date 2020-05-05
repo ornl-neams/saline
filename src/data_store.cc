@@ -13,7 +13,6 @@ Data_Store::View Data_Store::view(Id id) const
     {        
         v.id = id;
         v.d = this;
-        return v;
     }
     return v;
 }

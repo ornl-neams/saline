@@ -135,41 +135,40 @@ void Default_Data_Store::setup_enthalpy_tables()
 void Default_Data_Store::Data::calc_h_t(size_t table_size)
 {
     if (m_melt == 0 || m_boil == 0) return;
-    m_h_t.resize(table_size);
-    m_dt = (m_boil - m_melt) / m_h_t.size();
-    
+    m_h.resize(table_size);
+    m_dt = (m_boil - m_melt) / m_h.size();
     double melt2 = m_melt * m_melt;
     double melt3 = m_melt * melt2;
-    // E = a * melt + b * melt^2  + d * melt^3 - c / melt;
-    double m_e = m_cp_a * m_melt + m_cp_b * melt2 + m_cp_d * melt3 - m_cp_c / m_melt;
+    // E = a * melt + b/2 * melt^2  + d/3 * melt^3 - c / melt;
+    m_e = m_cp_a * m_melt + m_cp_b / 2.0 * melt2 + m_cp_d / 3.0 * melt3 - m_cp_c / m_melt;
     // h(melt) = 0
-    m_h_t[0] = 0.0;
+    m_h[0] = 0.0;
     size_t i = 1;
-    for (double t = m_melt + m_dt; t < m_boil; t+=m_dt, ++i)
+    for (double t = m_melt + m_dt; t < m_boil && i < m_h.size(); t+=m_dt, ++i)
     {        
-        m_h_t[i] = h_t(t);
+        m_h[i] = h_t(t);
     }
 }
 
 double Default_Data_Store::Data::h_t(double t) const
 {
-
     double t2 = t * t;
-    double t3 = t * t3;
-    // h(t) = a * t + b t^2 - c / t + d * t^3 - E;
-    return m_cp_a * t + m_cp_b * t2 - m_cp_c / t + m_cp_d * t3 - m_e;
+    double t3 = t * t2;
+    // h(t) = a * t + b/2 t^2 - c / t + d/3 * t^3 - E;
+    return m_cp_a * t + m_cp_b / 2.0 * t2 - m_cp_c / t + m_cp_d / 3.0 * t3 - m_e;
 }
 
+// enthalpy to temperature
 double Default_Data_Store::Data::h_to_t(double h) const
 {
-    if (m_h_t.empty()) return std::numeric_limits<double>::quiet_NaN();
+    if (m_h.empty()) return std::numeric_limits<double>::quiet_NaN();
 
-    if (h < 0) return m_h_t.front();
+    if (h < 0) return m_h.front();
 
-    auto x = std::lower_bound(m_h_t.begin(), m_h_t.end(), h);
-    if (x == m_h_t.end() ) return m_h_t[m_h_t.size() - 1];
+    auto x = std::lower_bound(m_h.begin(), m_h.end(), h);
+    if (x == m_h.end() ) return m_h[m_h.size() - 1];
 
-    double y0 = std::distance(m_h_t.begin(), x) * m_dt;
+    double y0 = m_melt + std::distance(m_h.begin(), x) * m_dt;
     double y1 = y0 + m_dt;
     double x0 = *x; x++;
     double x1 = *x;

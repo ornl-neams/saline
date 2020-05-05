@@ -25,7 +25,7 @@ namespace saline
  *   Conductivity  - Watts per Meter-Kelvin (W/m K)
  *   Pressure      - Kilopascal (kPa)
  *   Temperature   - Kelvin (K)
- *   Enthalpy      - Joule per Kilogram (J/kg)
+ *   Enthalpy      - Joule per mole (J/mole)
  *   Viscosity     - Centipoise (cP) or milli Newton-second per square Meter (mN.s/m^2)
  *   Specific Heat - Joules per Kelvin Mole (J/K mole)
  *   Density       - Grams per Cubic Centimeter (g/cc)
