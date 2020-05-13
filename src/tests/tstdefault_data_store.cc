@@ -1,25 +1,14 @@
+#include "gtest/gtest.h"
+
 #include "../default_data_store.hh"
 #include "../thermophysical_properties.hh"
 #include "../utils.hh"
 
 #include <iostream>
-#include <iomanip>
-
-// macro for printing error and exiting
-#define exit_msg(X) \
-      { std::cout << X << std::endl; return 1;} 
-
-#define ASSERT_TRUE(C) \
-      { if(!C) {std::cout << "FAILED: "<< #C << std::endl; return 1;} }  
-
-#define ASSERT_EQ(E, A) \
-      { if(E != A) {std::cout  << "FAILED: "<< #E <<" != " #A << std::endl \
-                      << #E <<" = "<< std::setprecision(16)<< E  \
-                      <<" and " << #A <<" = " << std::setprecision(16) << A << std::endl; return 1;} }  
 
 using namespace saline;
 
-int main()
+TEST(default_data, test)
 {
     Default_Data_Store d;
     Thermophysical_Properties tp;
@@ -39,6 +28,9 @@ int main()
 
     // expecting ~0.47 and ~.43 + or - 3 cP
     std::cout << tp.mu(utils::c2k(450)) <<  " " << tp.mu(utils::c2k(800)) << std::endl;
+    // expecting ~0.47 and ~.43 + or - 3 cP
+    EXPECT_EQ(0.47, tp.mu(utils::c2k(450)));
+    EXPECT_EQ(0.0126694251, tp.cp(utils::c2k(500)));
 
     // expecting ~1680 and ~1490 + or - 25 kg/m^3
     std::cout << tp.rho(utils::c2k(450)) <<  " " << tp.rho(utils::c2k(800)) << std::endl;
@@ -52,5 +44,4 @@ int main()
     // expecting ~0.9 W/m K
     std::cout << tp.k(utils::c2k(700)) << std::endl;
 
-    return 0;   
 }
