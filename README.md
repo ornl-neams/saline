@@ -71,3 +71,16 @@ Lastly, perform the following commands
 make -j8 install   # compile and install the library and tests
 ctest -V -j 8      # execute the tests (verbosely) 
 ```
+
+### Enabling Fortran Support
+
+To enable Fortran, export saline_ENABLE_Fortran=ON. 
+
+The Fortran compiler must be 2003 compliant and support the ISO_C_BINDINGS.
+
+```bash
+export saline_ENABLE_Fortran=ON # Enable the Fortran library and bindings
+../configure.sh    # execute the configuration script
+make -j8 install   # compile and install the library and tests
+ctest -V -j 8      # execute the tests (verbosely) 
+```
