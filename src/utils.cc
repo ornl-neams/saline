@@ -1,4 +1,7 @@
 #include "utils.hh"
+#include "saline_bug.hh"
+
+#include <cmath>
 
 namespace saline
 {
@@ -13,7 +16,7 @@ double c2k(double celsius)
 }
 
 //-------------------------------------------------------------------------------------------//
-// Convert celsius to kelvin
+// split str based on the given delimiter
 std::vector<std::string> split( const std::string& delim,
                                 const std::string& str )
 {
@@ -35,6 +38,22 @@ std::vector<std::string> split( const std::string& delim,
 
     return tokens;
 }  // split
+
+//-------------------------------------------------------------------------------------------//
+// Calculate the euclidean distance between vectors a and b
+double euclidean_distance(const std::vector<double>& a, const std::vector<double>& b)
+{
+    saline_insist(a.size() == b.size(), "vector size must be equal!");
+    saline_insist(!a.empty(), "vector must not be empty");
+
+    double sum = 0;
+    for( size_t i = 0; i < a.size(); ++i)
+    {
+        double diff = b[i] - a[i];
+        sum += diff * diff;
+    }
+    return std::sqrt(sum);
+} // euclidean_distance
 
 } // end namespace util
 } // end namespace saline
