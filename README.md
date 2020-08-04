@@ -27,7 +27,6 @@ The Data_Store has a convience class `View` to insulate Data_Store access.
 
 >Note:: Pressure parameters are ignored, currently.
 
->Note:: Properties as a function of enthalpy are not yet implemented and will return `NaN`
 
 >Note:: Current data integrated is incorporated via the [`Default_Data_Store`](./src/default_data_store.hh)
 
