@@ -80,6 +80,14 @@ class Thermophysical_Properties
     // set the mole % and select the composition
     bool setComposition(const Vec_Name& names, 
                         const Vec_Mole& mole_percents);
+                      
+    // convenience method for Fortran interface
+    // names is composition names separated by '-'
+    // The name count must be equal to the mole_percent_count
+    // returns true, iff the names were succesfully processed, counts matched
+    //               AND data was found for the compound
+    bool setComposition(const std::string& names, double* mole_percents,
+                        int mole_percent_count);
 
     // initialize the properties data
     bool initialize(Data_Store* d);
