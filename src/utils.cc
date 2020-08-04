@@ -1,6 +1,7 @@
 #include "utils.hh"
 #include "saline_bug.hh"
 
+#include <algorithm>
 #include <cmath>
 
 namespace saline
@@ -54,6 +55,28 @@ double euclidean_distance(const std::vector<double>& a, const std::vector<double
     }
     return std::sqrt(sum);
 } // euclidean_distance
+
+//-------------------------------------------------------------------------------------------//
+// Calculate the nearest neighbor index set
+std::vector<std::pair<double, size_t>>  
+                        nearest_neighbor(const std::vector<double>& a, 
+                        const std::vector<std::vector<double>>& neighbors)
+{
+    std::vector<std::pair<double, size_t>> nearest;
+
+    // Compute distance to neighbors
+    for(size_t i = 0; i < neighbors.size(); ++i)
+    {
+        const auto& neighbor = neighbors[i];
+        double distance = euclidean_distance(a, neighbor);
+        nearest.push_back({distance, i});
+    }
+
+    // Order on shortest distance (default pair ordering on first member)
+    std::sort(nearest.begin(), nearest.end());
+
+    return nearest;
+} // nearest_neighbor
 
 } // end namespace util
 } // end namespace saline

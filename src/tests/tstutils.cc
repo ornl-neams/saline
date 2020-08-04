@@ -87,3 +87,28 @@ TEST(salineutils, euclidean_distance_empty_error)
     std::vector<double> b;
     EXPECT_ANY_THROW(utils::euclidean_distance(a,b));
 }
+
+TEST(salineutils, nearest_neighbor)
+{
+    std::vector<double> a = {0.6998,0.1499,0.1503};
+    std::vector<std::vector<double>> neighbors = {{0.7011,0.2388,0.0601},
+                                                  {0.7006,0.1796,0.1198},
+                                                  {0.6998,0.1499,0.1503},
+                                                  {0.727,0.157,0.116}};
+    auto nearest = utils::nearest_neighbor(a, neighbors);
+    
+    // for( auto n : nearest) std::cout <<n.first<<", "<<n.second<< std::endl;
+
+    std::vector<std::pair<double, size_t>> ref = {{0, 2}, 
+                                                  {0.0425791, 1},
+                                                  {0.0443479, 3},
+                                                  {0.126653, 0}};
+    for(size_t i = 0; i < ref.size(); ++i)
+    {
+        SCOPED_TRACE(i);
+        
+        EXPECT_NEAR(ref[i].first, nearest[i].first, 1e-5);
+        EXPECT_EQ(ref[i].second, nearest[i].second);
+    }
+    
+}
