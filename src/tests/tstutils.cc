@@ -32,6 +32,12 @@ TEST(salineutils, euclidean_distance_1d)
     EXPECT_EQ(2, utils::euclidean_distance(a,b));
     EXPECT_EQ(2, utils::euclidean_distance(b,a));
     }
+    {
+    std::vector<double> a = {-10};
+    std::vector<double> b = {-10};
+    EXPECT_EQ(0, utils::euclidean_distance(a,b));
+    EXPECT_EQ(0, utils::euclidean_distance(b,a));
+    }
 }
 
 TEST(salineutils, euclidean_distance_2d)
@@ -64,4 +70,20 @@ TEST(salineutils, euclidean_distance_3d)
     EXPECT_EQ(4, utils::euclidean_distance(a,b));
     EXPECT_EQ(4, utils::euclidean_distance(b,a));
     }
+}
+
+TEST(salineutils, euclidean_distance_rank_error)
+{
+
+    std::vector<double> a = {0, 0, 0};
+    std::vector<double> b = {0, 0};
+    EXPECT_ANY_THROW(utils::euclidean_distance(a,b));
+}
+
+TEST(salineutils, euclidean_distance_empty_error)
+{
+
+    std::vector<double> a;
+    std::vector<double> b;
+    EXPECT_ANY_THROW(utils::euclidean_distance(a,b));
 }
