@@ -49,6 +49,9 @@ class Data_Store
     using Vec_Name = std::vector<Name>;
     using Vec_Mole = std::vector<double>; 
     //@}
+
+    virtual ~Data_Store(){}
+    
     // convenience accessor/view of data store
     struct View
     {
