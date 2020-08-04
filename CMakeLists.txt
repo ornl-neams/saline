@@ -58,6 +58,7 @@ IF (NOT TRIBITS_PROCESSING_PACKAGE)
   IF(NOT ${PROJECT_NAME}_ENABLE_Fortran)
      SET(${PROJECT_NAME}_ENABLE_Fortran OFF CACHE BOOL "Enable fortran support")
   ENDIF()
+  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ffree-line-length-none")
   # default MPI support off
   IF(NOT TPL_ENABLE_MPI)
     SET(TPL_ENABLE_MPI OFF CACHE BOOL "Enable MPI support")

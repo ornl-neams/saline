@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 
 #include "thermophysical_properties.hh"
+#include "utils.hh"
+#include "saline_bug.hh"
 
 namespace saline
 {
@@ -125,6 +127,18 @@ bool Thermophysical_Properties::setComposition(const Vec_Name& names,
 
     m_impl = m_data->view(id);
     return !m_impl.null();
+}
+
+bool Thermophysical_Properties::setComposition(const std::string& names, 
+                                            double* mole_percents,
+                                            int mole_percent_count)
+{
+    saline_require(mole_percent_count > 0);
+    auto comps = utils::split("-",names);
+    if (comps.size() != mole_percent_count) return false;
+    
+    std::vector<double> mp(mole_percents, mole_percents + mole_percent_count);
+    return setComposition(comps, mp);
 }
 
 //---------------------------------------------------------------------------//
