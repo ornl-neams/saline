@@ -56,66 +56,66 @@ bool Data_Store::View::null() const
 
 double Data_Store::View::cp(double temperature, double pressure) const
 {
-    d->cp(id, temperature, pressure);
+    return d->cp(id, temperature, pressure);
 }
 
 double Data_Store::View::cp_h(double enthalpy, double pressure) const
 {
-    d->cp_h(id, enthalpy, pressure);
+    return d->cp_h(id, enthalpy, pressure);
 }
 
 // viscosity
 double Data_Store::View::mu(double temperature, double pressure) const
 {
-    d->mu(id, temperature, pressure);
+    return d->mu(id, temperature, pressure);
 }
 
 double Data_Store::View::mu_h(double enthalpy, double pressure) const
 {
-    d->mu_h(id, enthalpy, pressure);
+    return d->mu_h(id, enthalpy, pressure);
 }
 
 // conductivity
 double Data_Store::View::k(double temperature, double pressure) const
 {
-    d->k(id, temperature, pressure);
+    return d->k(id, temperature, pressure);
 }
 
 double Data_Store::View::k_h(double enthalpy, double pressure) const
 {
-    d->k_h(id, enthalpy, pressure);
+    return d->k_h(id, enthalpy, pressure);
 }
 
 // density
 double Data_Store::View::rho(double temperature, double pressure) const
 {
-    d->rho(id, temperature, pressure);
+    return d->rho(id, temperature, pressure);
 }
 double Data_Store::View::rho_h(double enthalpy, double pressure) const
 {
-    d->rho_h(id, enthalpy, pressure);
+    return d->rho_h(id, enthalpy, pressure);
 }
 
 double Data_Store::View::h_t(double temperature) const
 {
-    d->h_t(id, temperature);
+    return d->h_t(id, temperature);
 }
 
 double Data_Store::View::t_h(double enthalpy) const
 {
-    d->t_h(id, enthalpy);
+    return d->t_h(id, enthalpy);
 }
 
 // melting temperature
 double Data_Store::View::melt() const
 {
-    d->melt(id);
+    return d->melt(id);
 }
 
 // boiling temperature
 double Data_Store::View::boil() const
 {
-    d->boil(id);
+    return d->boil(id);
 }
 
 } // namespace saline
