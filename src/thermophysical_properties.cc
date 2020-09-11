@@ -122,10 +122,14 @@ double Thermophysical_Properties::t_h(double enthalpy) const
 bool Thermophysical_Properties::setComposition(const Vec_Name& names, 
                         const Vec_Mole& mole_percents)
 {
+    saline_require(names.size() == mole_percents.size());
     Id id = m_data->names_to_id(names);
     if (!m_data->valid(id)) return false;
 
     m_impl = m_data->view(id);
+    m_impl.assign_bounds(mole_percents);
+    // Alternatively, we could call utils::closest_neighbor 
+    // to obtain the index of the 'closest' data record
     return !m_impl.null();
 }
 

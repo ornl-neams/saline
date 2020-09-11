@@ -64,32 +64,40 @@ class Default_Data_Store : public Data_Store
     Vec_Name names(Id id) const { return compounds[id].names;}
 
     // specific heat 
-    double cp(Id, double temperature, double pressure = 101.325) const;
-    double cp_h(Id, double enthalpy, double pressure = 101.325) const;
+    double cp(Id id, Id data_id, double temperature, double pressure = 101.325) const;
+    double cp_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const;
 
     // viscosity
-    double mu(Id, double temperature, double pressure = 101.325) const;
-    double mu_h(Id, double enthalpy, double pressure = 101.325) const;
+    double mu(Id id, Id data_id, double temperature, double pressure = 101.325) const;
+    double mu_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const;
 
     // conductivity
-    double k(Id, double temperature, double pressure = 101.325) const;
-    double k_h(Id, double enthalpy, double pressure = 101.325) const;
+    double k(Id id, Id data_id, double temperature, double pressure = 101.325) const;
+    double k_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const;
 
     // density
-    double rho(Id, double temperature, double pressure = 101.325) const;
-    double rho_h(Id, double enthalpy, double pressure = 101.325) const;
+    double rho(Id id, Id data_id, double temperature, double pressure = 101.325) const;
+    double rho_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const;
 
     // enthalpy
-    double h_t(Id, double temperature) const;
+    double h_t(Id id, Id data_id, double temperature) const;
 
     // temperature 
-    double t_h(Id, double enthalpy) const;
+    double t_h(Id id, Id data_id, double enthalpy) const;
 
     // melting temperature
     double melt(Id id) const;
 
     // boiling temperature
     double boil(Id id) const;
+
+    // number of constituents for the given compound
+    std::size_t constituent_count(Id id) const;
+
+    // obtain the lower and upper data identifiers for the given mole percent
+    // if the exact mole_percent is contained, lower will equal upper
+    // if only a single data indentifier exists, lower will equal upper
+    std::pair<Id, Id> extents(Id id, Id data_id, double mole_percent) const;
 
     private:
 

@@ -44,8 +44,9 @@ TEST(default_data, test)
     // expecting ~0.9 W/m K
     std::cout << tp.k(utils::c2k(700)) << std::endl;
 
-    ASSERT_TRUE(tp.setComposition({"LiF","BeF2","ThF4"},{0.6998,0.1499,0.1503}));
-
+    // ASSERT_TRUE(tp.setComposition({"LiF","BeF2","ThF4"},{0.6998,0.1499,0.1503}));
+    ASSERT_TRUE(tp.setComposition({"LiF","BeF2","ThF4"},{0.7011,0.2388,0.0601}));
+    
     for( double t_c = 550; t_c <= 800; t_c+=50)
     {
           std::cout << t_c << " " << tp.mu(utils::c2k(t_c)) << std::endl;

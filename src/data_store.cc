@@ -1,5 +1,7 @@
 #include "data_store.hh"
 
+#include "saline_bug.hh"
+
 #include <algorithm>
 #include <cctype>
 
@@ -46,64 +48,91 @@ Data_Store::Id Data_Store::names_to_id(Vec_Name snames) const
     }
     return std::numeric_limits<std::size_t>::max();
 }
+//---------------------------------------------------------------------------//
+void Data_Store::View::assign_bounds(const Vec_Mole& mp)
+{
+    saline_require(!mp.empty());
+    saline_require(mp.size() == d->constituent_count(id));
+    mole_percents = mp;
+    bounds.resize(mp.size(), {0,0});
 
+    // Loop over each compound data entry and
+    // determine lower and upper records for each constituent
+    for (size_t i_mp = 0; i_mp < mp.size(); ++i_mp)
+    {
+        bounds[i_mp] = d->extents(id, i_mp, mp[i_mp]);
+    }
+}
 
+//---------------------------------------------------------------------------//
+/*!
+ * \brief obtain the data store id for the given single component compound
+ */
+std::size_t Data_Store::View::constituent_count() const
+{
+      return d->constituent_count(id);
+}
+//---------------------------------------------------------------------------//
 // view is null if data is null and data id is valid
 bool Data_Store::View::null() const
 {
     return d == nullptr || (d != nullptr && !d->valid(id));
 }
 
+//---------------------------------------------------------------------------//
 double Data_Store::View::cp(double temperature, double pressure) const
 {
-    return d->cp(id, temperature, pressure);
+    return d->cp(id, bounds[0].first, temperature, pressure);
 }
 
+//---------------------------------------------------------------------------//
 double Data_Store::View::cp_h(double enthalpy, double pressure) const
 {
-    return d->cp_h(id, enthalpy, pressure);
+    return d->cp_h(id, bounds[0].first, enthalpy, pressure);
 }
 
+//---------------------------------------------------------------------------//
 // viscosity
 double Data_Store::View::mu(double temperature, double pressure) const
 {
-    return d->mu(id, temperature, pressure);
+    return d->mu(id, bounds[0].first, temperature, pressure);
 }
 
 double Data_Store::View::mu_h(double enthalpy, double pressure) const
 {
-    return d->mu_h(id, enthalpy, pressure);
+    return d->mu_h(id, bounds[0].first, enthalpy, pressure);
 }
 
+//---------------------------------------------------------------------------//
 // conductivity
 double Data_Store::View::k(double temperature, double pressure) const
 {
-    return d->k(id, temperature, pressure);
+    return d->k(id, bounds[0].first, temperature, pressure);
 }
 
 double Data_Store::View::k_h(double enthalpy, double pressure) const
 {
-    return d->k_h(id, enthalpy, pressure);
+    return d->k_h(id, bounds[0].first, enthalpy, pressure);
 }
 
 // density
 double Data_Store::View::rho(double temperature, double pressure) const
 {
-    return d->rho(id, temperature, pressure);
+    return d->rho(id, bounds[0].first, temperature, pressure);
 }
 double Data_Store::View::rho_h(double enthalpy, double pressure) const
 {
-    return d->rho_h(id, enthalpy, pressure);
+    return d->rho_h(id, bounds[0].first, enthalpy, pressure);
 }
 
 double Data_Store::View::h_t(double temperature) const
 {
-    return d->h_t(id, temperature);
+    return d->h_t(id, bounds[0].first, temperature);
 }
 
 double Data_Store::View::t_h(double enthalpy) const
 {
-    return d->t_h(id, enthalpy);
+    return d->t_h(id, bounds[0].first, enthalpy);
 }
 
 // melting temperature

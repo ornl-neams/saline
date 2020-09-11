@@ -1,5 +1,5 @@
 #include "default_data_store.hh"
-
+#include "saline_bug.hh"
 #include <algorithm>
 
 namespace saline
@@ -176,70 +176,103 @@ double Default_Data_Store::Data::h_to_t(double h) const
     return y0 + (h-x0) * (y1-y0) / (x1-x0);
 }
 
-// specific heat 
-double Default_Data_Store::cp(Id id, double t, double p) const
+std::size_t Default_Data_Store::constituent_count(Id id) const
+{    
+    saline_require(id < compounds.size());
+    saline_check(compounds[id].data.size() == compounds[id].names.size());
+    return compounds[id].data.size();
+}
+
+auto Default_Data_Store::extents(Id id, Id mp_id, double mp) const
+ -> std::pair<Id, Id>
 {
-    const auto& d = compounds[id].data.front();
+    saline_require(id < compounds.size());
+    saline_require(mp_id < compounds[id].data.size());  
+
+    size_t i_min = 0;
+    size_t i_max = 0;    
+    for (size_t i = 0, count = compounds[id].data.size(); i < count; ++i)
+    {
+        auto datas = compounds[id].data; 
+        auto data = datas[i];
+        const auto& mps = data.mole_percents();
+        
+        if (mps[mp_id] >= mp && mps[mp_id] <= datas[i_max].mole_percents()[mp_id])
+        {
+            i_max = i;            
+        }
+        if (mps[mp_id] <= mp && mps[mp_id] >= datas[i_min].mole_percents()[mp_id])
+        {
+            i_min = i;
+        }
+    }
+    return {i_min, i_max};
+}
+
+// specific heat 
+double Default_Data_Store::cp(Id id, Id data_id, double t, double p) const
+{
+    const auto& d = compounds[id].data[data_id];
     double t2 = t * t;
     double t_2 = 1.0/t2;
 
     // cp(t) = a + b * T + c * T^-2 + d * T^2
     return d.cp(t);
 }
-double Default_Data_Store::cp_h(Id id, double enthalpy, double p) const
+double Default_Data_Store::cp_h(Id id, Id data_id, double enthalpy, double p) const
 {
-    const auto& d = compounds[id].data.front();
+    const auto& d = compounds[id].data[data_id];
     return d.cp_h(enthalpy);
 }
 
 // viscosity
-double Default_Data_Store::mu(Id id, double t, double p) const
+double Default_Data_Store::mu(Id id, Id data_id, double t, double p) const
 {
-    const auto& d = compounds[id].data.front();    
+    const auto& d = compounds[id].data[data_id];    
     return d.mu(t);
 }
-double Default_Data_Store::mu_h(Id id, double enthalpy, double p) const
+double Default_Data_Store::mu_h(Id id, Id data_id, double enthalpy, double p) const
 {
-    const auto& d = compounds[id].data.front();
+    const auto& d = compounds[id].data[data_id];
     return d.mu_h(enthalpy);
 }
 
 // conductivity
-double Default_Data_Store::k(Id id, double t, double p) const
+double Default_Data_Store::k(Id id, Id data_id, double t, double p) const
 {
-       const auto& d = compounds[id].data.front();
+       const auto& d = compounds[id].data[data_id];
        // k(t) = a + b * t
        return d.k(t);
 }
-double Default_Data_Store::k_h(Id id, double enthalpy, double p) const
+double Default_Data_Store::k_h(Id id, Id data_id, double enthalpy, double p) const
 {
-    const auto& d = compounds[id].data.front();
+    const auto& d = compounds[id].data[data_id];
     return d.k_h(enthalpy);
 }
 
 // density
-double Default_Data_Store::rho(Id id, double t, double p) const
+double Default_Data_Store::rho(Id id, Id data_id, double t, double p) const
 {
-    const auto& d = compounds[id].data.front();    
+    const auto& d = compounds[id].data[data_id];    
     return d.rho(t);
 }
-double Default_Data_Store::rho_h(Id id, double enthalpy, double p) const
+double Default_Data_Store::rho_h(Id id, Id data_id, double enthalpy, double p) const
 {
-    const auto& d = compounds[id].data.front();
+    const auto& d = compounds[id].data[data_id];
     return d.rho_h(enthalpy);
 }
 
 // enthalpy
-double Default_Data_Store::h_t(Id id, double temperature) const
+double Default_Data_Store::h_t(Id id, Id data_id, double temperature) const
 {
-    const auto& d = compounds[id].data.front();
+    const auto& d = compounds[id].data[data_id];
     return d.h_t(temperature);
 }
 
 // temperature
-double Default_Data_Store::t_h(Id id, double enthalpy) const
+double Default_Data_Store::t_h(Id id, Id data_id, double enthalpy) const
 {
-    const auto& d = compounds[id].data.front();
+    const auto& d = compounds[id].data[data_id];
     return d.h_to_t(enthalpy);
 }
 
