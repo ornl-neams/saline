@@ -12,15 +12,15 @@ void Default_Data_Store::add(const std::vector<std::string>& names,
             double mu_a, double mu_b,
             double k_a, double k_b,
             double cp_a, double cp_b, double cp_c, double cp_d)
-{
+{   
     if (compounds.empty())
     {
         compounds.resize(compounds.size()+1);
-    }
-
+    }    
     // if it is a new compound, add empty entry
-    if( compounds.back().names != names)
+    else if( compounds.back().names != names)
     {
+
         compounds.resize(compounds.size()+1);
     }
     auto& c  = compounds.back();
@@ -29,7 +29,7 @@ void Default_Data_Store::add(const std::vector<std::string>& names,
     auto& d = c.data.back();
     d.m_mole_percents = mole_percent;
     d.m_melt = melt;
-    d.m_boil = boil;    
+    d.m_boil = boil;
     d.m_rho_a = rho_a;
     d.m_rho_b = rho_b;
     d.m_mu_a = mu_a;
@@ -39,7 +39,7 @@ void Default_Data_Store::add(const std::vector<std::string>& names,
     d.m_cp_a = cp_a;
     d.m_cp_b = cp_b;
     d.m_cp_c = cp_c;
-    d.m_cp_d = cp_d;
+    d.m_cp_d = cp_d;    
 }
 //---------------------------------------------------------------------------//
 /*!
@@ -53,6 +53,7 @@ void Default_Data_Store::add(const std::vector<std::string>& names,
  */
 Default_Data_Store::Default_Data_Store()
 {    
+    // names, mole_percents, tmelt, tboil, rho_a,  rho_b, mu_a, mu_b, k_a, k_b, cp_a, cp_b, cp_c, cp_d
     add({"BeCl2"},{1},688,755,2.276,0.0011,0.0,0.0,0.0,0.0,121.42,0.0,0.0,0.0);
     add({"BeF2"},{1},825,1442,1.972,0.0000145,3.0184E-07,239257.6748,0.7984,0.0,102.652,-0.001539,-15651800,0.000000003);
     add({"CaCl2"},{1},1045,2208.7,2.5261,0.0004225,0.10215,30350.99274,0.4468,0.0,102.533,0.0,0.0,0.0);
@@ -69,6 +70,7 @@ Default_Data_Store::Default_Data_Store()
     add({"LiF"},{1},1121.3,1946,2.3581,0.0004902,0.18359,21832.01701,1.436,0.0,64.183,0.0,0.0,0.0);
     add({"LiF","BeF2"},{0.66,0.34},730.2,0.0,2.7637,0.000687,0.0116,3755,0.629697,0.0005,2385,0.0,0.0,0.0);
     add({"LiF","BeF2"},{0.69,0.31},778.15,0.0,0.0,0.0,0.118,3624,0.0,0.0,0.0,0.0,0.0,0.0);
+    // names, mole_percents, tmelt, tboil, rho_a,  rho_b, mu_a, mu_b, k_a, k_b, cp_a, cp_b, cp_c, cp_d
     add({"LiF","BeF2","ThF4"},{0.7011,0.2388,0.0601},0.0,0.0,3.1118,0.0006707,0.06602,4380,0.0,0.0,0.0,0.0,0.0,0.0);
     add({"LiF","BeF2","ThF4"},{0.7006,0.1796,0.1198},0.0,0.0,3.8236,0.0008064,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0);
     add({"LiF","BeF2","ThF4"},{0.6998,0.1499,0.1503},0.0,0.0,4.1811,0.0009526,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0);
@@ -190,22 +192,32 @@ auto Default_Data_Store::extents(Id id, Id mp_id, double mp) const
     saline_require(mp_id < compounds[id].data.size());  
 
     size_t i_min = 0;
-    size_t i_max = 0;    
+    size_t i_max = 0;
+    bool max_assigned = false;
+    bool min_assigned = false;
+    // loop over data records looking for min and max percents for the given constituent (mp_id) 
     for (size_t i = 0, count = compounds[id].data.size(); i < count; ++i)
     {
         auto datas = compounds[id].data; 
         auto data = datas[i];
         const auto& mps = data.mole_percents();
-        
-        if (mps[mp_id] >= mp && mps[mp_id] <= datas[i_max].mole_percents()[mp_id])
-        {
-            i_max = i;            
+        // is the new entry (mps[mp_id]) greater or equal to search term (mp)
+        bool is_max_gte = mps[mp_id] >= mp;
+        if (is_max_gte && !max_assigned || 
+            (max_assigned && is_max_gte && mps[mp_id] <= datas[i_max].mole_percents()[mp_id]))
+        {        
+            i_max = i;
+            max_assigned = true;
         }
-        if (mps[mp_id] <= mp && mps[mp_id] >= datas[i_min].mole_percents()[mp_id])
-        {
+        // is the new entry (mps[mp_id]) less or equal to search term (mp)
+        bool is_min_lte = mps[mp_id] <= mp;
+        if (is_min_lte && !min_assigned || 
+            (min_assigned && is_min_lte && mps[mp_id] >= datas[i_min].mole_percents()[mp_id]))
+        {        
             i_min = i;
+            min_assigned = true;            
         }
-    }
+    }    
     return {i_min, i_max};
 }
 
@@ -288,5 +300,19 @@ double Default_Data_Store::boil(Id id) const
 {
     const auto& d = compounds[id].data.front();
     return d.boil();
+}
+
+void Default_Data_Store::Data::to_stream(std::ostream& s) const
+{
+    s << "% [";
+    for (double pt : m_mole_percents) s << pt << " ";
+    s << std::endl;
+    s << "melt, boil: " << m_melt << ", " << m_boil << std::endl;
+    s << "density :" << m_rho_a << ", " << m_rho_b << std::endl;
+
+    s << "viscosity :" << m_mu_a << ", " << m_mu_b << std::endl;
+    s << "conductivity :" << m_k_a << ", " << m_k_b << std::endl;
+    s << "specific heat :" << m_cp_a << ", " << m_cp_b << ", " << m_cp_c << ", " << m_cp_d << std::endl;
+
 }
 } // namespace saline

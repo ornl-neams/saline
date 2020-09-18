@@ -59,9 +59,10 @@ void Data_Store::View::assign_bounds(const Vec_Mole& mp)
     // Loop over each compound data entry and
     // determine lower and upper records for each constituent
     for (size_t i_mp = 0; i_mp < mp.size(); ++i_mp)
-    {
+    {        
         bounds[i_mp] = d->extents(id, i_mp, mp[i_mp]);
     }
+
 }
 
 //---------------------------------------------------------------------------//

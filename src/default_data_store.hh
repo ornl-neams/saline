@@ -11,6 +11,8 @@
 #include "data_store.hh"
 
 #include <cmath>
+#include <iostream>
+#include <ostream>
 #include <limits>
 #include <string>
 #include <vector>
@@ -113,6 +115,7 @@ class Default_Data_Store : public Data_Store
     {
       public:
 
+        void to_stream(std::ostream& s) const;
         Vec_Mole& mole_percents() {return m_mole_percents;};
         const Vec_Mole& mole_percents() const {return m_mole_percents;};
 
