@@ -15,5 +15,5 @@ cmake -MEMCHECK_COMMAND="$(which valgrind)" \
 ctest --output-on-failure \
       -D Experimental -j 8 \
       -D ExperimentalMemCheck \
-      -D ExperimentalCodeCoverage \
+      -D ExperimentalCoverage \
       -D ExperimentalSubmit
