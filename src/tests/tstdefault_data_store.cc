@@ -71,3 +71,33 @@ TEST(default_data, rho_LiFBeF2ThF4_6998_1499_1503)
                          << " " << rho_calc_ref[i] - tp.rho(t_c) << std::endl;
     }
 }
+
+TEST(default_data, mu_LiFBeF2ThF4_727_157_116)
+{
+    // measured t(c) for LiF-BeF2-ThF4 @ 72.7, 15.7, 11.6 mole %) Cantor '73 (https://www.osti.gov/servlets/purl/4419855)
+    std::vector<double> tcs           = {553, 582, 613, 638, 622, 588, 555, 572, 649, 673};
+    // Experimental values
+    std::vector<double> mu_exp       = {14.3, 13.4, 11.4, 9.74, 11.5, 13.5, 16.5, 14.1, 9.79, 7.74};
+    // Expected calculated values (note these have been rounded)
+    std::vector<double> mu_calc_ref  = {15.5, 13.1, 11.1, 9.76, 10.6, 12.7, 15.3, 13.9, 9.25, 8.27};
+
+    Default_Data_Store d;
+    Thermophysical_Properties tp;
+    ASSERT_TRUE(tp.initialize(&d));
+    
+    ASSERT_TRUE(tp.setComposition({"LiF","BeF2","ThF4"},{0.727,0.157,0.116}));
+
+    std::cout << "Density:" << std::endl
+              << " T(c) experimental calc_ref calced" << std::endl;
+    
+    for( size_t i = 0; i < tcs.size(); ++i)
+    {
+        double t_c = tcs[i];        
+        EXPECT_NEAR(mu_calc_ref[i], tp.mu(utils::c2k(t_c)), 5e-2);
+        // print data
+        std::cout << t_c << " " << mu_exp[i] 
+                         << " " << mu_calc_ref[i] 
+                         << " " << tp.mu(utils::c2k(t_c)) 
+                         << " " << mu_calc_ref[i] - tp.mu(utils::c2k(t_c)) << std::endl;
+    }
+}
