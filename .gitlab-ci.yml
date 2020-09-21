@@ -19,6 +19,8 @@ linux_gcc485_testing:
     - linux
     - gcc
   script:
+    - git clone https://github.com/lefebvre/TriBITS.git TriBITS
+    - ./TriBITS/tribits/ci_support/clone_extra_repos.py 
     - ci/linux_gcc_test.sh
 
 linux_gcc_analysis:
@@ -27,5 +29,7 @@ linux_gcc_analysis:
     - linux
     - valgrind
   script:
+    - git clone https://github.com/lefebvre/TriBITS.git TriBITS
+    - ./TriBITS/tribits/ci_support/clone_extra_repos.py
     - ci/linux_gcc_analysis.sh
   allow_failure: true
