@@ -2,7 +2,7 @@
 mkdir build
 cd build
 module load toolchain/gcc/4.8.3 cmake valgrind
-
+export saline_ENABLE_Fortran=ON # Enable the Fortran library and bindings
 cmake -MEMCHECK_COMMAND="$(which valgrind)" \
       -DBUILDNAME="$(uname -s)-GCC-4.8.3-Debug-${CI_BUILD_REF_NAME}" \
       -DCMAKE_BUILD_TYPE=DEBUG \

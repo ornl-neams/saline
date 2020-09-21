@@ -3,7 +3,7 @@ mkdir build
 cd build
 
 module load toolchain/gcc/4.8.3 cmake-3.13.2
-
+export saline_ENABLE_Fortran=ON # Enable the Fortran library and bindings
 cmake -DBUILDNAME="$(uname -s)-Release-${CI_BUILD_REF_NAME}" \
       -DCMAKE_BUILD_TYPE=RELEASE \
       -Dsaline_ENABLE_TESTS=ON \
