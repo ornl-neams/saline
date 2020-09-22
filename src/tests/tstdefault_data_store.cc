@@ -31,7 +31,7 @@ TEST(default_data, rho_LiFBeF2ThF4_7011_2388_0601)
         double t_c = tcs[i];        
         // NOTE: the data for cantor is reported in C but the interface requires K
         // for now pass C
-        EXPECT_NEAR(rho_calc_ref[i], tp.rho(t_c), 1e-3);
+        EXPECT_NEAR(rho_calc_ref[i], tp.rho(t_c), 1e-3);        
         // print data
         std::cout << t_c << " " << rho_exp[i] 
                          << " " << rho_calc_ref[i] 
@@ -130,4 +130,22 @@ TEST(default_data, mu_LiFBeF2ThF4_7011_2388_601)
                          << " " << tp.mu(utils::c2k(t_c)) 
                          << " " << mu_calc_ref[i] - tp.mu(utils::c2k(t_c)) << std::endl;
     }
+}
+
+TEST(default_data, rho_cp_mu_LiFNaFKF_465_115_042)
+{
+    Default_Data_Store d;
+    Thermophysical_Properties tp;
+    ASSERT_TRUE(tp.initialize(&d));
+    
+    ASSERT_TRUE(tp.setComposition({"LiF","NaF","KF"},{0.465,0.115,0.042}));
+    
+    EXPECT_NEAR(2.01797, tp.rho(900), 1e-5);
+    EXPECT_NEAR(tp.rho_h(tp.h_t(900)), tp.rho(900), 1e-4);
+
+    EXPECT_NEAR(1933.83999999, tp.cp(900), 1e-4);
+    EXPECT_NEAR(tp.cp_h(tp.h_t(1200)), tp.cp(1200), 4e-2);
+
+    EXPECT_NEAR(2.51693275, tp.mu(970), 1e-8);
+    EXPECT_NEAR(tp.mu_h(tp.h_t(900)), tp.mu(900), 6e-4);
 }
