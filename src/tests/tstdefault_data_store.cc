@@ -151,4 +151,6 @@ TEST(default_data, rho_cp_mu_k_LiFNaFKF_465_115_042)
 
     EXPECT_NEAR(0.9032, tp.k(970), 1e-4);
     EXPECT_NEAR(tp.k_h(tp.h_t(970)), tp.k(970), 1e-5);
+
+    EXPECT_NEAR(727.640659, tp.t_h(1000), 1e-7);
 }
