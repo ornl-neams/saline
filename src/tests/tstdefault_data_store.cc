@@ -132,7 +132,7 @@ TEST(default_data, mu_LiFBeF2ThF4_7011_2388_601)
     }
 }
 
-TEST(default_data, rho_cp_mu_LiFNaFKF_465_115_042)
+TEST(default_data, rho_cp_mu_k_LiFNaFKF_465_115_042)
 {
     Default_Data_Store d;
     Thermophysical_Properties tp;
@@ -148,4 +148,7 @@ TEST(default_data, rho_cp_mu_LiFNaFKF_465_115_042)
 
     EXPECT_NEAR(2.51693275, tp.mu(970), 1e-8);
     EXPECT_NEAR(tp.mu_h(tp.h_t(900)), tp.mu(900), 6e-4);
+
+    EXPECT_NEAR(0.9032, tp.k(970), 1e-4);
+    EXPECT_NEAR(tp.k_h(tp.h_t(970)), tp.k(970), 1e-5);
 }
