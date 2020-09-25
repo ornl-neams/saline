@@ -25,7 +25,7 @@ Thermophysical_Properties::Thermophysical_Properties()
 }
 
 //---------------------------------------------------------------------------//
-// ACCESSORS 
+// ACCESSORS
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
@@ -35,7 +35,7 @@ Thermophysical_Properties::Thermophysical_Properties()
 double Thermophysical_Properties::cp(double temperature, double pressure) const
 {
     return m_impl.cp(temperature, pressure);
-} 
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -53,7 +53,7 @@ double Thermophysical_Properties::cp_h(double enthalpy, double pressure) const
 double Thermophysical_Properties::mu(double temperature, double pressure) const
 {
     return m_impl.mu(temperature, pressure);
-}  
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -71,7 +71,7 @@ double Thermophysical_Properties::mu_h(double enthalpy, double pressure) const
 double Thermophysical_Properties::k(double temperature, double pressure) const
 {
     return m_impl.k(temperature, pressure);
-}   
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -89,7 +89,7 @@ double Thermophysical_Properties::k_h(double enthalpy, double pressure) const
 double Thermophysical_Properties::rho(double temperature, double pressure) const
 {
     return m_impl.rho(temperature, pressure);
-}  
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -119,7 +119,7 @@ double Thermophysical_Properties::t_h(double enthalpy) const
 }
 
 // set the mole % and select the composition
-bool Thermophysical_Properties::setComposition(const Vec_Name& names, 
+bool Thermophysical_Properties::setComposition(const Vec_Name& names,
                         const Vec_Mole& mole_percents)
 {
     saline_require(names.size() == mole_percents.size());
@@ -127,27 +127,26 @@ bool Thermophysical_Properties::setComposition(const Vec_Name& names,
     if (!m_data->valid(id)) return false;
 
     m_impl = m_data->view(id);
-    m_impl.assign_bounds(mole_percents);
-    // Alternatively, we could call utils::closest_neighbor 
-    // to obtain the index of the 'closest' data record
+    // This uses a nearest neighbor search to set the composition
+    m_impl.assign_record(mole_percents);
     return !m_impl.null();
 }
 
-bool Thermophysical_Properties::setComposition(const std::string& names, 
+bool Thermophysical_Properties::setComposition(const std::string& names,
                                             double* mole_percents,
                                             int mole_percent_count)
 {
     saline_require(mole_percent_count > 0);
     auto comps = utils::split("-",names);
     if (comps.size() != mole_percent_count) return false;
-    
+
     std::vector<double> mp(mole_percents, mole_percents + mole_percent_count);
     return setComposition(comps, mp);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief initialize this properties data store 
+ * \brief initialize this properties data store
  * \returns true, iff Data_Store is non-null and contains data
  */
 bool Thermophysical_Properties::initialize(Data_Store* d)
@@ -156,7 +155,7 @@ bool Thermophysical_Properties::initialize(Data_Store* d)
     {
         m_data = d;
         return true;
-    } 
+    }
     return false;
 }
 

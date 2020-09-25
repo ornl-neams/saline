@@ -1,22 +1,23 @@
 #include "default_data_store.hh"
 #include "saline_bug.hh"
+#include "utils.hh"
 #include <algorithm>
 
 namespace saline
 {
 
-void Default_Data_Store::add(const std::vector<std::string>& names, 
-            const std::vector<double>& mole_percent, 
+void Default_Data_Store::add(const std::vector<std::string>& names,
+            const std::vector<double>& mole_percent,
             double melt, double boil,
             double rho_a, double rho_b,
             double mu_a, double mu_b,
             double k_a, double k_b,
             double cp_a, double cp_b, double cp_c, double cp_d)
-{   
+{
     if (compounds.empty())
     {
         compounds.resize(compounds.size()+1);
-    }    
+    }
     // if it is a new compound, add empty entry
     else if( compounds.back().names != names)
     {
@@ -39,20 +40,20 @@ void Default_Data_Store::add(const std::vector<std::string>& names,
     d.m_cp_a = cp_a;
     d.m_cp_b = cp_b;
     d.m_cp_c = cp_c;
-    d.m_cp_d = cp_d;    
+    d.m_cp_d = cp_d;
 }
 //---------------------------------------------------------------------------//
 /*!
  * \brief constructs the default data store
  *
- * This data is transcribed from 
- * 
- * Jerden, James. Molten Salt Thermophysical Properties Database Development: 2019 Update. 
+ * This data is transcribed from
+ *
+ * Jerden, James. Molten Salt Thermophysical Properties Database Development: 2019 Update.
  * United States: N. p., 2019. Web. doi:10.2172/1559846.
- * 
+ *
  */
 Default_Data_Store::Default_Data_Store()
-{    
+{
     // names, mole_percents, tmelt, tboil, rho_a,  rho_b, mu_a, mu_b, k_a, k_b, cp_a, cp_b, cp_c, cp_d
     add({"BeCl2"},{1},688,755,2.276,0.0011,0.0,0.0,0.0,0.0,121.42,0.0,0.0,0.0);
     add({"BeF2"},{1},825,1442,1.972,0.0000145,3.0184E-07,239257.6748,0.7984,0.0,102.652,-0.001539,-15651800,0.000000003);
@@ -119,7 +120,7 @@ Default_Data_Store::Default_Data_Store()
     add({"UF4"},{1},1309,1690,7.784,0.000992,0.010775,58222.17086,0.0,0.0,167,0.0,0.0,0.0);
 
     setup_enthalpy_tables();
-} 
+}
 
 // setup the enthalpy 2 temperature interpolation tables
 void Default_Data_Store::setup_enthalpy_tables()
@@ -146,7 +147,7 @@ void Default_Data_Store::Data::calc_h_t(size_t table_size)
     m_h[0] = 0.0;
     size_t i = 1;
     for (double t = m_melt + m_dt; t < m_boil && i < m_h.size(); t+=m_dt, ++i)
-    {        
+    {
         m_h[i] = h_t(t);
     }
 }
@@ -167,8 +168,8 @@ double Default_Data_Store::Data::h_to_t(double h) const
     auto x = std::lower_bound(m_h.begin(), m_h.end(), h);
 
     if (h < 0) x = m_h.begin();
-    
-    else if (x == m_h.end() ) x = m_h.end()-2; 
+
+    else if (x == m_h.end() ) x = m_h.end()-2;
 
     double y0 = m_melt + std::distance(m_h.begin(), x) * m_dt;
     double y1 = y0 + m_dt;
@@ -179,49 +180,75 @@ double Default_Data_Store::Data::h_to_t(double h) const
 }
 
 std::size_t Default_Data_Store::constituent_count(Id id) const
-{    
+{
     saline_require(id < compounds.size());
     saline_check(compounds[id].data.size() == compounds[id].names.size());
     return compounds[id].data.size();
+}
+
+// return the nearest neighboring composition
+auto Default_Data_Store::nearest(Id id, const Vec_Mole& mole_percent) const
+ -> Id
+{
+    double min_dist = std::numeric_limits<double>::max();
+    size_t i_min = 0;
+    for(size_t i =0; i < compounds[id].data.size(); i++)
+    {
+        auto datas = compounds[id].data;
+        auto data = datas[i];
+        const auto& mps = data.mole_percents();
+        double dist = utils::euclidean_distance(mole_percent,mps);
+        if (dist < min_dist)
+        {
+            min_dist = dist;
+            i_min = i;
+        }
+    }
+    const auto& mps = compounds[id].data[i_min].mole_percents();
+    for( size_t i = 0; i < mps.size(); i++)
+    {
+        std::cout << mps[i] << std::endl;
+    }
+    return i_min;
 }
 
 auto Default_Data_Store::extents(Id id, Id mp_id, double mp) const
  -> std::pair<Id, Id>
 {
     saline_require(id < compounds.size());
-    saline_require(mp_id < compounds[id].data.size());  
+    saline_require(mp_id < compounds[id].data.size());
 
     size_t i_min = 0;
     size_t i_max = 0;
     bool max_assigned = false;
     bool min_assigned = false;
-    // loop over data records looking for min and max percents for the given constituent (mp_id) 
+    // loop over data records looking for min and max percents for the given constituent (mp_id)
     for (size_t i = 0, count = compounds[id].data.size(); i < count; ++i)
     {
-        auto datas = compounds[id].data; 
+        auto datas = compounds[id].data;
         auto data = datas[i];
         const auto& mps = data.mole_percents();
         // is the new entry (mps[mp_id]) greater or equal to search term (mp)
         bool is_max_gte = mps[mp_id] >= mp;
-        if (is_max_gte && !max_assigned || 
+        if ((is_max_gte && !max_assigned) ||
             (max_assigned && is_max_gte && mps[mp_id] <= datas[i_max].mole_percents()[mp_id]))
-        {        
+        {
             i_max = i;
             max_assigned = true;
         }
         // is the new entry (mps[mp_id]) less or equal to search term (mp)
         bool is_min_lte = mps[mp_id] <= mp;
-        if (is_min_lte && !min_assigned || 
+        if ((is_min_lte && !min_assigned) ||
             (min_assigned && is_min_lte && mps[mp_id] >= datas[i_min].mole_percents()[mp_id]))
-        {        
+        {
             i_min = i;
-            min_assigned = true;            
+            min_assigned = true;
         }
-    }    
+    }
     return {i_min, i_max};
 }
 
-// specific heat 
+// specific heat
 double Default_Data_Store::cp(Id id, Id data_id, double t, double p) const
 {
     const auto& d = compounds[id].data[data_id];
@@ -240,7 +267,7 @@ double Default_Data_Store::cp_h(Id id, Id data_id, double enthalpy, double p) co
 // viscosity
 double Default_Data_Store::mu(Id id, Id data_id, double t, double p) const
 {
-    const auto& d = compounds[id].data[data_id];    
+    const auto& d = compounds[id].data[data_id];
     return d.mu(t);
 }
 double Default_Data_Store::mu_h(Id id, Id data_id, double enthalpy, double p) const
@@ -265,7 +292,7 @@ double Default_Data_Store::k_h(Id id, Id data_id, double enthalpy, double p) con
 // density
 double Default_Data_Store::rho(Id id, Id data_id, double t, double p) const
 {
-    const auto& d = compounds[id].data[data_id];    
+    const auto& d = compounds[id].data[data_id];
     return d.rho(t);
 }
 double Default_Data_Store::rho_h(Id id, Id data_id, double enthalpy, double p) const

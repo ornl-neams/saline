@@ -26,12 +26,12 @@ namespace saline
  * \class Default_Data_Store
  * \brief Class implementing thermophysical property data store interface
  *
- * The default data is transcribed from 
- * 
- * Jerden, James. Molten Salt Thermophysical Properties Database Development: 2019 Update. 
+ * The default data is transcribed from
+ *
+ * Jerden, James. Molten Salt Thermophysical Properties Database Development: 2019 Update.
  * United States: N. p., 2019. Web. doi:10.2172/1559846.
- * 
- * Units: 
+ *
+ * Units:
  *   Conductivity  - Watts per Meter-Kelvin (W/m K)
  *   Pressure      - Kilopascal (kPa)
  *   Temperature   - Kelvin (K)
@@ -40,7 +40,7 @@ namespace saline
  *   Specific Heat - Joules per Kelvin Mole (J/K mole)
  *   Density       - Grams per Cubic Centimeter (g/cc)
  */
-//===========================================================================//    
+//===========================================================================//
 class Default_Data_Store : public Data_Store
 {
   public:
@@ -50,7 +50,7 @@ class Default_Data_Store : public Data_Store
     using Id       = std::size_t;
     using Name     = std::string;
     using Vec_Id   = std::vector<Id>;
-    using Vec_Name = std::vector<Name>;    
+    using Vec_Name = std::vector<Name>;
     using Vec_Mole = std::vector<double>;
     //@}
 
@@ -61,11 +61,11 @@ class Default_Data_Store : public Data_Store
 
     // the number of entries in the data store
     int size() const { return static_cast<int>(compounds.size());}
-    
-    // the constituents names in a given compound    
+
+    // the constituents names in a given compound
     Vec_Name names(Id id) const { return compounds[id].names;}
 
-    // specific heat 
+    // specific heat
     double cp(Id id, Id data_id, double temperature, double pressure = 101.325) const;
     double cp_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const;
 
@@ -84,7 +84,7 @@ class Default_Data_Store : public Data_Store
     // enthalpy
     double h_t(Id id, Id data_id, double temperature) const;
 
-    // temperature 
+    // temperature
     double t_h(Id id, Id data_id, double enthalpy) const;
 
     // melting temperature
@@ -100,6 +100,8 @@ class Default_Data_Store : public Data_Store
     // if the exact mole_percent is contained, lower will equal upper
     // if only a single data indentifier exists, lower will equal upper
     std::pair<Id, Id> extents(Id id, Id data_id, double mole_percent) const;
+    //Obtain the nearest neighboring composition
+    Id nearest(Id id, const Vec_Mole& mole_percent) const;
 
     private:
 
@@ -124,7 +126,7 @@ class Default_Data_Store : public Data_Store
         const std::vector<double>& h_t() const {return m_h;}
 
         double melt() const {return m_melt;}
-        double boil() const {return m_boil;}  
+        double boil() const {return m_boil;}
 
         // density
         double rho(double t) const {return m_rho_a - m_rho_b * t;}
@@ -150,33 +152,33 @@ class Default_Data_Store : public Data_Store
         double k_a() const {return m_k_a;}
         double k_b() const {return m_k_b;}
 
-        // specific heat 
+        // specific heat
         double cp(double t) const {double t2 = t * t;
                                   return m_cp_a + m_cp_b * t + m_cp_c * 1/(t2) + m_cp_d * t2;}
         double cp_h(double h) const {return cp(h_to_t(h));}
-        
+
         // specific heat coefficients
         double cp_a() const {return m_cp_a;}
         double cp_b() const {return m_cp_b;}
         double cp_c() const {return m_cp_c;}
         double cp_d() const {return m_cp_d;}
-        
+
         // populate table used enthalpy to temperature conversion
         void calc_h_t(size_t table_size);
-        
+
         // convert enthalpy to temperature using interpolation table
         // if table has not been generated NaN is returned
         double h_to_t(double h) const;
 
         double h_t(double t) const;
-     
+
         // >>> DATA
 
-        // mole percents 
-        Vec_Mole m_mole_percents;        
+        // mole percents
+        Vec_Mole m_mole_percents;
 
         double m_melt;
-        double m_boil;  
+        double m_boil;
 
         // density
         double m_rho_a;
@@ -197,14 +199,14 @@ class Default_Data_Store : public Data_Store
         double m_cp_d;
 
         // enthalpy to temperature table
-        std::vector<double> m_h; 
+        std::vector<double> m_h;
 
         // delta temperature
         double m_dt;
 
         // h(t)'s E simplification (a * melt + b * melt^2  + d * melt^3 - c / melt)
         double m_e;
-        
+
     };
 
     using Vec_Data = std::vector<Data>;
@@ -215,10 +217,10 @@ class Default_Data_Store : public Data_Store
     };
   private:
 
-    // >>> DATA 
+    // >>> DATA
 
     // All compounds in this data store
-    std::vector<Compound> compounds; 
+    std::vector<Compound> compounds;
 
     // >>> ACCESSORS
 

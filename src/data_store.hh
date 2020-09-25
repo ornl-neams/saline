@@ -59,12 +59,13 @@ class Data_Store
     struct View
     {
         Id id = std::numeric_limits<std::size_t>::max();
-        Vec_Mole_Bounds bounds;
+        Id rec_id = std::numeric_limits<std::size_t>::max();
         Vec_Mole mole_percents;
         const Data_Store* d = nullptr;
 
         // assign bounds and mole percents for given view        
-        void assign_bounds(const Vec_Mole& mole_percents);
+        void assign_record(const Vec_Mole& mole_percents);
+
 
         // the number of constituents for this compound
         // E.g., X-Y-Z has 3 
@@ -146,6 +147,8 @@ class Data_Store
     // if the exact mole_percent is contained, lower will equal upper
     // if only a single data indentifier exists, lower will equal upper
     virtual std::pair<Id, Id> extents(Id id, Id data_id, double mole_percent) const = 0;
+    //Obtain the nearest neighboring composition
+    virtual Id nearest(Id id, const Vec_Mole& mole_percent) const = 0;
 
     // obtain data store id given a compound name (e.g., BeF2, NaCl)
     Id name_to_id(const Name& name) const;

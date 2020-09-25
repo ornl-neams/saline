@@ -84,7 +84,7 @@ class Thermophysical_Properties
     // convenience method for Fortran interface
     // names is composition names separated by '-'
     // The name count must be equal to the mole_percent_count
-    // returns true, iff the names were succesfully processed, counts matched
+    // returns true, iff the names were successfully processed, counts matched
     //               AND data was found for the compound
     bool setComposition(const std::string& names, double* mole_percents,
                         int mole_percent_count);
@@ -103,7 +103,7 @@ class Thermophysical_Properties
     // the data store backing this instance of material properties
     Data_Store* m_data;
 
-    // Our view/specific material implemenation into the data store
+    // Our view/specific material implementation into the data store
     Data_Store::View m_impl;
 };
 } // namespace saline
