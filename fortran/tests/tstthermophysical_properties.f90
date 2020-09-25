@@ -20,7 +20,7 @@ call tp%initialize()
 ! Assign data store to
 call tp%init_data_store(data)
 
-if (.not.tp%set_composition("LiF-BeF2-ThF4",[0.7011_8, 0.2388_8, 0.601_8],3)) then
+if (.not.tp%set_composition("LiF-BeF2-ThF4",[0.7011_8, 0.2388_8, 0.0601_8],3)) then
   print *,"Failure to set composition!"
   stop 1
 endif

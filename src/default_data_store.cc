@@ -205,10 +205,6 @@ auto Default_Data_Store::nearest(Id id, const Vec_Mole& mole_percent) const
         }
     }
     const auto& mps = compounds[id].data[i_min].mole_percents();
-    for( size_t i = 0; i < mps.size(); i++)
-    {
-        std::cout << mps[i] << std::endl;
-    }
     return i_min;
 }
 
