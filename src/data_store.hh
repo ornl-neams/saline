@@ -13,8 +13,6 @@
 #include <utility>
 #include <vector>
 
-
-
 namespace saline
 {
 
@@ -38,7 +36,7 @@ namespace saline
  *   Density       - Grams per Cubic Centimeter (g/cc)
  *
  */
-//===========================================================================//    
+//===========================================================================//
 class Data_Store
 {
   public:
@@ -68,7 +66,7 @@ class Data_Store
 
 
         // the number of constituents for this compound
-        // E.g., X-Y-Z has 3 
+        // E.g., X-Y-Z has 3
         std::size_t constituent_count() const;
 
         // does view reference data
@@ -104,12 +102,12 @@ class Data_Store
     }; // Data_Store::View
 
     // >>> ACCESSORS
-    View view(Id) const;    
+    View view(Id) const;
 
     // the number of entries in the data store
     virtual int size() const = 0;
 
-    // the constituents names in a given compound    
+    // the constituents names in a given compound
     virtual Vec_Name names(Id) const = 0;
     
     // specific heat 
@@ -156,12 +154,14 @@ class Data_Store
     // obtain data store id given a set of compound names (e.g., LiF-NaF-KF, LiF-BeF2-ZrF4-ThF4)
     Id names_to_id(Vec_Name names) const;
 
-    // is the id valid 
-    bool valid(Id id) const {return id < size();}   
+    // is the id valid
+    bool valid(Id id) const {return id < size();}
+
+    virtual View setView(const Vec_Name& names, const Vec_Mole& mole_percents) = 0;
 
   private:
 
-    // >>> DATA   
+    // >>> DATA
 
 }; // Data_Store
 

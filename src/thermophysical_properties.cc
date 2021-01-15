@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 
 #include "thermophysical_properties.hh"
+#include <algorithm>
 #include "utils.hh"
 #include "saline_bug.hh"
 
@@ -118,17 +119,14 @@ double Thermophysical_Properties::t_h(double enthalpy) const
     return m_impl.t_h(enthalpy);
 }
 
-// set the mole % and select the composition
+/*!
+ * \set the mole % and select the composition
+ */
 bool Thermophysical_Properties::setComposition(const Vec_Name& names,
                         const Vec_Mole& mole_percents)
 {
     saline_require(names.size() == mole_percents.size());
-    Id id = m_data->names_to_id(names);
-    if (!m_data->valid(id)) return false;
-
-    m_impl = m_data->view(id);
-    // This uses a nearest neighbor search to set the composition
-    m_impl.assign_record(mole_percents);
+    m_impl = m_data->setView(names,mole_percents);
     return !m_impl.null();
 }
 

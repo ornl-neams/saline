@@ -58,8 +58,8 @@ double euclidean_distance(const std::vector<double>& a, const std::vector<double
 
 //-------------------------------------------------------------------------------------------//
 // Calculate the nearest neighbor index set
-std::vector<std::pair<double, size_t>>  
-                        nearest_neighbor(const std::vector<double>& a, 
+std::vector<std::pair<double, size_t>>
+                        nearest_neighbor(const std::vector<double>& a,
                         const std::vector<std::vector<double>>& neighbors)
 {
     std::vector<std::pair<double, size_t>> nearest;

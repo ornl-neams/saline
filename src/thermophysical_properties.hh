@@ -21,7 +21,7 @@ namespace saline
  * \class Thermophysical_Properties
  * \brief Class for managing and interpolating a given composition's properties
  *
- * Units: 
+ * Units:
  *   Conductivity  - Watts per Meter-Kelvin (W/m K)
  *   Pressure      - Kilopascal (kPa)
  *   Temperature   - Kelvin (K)
@@ -30,7 +30,7 @@ namespace saline
  *   Specific Heat - Joules per Kelvin Mole (J/K mole)
  *   Density       - Grams per Cubic Centimeter (g/cc)
  */
-//===========================================================================//    
+//===========================================================================//
 class Thermophysical_Properties
 {
   public:
@@ -41,7 +41,7 @@ class Thermophysical_Properties
     using Name     = std::string;
     using Vec_Id   = std::vector<Id>;
     using Vec_Name = std::vector<Name>;
-    using Vec_Mole = std::vector<double>; 
+    using Vec_Mole = std::vector<double>;
     //@}
 
     // Construct the cone shape
@@ -49,20 +49,20 @@ class Thermophysical_Properties
 
     // >>> ACCESSORS
 
-    // specific heat 
-    double cp(double temperature, double pressure = 101.325) const;    
+    // specific heat
+    double cp(double temperature, double pressure = 101.325) const;
     double cp_h(double enthalpy, double pressure = 101.325) const;
 
     // viscosity
-    double mu(double temperature, double pressure = 101.325) const;    
+    double mu(double temperature, double pressure = 101.325) const;
     double mu_h(double enthalpy, double pressure = 101.325) const;
 
     // conductivity
-    double k(double temperature, double pressure = 101.325) const;    
+    double k(double temperature, double pressure = 101.325) const;
     double k_h(double enthalpy, double pressure = 101.325) const;
 
     // density
-    double rho(double temperature, double pressure = 101.325) const;    
+    double rho(double temperature, double pressure = 101.325) const;
     double rho_h(double enthalpy, double pressure = 101.325) const;
 
     // enthalpy
@@ -70,7 +70,7 @@ class Thermophysical_Properties
 
     // temperature
     double t_h(double enthalpy) const;
-  
+
     // list of specifies for which properties are being tracked
     const Vec_Name& species() const {return m_comp_names;}
 
@@ -78,9 +78,9 @@ class Thermophysical_Properties
     const Vec_Mole& composition() const {return m_mole_percents;}
 
     // set the mole % and select the composition
-    bool setComposition(const Vec_Name& names, 
+    bool setComposition(const Vec_Name& names,
                         const Vec_Mole& mole_percents);
-                      
+
     // convenience method for Fortran interface
     // names is composition names separated by '-'
     // The name count must be equal to the mole_percent_count
@@ -92,8 +92,8 @@ class Thermophysical_Properties
     // initialize the properties data
     bool initialize(Data_Store* d);
 
-  private:  
-  
+  private:
+
     // names of the constituents of this instance
     std::vector<std::string> m_comp_names;
 

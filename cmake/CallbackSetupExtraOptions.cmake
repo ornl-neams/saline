@@ -59,14 +59,6 @@ MACRO(TRIBITS_REPOSITORY_SETUP_EXTRA_OPTIONS)
   #
   SET(TPL_ENABLE_MPI OFF CACHE BOOL "" FORCE)
   #
-  # Check if the environment has changed whether we want fortran enabled
-  #
-  IF(NOT "$ENV{${PROJECT_NAME}_ENABLE_Fortran}" STREQUAL "" )
-     SET(${PROJECT_NAME}_ENABLE_Fortran $ENV{${PROJECT_NAME}_ENABLE_Fortran})
-  ELSE()
-     # ensure fortran compiler is set on
-     SET(${PROJECT_NAME}_ENABLE_Fortran OFF)
-  ENDIF()
   # Set up saline cmake directory, used by default option scripts
   SET(saline_CMAKE_DIR "${saline_SOURCE_DIR}/cmake" CACHE PATH "")
 

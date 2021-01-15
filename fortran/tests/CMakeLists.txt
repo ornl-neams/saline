@@ -1,4 +1,3 @@
-
 file(GLOB tests *.f90)
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}")

@@ -1,6 +1,6 @@
 #include "data_store.hh"
-
 #include "saline_bug.hh"
+#include "utils.hh"
 
 #include <algorithm>
 #include <cctype>
@@ -41,10 +41,12 @@ Data_Store::Id Data_Store::names_to_id(Vec_Name snames) const
     //     std::transform(name.begin(),name.end(), name.begin(), ::tolower);
     // }
 
+    auto sp = utils::getSortPermutation(snames);
+    auto sort_names = utils::applySortPermuation(snames,sp);
     for (size_t i = 0; i < size(); ++i)
     {
         auto inames = names(i);
-        if (snames == inames) return i;
+        if (sort_names == inames) return i;
     }
     return std::numeric_limits<std::size_t>::max();
 }

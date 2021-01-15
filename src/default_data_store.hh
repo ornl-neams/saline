@@ -13,10 +13,10 @@
 #include <cmath>
 #include <iostream>
 #include <ostream>
+#include <istream>
 #include <limits>
 #include <string>
 #include <vector>
-
 
 namespace saline
 {
@@ -96,6 +96,12 @@ class Default_Data_Store : public Data_Store
     // number of constituents for the given compound
     std::size_t constituent_count(Id id) const;
 
+    void load();
+    void load(const std::string& fPath);
+    void load(std::istream& inFile);
+
+    View setView(const Vec_Name& names, const Vec_Mole& mole_percents);
+
     // obtain the lower and upper data identifiers for the given mole percent
     // if the exact mole_percent is contained, lower will equal upper
     // if only a single data indentifier exists, lower will equal upper
@@ -105,13 +111,6 @@ class Default_Data_Store : public Data_Store
 
     private:
 
-    // convenience function for data addition
-    void add(const Vec_Name& n, const Vec_Mole& mp,
-              double melt, double boil,
-              double rho_a, double rho_b,
-              double mu_a, double mu_b,
-              double k_a, double k_b,
-              double cp_a, double cp_b, double cp_c, double cp_d);
 
     class Data
     {
@@ -137,12 +136,15 @@ class Default_Data_Store : public Data_Store
         double rho_b() const {return m_rho_b;}
 
         // viscosity
-        double mu(double t) const {return m_mu_a * std::exp(m_mu_b / t);}
+        double mu(double t) const {return m_mu_c == 0.0                 ?
+                                  m_mu_a * std::exp(m_mu_b / t)         :
+                                  std::pow(10.0,m_mu_a + (m_mu_b/t) + (m_mu_c/(t*t)));}
         double mu_h(double h) const {return mu(h_to_t(h));}
 
         // viscosity coefficients
         double mu_a() const {return m_mu_a;}
         double mu_b() const {return m_mu_b;}
+        double mu_c() const {return m_mu_c;}
 
         // conductivity
         double k(double t) const  {return m_k_a + m_k_b * t;}
@@ -187,6 +189,7 @@ class Default_Data_Store : public Data_Store
         // viscosity
         double m_mu_a;
         double m_mu_b;
+        double m_mu_c;
 
         // conductivity
         double m_k_a;
