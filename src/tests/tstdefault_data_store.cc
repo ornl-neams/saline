@@ -270,6 +270,6 @@ TEST(default_data, rho_cp_mu_k_LiFNaFKF_465_115_042)
     }
     EXPECT_NEAR(tp.k_h(tp.h_t(970)), tp.k(970), 1e-4);
 
-    EXPECT_NEAR(748.77235618, tp.t_h(1000), 1e-7);
+    EXPECT_NEAR(748.77235618, tp.t_h(1000), 1e-6);
     EXPECT_NEAR(tp.t_h(tp.h_t(970)),970,5e-2);
 }

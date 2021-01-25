@@ -57,16 +57,18 @@ void Default_Data_Store::load(std::istream& inFile)
     std::string line;
     while (std::getline(inFile,line))
     {
+        utils::trim(line);
         if( line.empty() ) continue;
-        ///load
 
         // names, id, mole_percents, tmelt, tboil, rho_a,  rho_b, mu_a, mu_b, k_a, k_b, cp_a, cp_b, cp_c, cp_d
         auto tokens = utils::split(",",line);
+        for(auto i : tokens)
+        {
+            utils::trim(i);
+        }
 
         //Chemical symbols
         auto symbols = utils::split("-",tokens[0]);
-
-        // ID = tokens[1], just skip, its currently unused
 
         //mole fraction of each salt
         std::vector<double> molfrac;
@@ -78,7 +80,7 @@ void Default_Data_Store::load(std::istream& inFile)
         else
         {
             // Parse out the mole fractions
-            for(auto mp : utils::split("-",tokens[2]))
+            for(auto mp : utils::split("-",tokens[1]))
             {
                 molfrac.push_back(std::stod(mp));
             }
@@ -107,119 +109,66 @@ void Default_Data_Store::load(std::istream& inFile)
         d.m_mole_percents = molfrac;
 
         //Melt
-        try {
-            d.m_melt = std::stod(tokens[3]);
-        }
-        catch(const std::invalid_argument& ia) {
-            d.m_melt = 0.0;
-        }
+        d.m_melt = std::stod(tokens[2]);
         //Melt uncertainty
+        d.m_melt_unc = std::stod(tokens[3]);
         //Melt Reference
 
         //Boil
-        try {
-            d.m_boil = std::stof(tokens[6]);
-        }
-        catch(const std::invalid_argument& ia) {
-            d.m_boil = 0.0;
-        }
+        d.m_boil = std::stod(tokens[5]);
         //Boil Uncertainty
+        d.m_boil_unc = std::stod(tokens[6]);
         //Boil Reference
 
         //Density A and B as parameters for A - BT
-        try {
-            d.m_rho_a = std::stof(tokens[9]);
-        }
-        catch(const std::invalid_argument& ia) {
-            d.m_rho_a = 0.0;
-        }
+        d.m_rho_a = std::stod(tokens[8]);
 
-        try {
-            d.m_rho_b = std::stof(tokens[10]);
-        }
-        catch(const std::invalid_argument& ia) {
-            d.m_rho_b = 0.0;
-        }
+        d.m_rho_b = std::stod(tokens[9]);
         //Applicability range
-        std::vector<std::string> tmps = utils::split("-",tokens[11]);
-
+        std::vector<std::string> rho_rng_str = utils::split("-",tokens[10]);
+        d.m_rho_rng = std::make_pair(std::stod(rho_rng_str[0]),std::stod(rho_rng_str[1]));
         //uncertainty
+        d.m_rho_unc = std::stod(tokens[11]);
         //reference
 
         //Viscosity A and B as parameters A*exp(B/(RT)) ... OR
-        try {
-            d.m_mu_a = std::stof(tokens[14]);
-            d.m_mu_b = std::stof(tokens[15])/mGas_const;
-            d.m_mu_c = 0.0;
-        }
-        catch(const std::invalid_argument& ia)
+        d.m_mu_a = std::stod(tokens[13]);
+        d.m_mu_b = std::stod(tokens[14])/mGas_const;
+        d.m_mu_c = std::numeric_limits<double>::quiet_NaN();
+        //Test if we received inputs for two parameter viscosity model
+        if( std::isnan(d.m_mu_a) and std::isnan(d.m_mu_b))
         {
-            // The two parameter version wasn't valid try the three version
-            try{
-                // A, B, C for 10^(A + B/T + C/T**2)
-                d.m_mu_a = std::stof(tokens[16]);
-                d.m_mu_b = std::stof(tokens[17]);
-                d.m_mu_c = std::stof(tokens[18]);
-            }
-            catch(const std::invalid_argument& ia)
-            {
-                d.m_mu_a = 0.0;
-                d.m_mu_b = 0.0;
-                d.m_mu_c = 0.0;
-            }
+            // A, B, C for 10^(A + B/T + C/T**2)
+            d.m_mu_a = std::stod(tokens[15]);
+            d.m_mu_b = std::stod(tokens[16]);
+            d.m_mu_c = std::stod(tokens[17]);
         }
         //Applicability range
+        std::vector<std::string> mu_rng_str = utils::split("-",tokens[18]);
+        d.m_mu_rng = std::make_pair(std::stod(mu_rng_str[0]),std::stod(mu_rng_str[1]));
         //uncertainty
+        d.m_mu_unc = std::stod(tokens[19]);
         //reference
 
         //Thermal conductivity A and B as parameters for A + BT
-        try {
-            d.m_k_a  = std::stof(tokens[22]);
-        }
-        catch(const std::invalid_argument& ia) {
-            d.m_k_a  = 0.0;
-        }
-        try {
-            d.m_k_b  = std::stof(tokens[23]);
-        }
-        catch(const std::invalid_argument& ia) {
-            d.m_k_a  = 0.0;
-        }
+        d.m_k_a  = std::stod(tokens[21]);
+        d.m_k_b  = std::stod(tokens[22]);
         //Applicability range
+        std::vector<std::string> k_rng_str = utils::split("-",tokens[23]);
+        d.m_k_rng = std::make_pair(std::stod(k_rng_str[0]),std::stod(k_rng_str[1]));
         //uncertainty
+        d.m_k_unc = std::stod(tokens[24]);
         //reference
 
         //heat capacity A, B, C, D for A + B*T(K) + C*T-2(K) + D*T2(K)
-        try {
-            d.m_cp_a = std::stof(tokens[27]);
-        }
-        catch(const std::invalid_argument& ia)
-        {
-            d.m_cp_a = 0.0;
-        }
-        try {
-            d.m_cp_b = std::stof(tokens[28]);
-        }
-        catch(const std::invalid_argument& ia)
-        {
-            d.m_cp_b = 0.0;
-        }
-        try {
-            d.m_cp_c = std::stof(tokens[29]);
-        }
-        catch(const std::invalid_argument& ia)
-        {
-            d.m_cp_c = 0.0;
-        }
-        try {
-            d.m_cp_d = std::stof(tokens[30]);
-        }
-        catch(const std::invalid_argument& ia)
-        {
-            d.m_cp_d = 0.0;
-        }
-        //Applicability range
+        d.m_cp_a = std::stod(tokens[26]);
+        d.m_cp_b = std::stod(tokens[27]);
+        d.m_cp_c = std::stod(tokens[28]);
+        d.m_cp_d = std::stod(tokens[29]);
+        //Applicability range --  Not included in data
+
         //uncertainty
+        d.m_cp_unc = std::stod(tokens[30]);
         //reference
 
     }

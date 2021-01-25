@@ -24,7 +24,7 @@ if (.not.tp%set_composition("LiF-BeF2-ThF4",[0.7011_8, 0.2388_8, 0.0601_8],3)) t
 endif
 
 print *,tp%mu(926.00_8, 101.0_8)
-if ( tp%mu(926.00_8, 101.0_8) /= 7.4798900482435098_8) then
+if ( tp%mu(926.00_8, 101.0_8) /= 7.4798896290598522_8) then
   print *,"Failed to equate values!"
   stop 2
 endif

@@ -136,7 +136,7 @@ class Default_Data_Store : public Data_Store
         double rho_b() const {return m_rho_b;}
 
         // viscosity
-        double mu(double t) const {return m_mu_c == 0.0                 ?
+        double mu(double t) const {return std::isnan(m_mu_c)  ?
                                   m_mu_a * std::exp(m_mu_b / t)         :
                                   std::pow(10.0,m_mu_a + (m_mu_b/t) + (m_mu_c/(t*t)));}
         double mu_h(double h) const {return mu(h_to_t(h));}
@@ -179,27 +179,40 @@ class Default_Data_Store : public Data_Store
         // mole percents
         Vec_Mole m_mole_percents;
 
+        // Melting Temperature
         double m_melt;
+        double m_melt_unc;
+
+        // Boiling Temperature
         double m_boil;
+        double m_boil_unc;
 
         // density
         double m_rho_a;
         double m_rho_b;
+        double m_rho_unc;
+        std::pair<double,double> m_rho_rng;
 
         // viscosity
         double m_mu_a;
         double m_mu_b;
         double m_mu_c;
+        double m_mu_unc;
+        std::pair<double,double> m_mu_rng;
 
         // conductivity
         double m_k_a;
         double m_k_b;
+        double m_k_unc;
+        std::pair<double,double> m_k_rng;
 
         // specific heat
         double m_cp_a;
         double m_cp_b;
         double m_cp_c;
         double m_cp_d;
+        double m_cp_unc;
+        std::pair<double,double> m_cp_rng;
 
         // enthalpy to temperature table
         std::vector<double> m_h;

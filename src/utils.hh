@@ -31,6 +31,10 @@ std::vector<std::pair<double, size_t>>
                         nearest_neighbor(const std::vector<double>& a,
                         const std::vector<std::vector<double>>& neighbors);
 
+void ltrim(std::string &s);
+void rtrim(std::string &s);
+void trim(std::string &s);
+
 // Takes a peek at each element of a vector, finding the permutations required
 // to sort the vector in ascending order
 template <typename T>
