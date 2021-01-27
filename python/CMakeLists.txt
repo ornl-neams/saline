@@ -1,7 +1,7 @@
-TRIBITS_SUBPACKAGE(SalinePy)
+TRIBITS_SUBPACKAGE(python)
 
 IF( NOT BUILD_SHARED_LIBS)
-    MESSAGE(FATAL_ERROR "SalinePy requires shared libraries")
+    MESSAGE(FATAL_ERROR "Saline Python bindings require shared libraries")
 ENDIF()
 
 FIND_PACKAGE(PythonInterp 3.5.2 REQUIRED)
