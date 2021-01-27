@@ -10,6 +10,7 @@ cmake -MEMCHECK_COMMAND="$(which valgrind)" \
       -DCOVERAGE_EXTRA_FLAGS="-s ${CI_PROJECT_DIR}/googletest -d" \
       -Dsaline_ENABLE_TESTS=ON \
       -Dsaline_ENABLE_ALL_PACKAGES=ON \
+      -Dsaline_ENABLE_salinepython:BOOL=FALSE \
       ..
 
 ctest --output-on-failure \

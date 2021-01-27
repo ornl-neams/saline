@@ -9,6 +9,7 @@ cmake -DBUILDNAME="$(uname -s)-Release-${CI_BUILD_REF_NAME}" \
       -Dsaline_ENABLE_TESTS=ON \
       -DBUILD_SHARED_LIBS:BOOL=ON \
       -Dsaline_ENABLE_ALL_PACKAGES=ON \
+      -Dsaline_ENABLE_salinepython:BOOL=FALSE \
       ..
 
 ctest --output-on-failure \
