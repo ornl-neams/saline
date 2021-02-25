@@ -135,13 +135,13 @@ double Data_Store::View::t_h(double enthalpy) const
 // melting temperature
 double Data_Store::View::melt() const
 {
-    return d->melt(id);
+    return d->melt(id,rec_id);
 }
 
 // boiling temperature
 double Data_Store::View::boil() const
 {
-    return d->boil(id);
+    return d->boil(id,rec_id);
 }
 
 } // namespace saline

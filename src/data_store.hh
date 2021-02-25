@@ -64,7 +64,6 @@ class Data_Store
         // assign bounds and mole percents for given view        
         void assign_record(const Vec_Mole& mole_percents);
 
-
         // the number of constituents for this compound
         // E.g., X-Y-Z has 3
         std::size_t constituent_count() const;
@@ -105,7 +104,7 @@ class Data_Store
     View view(Id) const;
 
     // the number of entries in the data store
-    virtual int size() const = 0;
+    virtual size_t size() const = 0;
 
     // the constituents names in a given compound
     virtual Vec_Name names(Id) const = 0;
@@ -133,10 +132,10 @@ class Data_Store
     virtual double t_h(Id id, Id data_id, double enthalpy) const = 0;
 
     // melting temperature
-    virtual double melt(Id id) const = 0;
+    virtual double melt(Id id, Id data_id) const = 0;
 
     // boiling temperature
-    virtual double boil(Id id) const = 0;
+    virtual double boil(Id id, Id data_id) const = 0;
 
     // number of constituents for the given compound
     virtual std::size_t constituent_count(Id id) const = 0;

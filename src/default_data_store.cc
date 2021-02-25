@@ -62,9 +62,9 @@ void Default_Data_Store::load(std::istream& inFile)
 
         // names, id, mole_percents, tmelt, tboil, rho_a,  rho_b, mu_a, mu_b, k_a, k_b, cp_a, cp_b, cp_c, cp_d
         auto tokens = utils::split(",",line);
-        for(auto i : tokens)
+        for(size_t i=0; i<tokens.size(); ++i)
         {
-            utils::trim(i);
+            utils::trim(tokens[i]);
         }
 
         //Chemical symbols
@@ -236,8 +236,7 @@ double Default_Data_Store::Data::h_to_t(double h) const
 std::size_t Default_Data_Store::constituent_count(Id id) const
 {
     saline_require(id < compounds.size());
-    saline_check(compounds[id].data.size() == compounds[id].names.size());
-    return compounds[id].data.size();
+    return compounds[id].names.size();
 }
 //---------------------------------------------------------------------------//
 /*!
@@ -392,16 +391,16 @@ double Default_Data_Store::t_h(Id id, Id data_id, double enthalpy) const
 }
 
 // melting temperature
-double Default_Data_Store::melt(Id id) const
+double Default_Data_Store::melt(Id id, Id data_id) const
 {
-    const auto& d = compounds[id].data.front();
+    const auto& d = compounds[id].data[data_id];
     return d.melt();
 }
 
 // boiling temperature
-double Default_Data_Store::boil(Id id) const
+double Default_Data_Store::boil(Id id, Id data_id) const
 {
-    const auto& d = compounds[id].data.front();
+    const auto& d = compounds[id].data[data_id];
     return d.boil();
 }
 

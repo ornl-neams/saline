@@ -5,194 +5,269 @@
 #include "../utils.hh"
 
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 using namespace saline;
 
-TEST(default_data, rho_LiFBeF2ThF4_7011_2388_0601)
+//Temperatures in Kelvin
+static std::vector<double> tVecK = {500.00,750.00,800.00,850.00,900.00,950.00,1000.00};
+
+//---------------------------------------------------------------------------//
+// A helper function to consolidate some repeated calls
+void compareView_to_DataStore(Data_Store::View& v, Data_Store::Id compId, Data_Store::Id recId)
 {
-    // measured t(c) for LiF-BeF2-ThF4 @ 70.11, 23.88, 6.01 mole %) Cantor '73 (https://www.osti.gov/servlets/purl/4419855)
-    std::vector<double> tcs = {555.1,571.9, 580.9, 596.7, 606.2, 621.3, 628.7, 646.8, 655.1, 673.2, 681.2, 707.4};
-    // Experimental values
-    std::vector<double> rho_exp = {2.74, 2.727, 2.723, 2.711, 2.704, 2.694, 2.690, 2.677, 2.671, 2.660, 2.653, 2.639};
-    // Expected calculated values
-    std::vector<double> rho_calc_ref = {2.7395, 2.7282, 2.7222, 2.7116, 2.7052, 2.6951, 2.6901, 2.6780, 2.6724, 2.6603, 2.6549, 2.6372};
+    EXPECT_DOUBLE_EQ(v.melt(),v.d->melt(compId,recId));
+    EXPECT_DOUBLE_EQ(v.boil(),v.d->boil(compId,recId));
 
-    Default_Data_Store d; d.load();
-    Thermophysical_Properties tp;
-    ASSERT_TRUE(tp.initialize(&d));
-
-    ASSERT_TRUE(tp.setComposition({"LiF","BeF2","ThF4"},{0.7011,0.2388,0.0601}));
-
-    std::cout << "Density:" << std::endl
-              << " T(c) experimental calc_ref calced" << std::endl;
-
-    for( size_t i = 0; i < tcs.size(); ++i)
+    // Check consistency from view to data store
+    for(size_t i=0; i<tVecK.size(); ++i)
     {
-        double t_c = tcs[i];
-        // NOTE: the data for cantor is reported in C but the interface requires K
-        // for now pass C
-        EXPECT_NEAR(rho_calc_ref[i], tp.rho(utils::c2k(t_c)), 1e-3);
-        // print data
-        std::cout << t_c << " " << rho_exp[i]
-                         << " " << rho_calc_ref[i]
-                         << " " << tp.rho(utils::c2k(t_c))
-                         << " " << rho_calc_ref[i] - tp.rho(utils::c2k(t_c)) << std::endl;
+        EXPECT_FLOAT_EQ(v.rho(tVecK[i]),v.d->rho(compId,recId,tVecK[i]));
+        EXPECT_FLOAT_EQ(v.mu( tVecK[i]),v.d->mu( compId,recId,tVecK[i]));
+        EXPECT_FLOAT_EQ(v.k(  tVecK[i]),v.d->k(  compId,recId,tVecK[i]));
+        EXPECT_FLOAT_EQ(v.cp( tVecK[i]),v.d->cp( compId,recId,tVecK[i]));
+        EXPECT_FLOAT_EQ(v.h_t(tVecK[i]),v.d->h_t(compId,recId,tVecK[i]));
     }
 }
 
-TEST(default_data, rho_LiFBeF2ThF4_6998_1499_1503)
+// A helper function to consolidate some repeated calls
+void compareTemp_to_Enthalpy(Data_Store::View& v)
 {
-    // measured t(c) for LiF-BeF2-ThF4 @ 69.98, 14.99, 15.03 mole %) Cantor '73 (https://www.osti.gov/servlets/purl/4419855)
-    std::vector<double> tcs           = {543.4, 556.7, 582.9, 608.5, 620.9, 633.7, 646.4, 659.1, 672.6, 698.9, 713.7, 730.2, 749.5};
-    // Experimental values
-    std::vector<double> rho_exp       = {3.663, 3.649, 3.624, 3.602, 3.589, 3.578, 3.566, 3.554, 3.541, 3.516, 3.500, 3.483, 3.466};
-    // Expected calculated values
-    std::vector<double> rho_calc_ref  = {3.6634, 3.6507, 3.6258, 3.6014, 3.5896, 3.5774, 3.5653, 3.5532, 3.5403, 3.5153, 3.5012, 3.4854, 3.4671};
-
-    Default_Data_Store d; d.load();
-    Thermophysical_Properties tp;
-    ASSERT_TRUE(tp.initialize(&d));
-
-    ASSERT_TRUE(tp.setComposition({"LiF","BeF2","ThF4"},{0.6998,0.1499,0.1503}));
-
-    std::cout << "Density:" << std::endl
-              << " T(c) experimental calc_ref calced" << std::endl;
-
-    for( size_t i = 0; i < tcs.size(); ++i)
+    for(size_t i=0; i<tVecK.size(); ++i)
     {
-        double t_c = tcs[i];
-        // NOTE: the data for cantor is reported in C but the interface requires K
-        // for now pass C
-        EXPECT_NEAR(rho_calc_ref[i], tp.rho(utils::c2k(t_c)), 1e-3);
-        // print data
-        std::cout << t_c << " " << rho_exp[i]
-                         << " " << rho_calc_ref[i]
-                         << " " << tp.rho(utils::c2k(t_c))
-                         << " " << rho_calc_ref[i] - tp.rho(utils::c2k(t_c)) << std::endl;
+        double ht = v.h_t(tVecK[i]);
+        EXPECT_FLOAT_EQ(      tVecK[i], v.t_h(  ht));
+        EXPECT_FLOAT_EQ(v.rho(tVecK[i]),v.rho_h(ht));
+        EXPECT_FLOAT_EQ(v.mu( tVecK[i]),v.mu_h( ht));
+        EXPECT_FLOAT_EQ(v.k(  tVecK[i]),v.k_h(  ht));
+        EXPECT_FLOAT_EQ(v.cp( tVecK[i]),v.cp_h( ht));
+    }
+
+}
+
+//---------------------------------------------------------------------------//
+// Simplest test case...load from string literal check unary salt
+TEST(default_data_store,load_testData_literal)
+{
+    // molar gas constant https://physics.nist.gov/cgi-bin/cuu/Value?r; accessed 10Feb2021
+    static constexpr double mGas_const = 8.314462618;
+    // Generate some scrap data
+    static const char* scrap = R"test_data(
+    S1   ,Pure Salt,500.00,1.00,ref1,1000.00,NaN,ref1,1.0, 0.002,500-1000,1.00,ref1,0.50,2.0E+04,NaN,NaN,NaN,500-1000,1.00,ref1,1.8E+00,-3.9E-04,500-1000,20.00,ref1,6.5E+01,0.0,0.0,0.0,1.50,ref1
+    S1-S2,0.36-0.64,500.00,0.50,ref2,1000.00,NaN,ref2,2.0,-0.002,500-750 ,0.20,ref2,1.25,2.0E+04,NaN,NaN,NaN,800-1000,1.00,ref2,1.2E+00,-2.8E-04,600-900 ,20.00,ref2,6.8E+01,0.0,0.0,0.0,0.10,ref2
+    )test_data";
+
+
+    // Set-up work
+    Default_Data_Store d;
+    std::istringstream in(scrap);
+    d.load(in);
+
+    // Verify Data was loaded (critical)
+    size_t dSize = 2;
+    ASSERT_EQ(dSize,d.size());
+    ASSERT_TRUE(d.valid(0));
+    ASSERT_TRUE(d.valid(1));
+    ASSERT_TRUE(!d.valid(2));
+
+    // Check that the data id interface works (critical)
+    size_t tstID = d.name_to_id("S1");
+    size_t refID = 0;
+    ASSERT_EQ(refID,tstID);
+    ASSERT_EQ(refID,d.names_to_id({"S1"}));
+    EXPECT_EQ(1,d.names_to_id({"S1","S2"}));
+
+    //Check Data directly from data store, i.e. using ID and recID
+    size_t nConstituents = d.constituent_count(refID);
+    size_t refSize = 1;
+    ASSERT_EQ(refSize,nConstituents);
+    std::vector<std::string> tstNames = d.names(refID);
+    EXPECT_EQ(tstNames[0],"S1");
+
+    // Testing the first record of a given salt
+    size_t tstRecID = 0;
+    EXPECT_DOUBLE_EQ(500,d.melt(refID,tstRecID));
+    EXPECT_DOUBLE_EQ(1000,d.boil(refID,tstRecID));
+    for(size_t i=0; i<tVecK.size(); ++i)
+    {
+        // Density implements a linear model, A-(B*T)
+        EXPECT_FLOAT_EQ(1.0-(0.002*tVecK[i]),d.rho(refID,tstRecID,tVecK[i]));
+        // this item uses A*exp( B / R*T) where R is the molar gas constant constant
+        EXPECT_FLOAT_EQ(0.50*exp(2.0E+4/(mGas_const*tVecK[i])),d.mu(refID,tstRecID,tVecK[i]));
+        // Thermal conductivity implements a linear model, A+(B*T)
+        EXPECT_FLOAT_EQ(1.8+(-3.9E-04*tVecK[i]),d.k(refID,tstRecID,tVecK[i]));
+        // Heat capacity uses a degree 4 polynomial only the scalar portion is used here
+        EXPECT_FLOAT_EQ(6.5E01,d.cp(refID,tstRecID,tVecK[i]));
+        // h(t) = A * (T - Tmelt);  Tmelt:=500 
+        double ht = 6.5E01*(tVecK[i]-500);
+        EXPECT_FLOAT_EQ(ht,d.h_t(refID,tstRecID,tVecK[i]));
+        EXPECT_FLOAT_EQ(tVecK[i],d.t_h(refID,tstRecID,ht));
+
+        //Check Temperature/Enthalpy interfaces are consistent
+        EXPECT_FLOAT_EQ(d.rho(refID,tstRecID,tVecK[i]),d.rho_h(refID,tstRecID,ht));
+        EXPECT_FLOAT_EQ(d.mu(refID,tstRecID,tVecK[i]),d.mu_h(refID,tstRecID,ht));
+        EXPECT_FLOAT_EQ(d.k(refID,tstRecID,tVecK[i]),d.k_h(refID,tstRecID,ht));
+        EXPECT_FLOAT_EQ(d.cp(refID,tstRecID,tVecK[i]),d.cp_h(refID,tstRecID,ht));
+    }
+
+    // Check Data via views
+    Data_Store::View v = d.setView({"S1"},{1.0});
+
+    // basic view info
+    ASSERT_TRUE(!v.null());
+    ASSERT_TRUE(v.d != nullptr);
+    EXPECT_EQ(d.constituent_count(refID),v.constituent_count());
+    EXPECT_EQ(refID,v.id);
+    EXPECT_EQ(tstRecID,v.rec_id);
+
+    std::vector<double> testMP = {1.0};
+    ASSERT_EQ(testMP.size(),v.mole_percents.size());
+    for( size_t i=0; i<testMP.size(); ++i)
+    {
+        EXPECT_DOUBLE_EQ(testMP[i],v.mole_percents[i]);
+    }
+
+    EXPECT_DOUBLE_EQ(v.melt(),d.melt(refID,tstRecID));
+    EXPECT_DOUBLE_EQ(v.boil(),d.boil(refID,tstRecID));
+
+    // Check consistency from view to data store
+    compareView_to_DataStore(v,refID,tstRecID);
+
+    // Check consistency from temperature to enthalpy
+    compareTemp_to_Enthalpy(v);
+}
+
+//---------------------------------------------------------------------------//
+// Test using binary salt permutations
+TEST(default_data_store,load_testData_binary)
+{
+    // molar gas constant https://physics.nist.gov/cgi-bin/cuu/Value?r; accessed 10Feb2021
+    static constexpr double mGas_const = 8.314462618;
+    // Generate some scrap data
+    static const char* scrap = R"test_data(
+    S1      ,Pure Salt     ,500.00,1.00,ref1,1000.00,NaN,ref1,1.0, 0.002,500-1000,1.00,ref1,0.50,2.0E+04,NaN,NaN,NaN,500-1000,1.00,ref1,1.8E+00,-3.9E-04,500-1000,20.00,ref1,6.5E+01,0.0,0.0,0.0,1.50,ref1
+    S1-S2   ,0.36-0.64     ,500.00,0.50,ref2,1000.00,NaN,ref2,2.0,-0.002,500-750 ,0.20,ref2,1.25,2.0E+04,NaN,NaN,NaN,800-1000,1.00,ref2,1.2E+00,-2.8E-04,600-900 ,20.00,ref2,6.8E+01,0.0,0.0,0.0,0.10,ref2
+    S1-S2   ,0.64-0.36     ,550.00,0.50,ref2,1500.00,NaN,ref2,3.0,-0.004,500-750 ,0.20,ref2,3.25,2.0E+04,NaN,NaN,NaN,800-1000,1.00,ref2,2.2E+00,-2.5E-04,600-900 ,20.00,ref2,6.8E+01,0.0,0.0,0.0,0.10,ref2
+    S1-S2   ,0.50-0.50     ,600.00,0.50,ref2,2000.00,NaN,ref2,4.0,-0.006,500-750 ,0.20,ref2,2.25,2.0E+04,NaN,NaN,NaN,800-1000,1.00,ref2,1.7E+00,-1.2E-04,600-900 ,20.00,ref2,6.8E+01,0.0,0.0,0.0,0.10,ref2
+    S1-S2-S3,0.23-0.50-0.27,131.20,0.50,ref3,1771.00,NaN,ref3,1.5, 0.002,100-400 ,1.00,ref3,1.68,2.3E+04,NaN,NaN,NaN,141-1327,2.00,ref3,8.5E-01,-2.4E-04,129-1800,20.00,ref3,7.6E+01,0.0,0.0,0.0,1.00,ref3
+    )test_data";
+
+    // Set-up work
+    Default_Data_Store d;
+    std::istringstream in(scrap);
+    d.load(in);
+
+    // Verify Data was loaded (critical)
+    size_t dSize = 3;
+    ASSERT_EQ(dSize,d.size());
+    ASSERT_TRUE(d.valid(0));
+    ASSERT_TRUE(d.valid(1));
+    ASSERT_TRUE(d.valid(2));
+    ASSERT_TRUE(!d.valid(3));
+
+    // Check that the data id interface works (critical)
+    size_t tstID = d.names_to_id({"S1","S2"});
+    size_t refID = 1;
+    ASSERT_EQ(refID,tstID);
+
+    //Check Data directly from data store, i.e. using ID and recID
+    size_t nConstituents = d.constituent_count(refID);
+    size_t refSize = 2;
+    ASSERT_EQ(refSize,nConstituents);
+    std::vector<std::string> tstNames = d.names(refID);
+    EXPECT_EQ(tstNames[0],"S1");
+    EXPECT_EQ(tstNames[1],"S2");
+
+    // Testing the first record of a given salt
+    size_t tstRecID = 0;
+    EXPECT_DOUBLE_EQ( 500,d.melt(refID,tstRecID));
+    EXPECT_DOUBLE_EQ(1000,d.boil(refID,tstRecID));
+
+    for(size_t i=0; i<tVecK.size(); ++i)
+    {
+        // Density implements a linear model, A-(B*T)
+        EXPECT_FLOAT_EQ(2.0-(-0.002*tVecK[i]),d.rho(refID,tstRecID,tVecK[i]));
+        // this item uses A*exp( B / R*T) where R is the molar gas constant constant
+        EXPECT_FLOAT_EQ(1.25*exp(2.0E+4/(mGas_const*tVecK[i])),d.mu(refID,tstRecID,tVecK[i]));
+        // Thermal conductivity implements a linear model, A+(B*T)
+        EXPECT_FLOAT_EQ(1.2+(-2.8E-04*tVecK[i]),d.k(refID,tstRecID,tVecK[i]));
+        // Heat capacity uses a degree 4 polynomial only the scalar portion is used here
+        EXPECT_FLOAT_EQ(6.8E01,d.cp(refID,tstRecID,tVecK[i]));
+        // h(t) = A * (T - Tmelt);  Tmelt:=500 
+        double ht = 6.8E01*(tVecK[i]-500);
+        EXPECT_FLOAT_EQ(ht,d.h_t(refID,tstRecID,tVecK[i]));
+        EXPECT_FLOAT_EQ(tVecK[i],d.t_h(refID,tstRecID,ht));
+
+        //Check Temperature/Enthalpy interfaces are consistent
+        EXPECT_FLOAT_EQ(d.rho(refID,tstRecID,tVecK[i]),d.rho_h(refID,tstRecID,ht));
+        EXPECT_FLOAT_EQ(d.mu(refID,tstRecID,tVecK[i]),d.mu_h(refID,tstRecID,ht));
+        EXPECT_FLOAT_EQ(d.k(refID,tstRecID,tVecK[i]),d.k_h(refID,tstRecID,ht));
+        EXPECT_FLOAT_EQ(d.cp(refID,tstRecID,tVecK[i]),d.cp_h(refID,tstRecID,ht));
+    }
+
+    // Check Data via views
+    Data_Store::View v = d.setView({"S1","S2"},{0.36,0.64});
+
+    // basic view info
+    ASSERT_TRUE(!v.null());
+    ASSERT_TRUE(v.d != nullptr);
+    EXPECT_EQ(d.constituent_count(refID),v.constituent_count());
+    EXPECT_EQ(refID,v.id);
+    EXPECT_EQ(tstRecID,v.rec_id);
+
+    std::vector<double> testMP = {0.36,0.64};
+    ASSERT_EQ(testMP.size(),v.mole_percents.size());
+    for( size_t i=0; i<testMP.size(); ++i)
+    {
+        EXPECT_DOUBLE_EQ(testMP[i],v.mole_percents[i]);
+    }
+    EXPECT_DOUBLE_EQ(v.melt(),d.melt(refID,tstRecID));
+    EXPECT_DOUBLE_EQ(v.boil(),d.boil(refID,tstRecID));
+
+    // Check consistency from view to data store
+    compareView_to_DataStore(v,refID,tstRecID);
+
+    // Check consistency from temperature to enthalpy
+    compareTemp_to_Enthalpy(v);
+
+    // Check Data via views
+    v = d.setView({"S1","S2"},{0.64,0.36});
+    EXPECT_DOUBLE_EQ( 550,v.melt());
+    EXPECT_DOUBLE_EQ(1500,v.boil());
+    // Check consistency from view to data store
+    compareView_to_DataStore(v,refID,1);
+
+    v = d.setView({"S1","S2"},{0.5,0.5});
+    EXPECT_DOUBLE_EQ( 600,v.melt());
+    EXPECT_DOUBLE_EQ(2000,v.boil());
+    // Check consistency from view to data store
+    compareView_to_DataStore(v,refID,2);
+
+    // Try something in between mole_percents
+    Data_Store::View v1 = d.setView({"S1","S2"},{0.565,0.435});
+    EXPECT_DOUBLE_EQ( 600,v.melt());
+    EXPECT_DOUBLE_EQ(2000,v.boil());
+    // Check consistency from view to data store
+    compareView_to_DataStore(v,refID,2);
+
+    EXPECT_DOUBLE_EQ(v.melt(),v1.melt());
+    EXPECT_DOUBLE_EQ(v.boil(),v1.boil());
+
+    // Check consistency from view to data store
+    for(size_t i=0; i<tVecK.size(); ++i)
+    {
+        EXPECT_FLOAT_EQ(v.rho(tVecK[i]),v1.rho(tVecK[i]));
+        EXPECT_FLOAT_EQ(v.mu( tVecK[i]),v1.mu( tVecK[i]));
+        EXPECT_FLOAT_EQ(v.k(  tVecK[i]),v1.k(  tVecK[i]));
+        EXPECT_FLOAT_EQ(v.cp( tVecK[i]),v1.cp( tVecK[i]));
+        EXPECT_FLOAT_EQ(v.h_t(tVecK[i]),v1.h_t(tVecK[i]));
     }
 }
 
-TEST(default_data, mu_LiFBeF2ThF4_727_157_116)
-{
-    // measured t(c) for LiF-BeF2-ThF4 @ 72.7, 15.7, 11.6 mole %) Cantor '73 (https://www.osti.gov/servlets/purl/4419855)
-    std::vector<double> tcs           = {553, 582, 613, 638, 622, 588, 555, 572, 649, 673};
-    // Experimental values
-    std::vector<double> mu_exp       = {14.3, 13.4, 11.4, 9.74, 11.5, 13.5, 16.5, 14.1, 9.79, 7.74};
-    // Expected calculated values (note these have been rounded)
-    std::vector<double> mu_calc_ref  = {15.5, 13.1, 11.1, 9.76, 10.6, 12.7, 15.3, 13.9, 9.25, 8.27};
-
-    Default_Data_Store d; d.load();
-    Thermophysical_Properties tp;
-    ASSERT_TRUE(tp.initialize(&d));
-
-    ASSERT_TRUE(tp.setComposition({"LiF","BeF2","ThF4"},{0.727,0.157,0.116}));
-
-    std::cout << "Density:" << std::endl
-              << " T(c) experimental calc_ref calced" << std::endl;
-
-    for( size_t i = 0; i < tcs.size(); ++i)
-    {
-        double t_c = tcs[i];
-        EXPECT_NEAR(mu_calc_ref[i], tp.mu(utils::c2k(t_c)), 5e-2);
-        // print data
-        std::cout << t_c << " " << mu_exp[i]
-                         << " " << mu_calc_ref[i]
-                         << " " << tp.mu(utils::c2k(t_c))
-                         << " " << mu_calc_ref[i] - tp.mu(utils::c2k(t_c)) << std::endl;
-    }
-}
-
-TEST(default_data, mu_LiFBeF2ThF4_7011_2388_601)
-{
-    // measured t(c) for LiF-BeF2-ThF4 @ 70.11, 23.88, 6.01 mole %) Cantor '73 (https://www.osti.gov/servlets/purl/4419855)
-    std::vector<double> tcs           = {653, 547, 598, 633, 526, 567, 579, 603, 557};
-    // Experimental values
-    std::vector<double> mu_exp       = {7.30, 14.15, 9.88, 8.97, 16.53, 12.56, 11.06, 10.19, 12.69};
-    // Expected calculated values (note these have been rounded)
-    std::vector<double> mu_calc_ref  = {7.47, 13.8, 10.1, 8.30, 15.8, 12.1, 11.3, 9.79, 12.9};
-
-    Default_Data_Store d; d.load();
-    Thermophysical_Properties tp;
-    ASSERT_TRUE(tp.initialize(&d));
-
-    ASSERT_TRUE(tp.setComposition({"LiF","BeF2","ThF4"},{0.7011, 0.2388, 0.0601}));
-
-    std::cout << "Density:" << std::endl
-              << " T(c) experimental calc_ref calced" << std::endl;
-
-    for( size_t i = 0; i < tcs.size(); ++i)
-    {
-        double t_c = tcs[i];
-        EXPECT_NEAR(mu_calc_ref[i], tp.mu(utils::c2k(t_c)), 5e-2);
-        // print data
-        std::cout << t_c << " " << mu_exp[i]
-                         << " " << mu_calc_ref[i]
-                         << " " << tp.mu(utils::c2k(t_c))
-                         << " " << mu_calc_ref[i] - tp.mu(utils::c2k(t_c)) << std::endl;
-    }
-}
-
-//Effectively this test the assignment of the nearest composition
-TEST(default_data, mu_LiFBeF2ThF4_7001_2388_611)
-{
-    // measured t(c) for LiF-BeF2-ThF4 @ 70.11, 23.88, 6.01 mole %) Cantor '73 (https://www.osti.gov/servlets/purl/4419855)
-    std::vector<double> tcs           = {653, 547, 598, 633, 526, 567, 579, 603, 557};
-    // Experimental values
-    std::vector<double> mu_exp       = {7.30, 14.15, 9.88, 8.97, 16.53, 12.56, 11.06, 10.19, 12.69};
-    // Expected calculated values (note these have been rounded)
-    std::vector<double> mu_calc_ref  = {7.47, 13.8, 10.1, 8.30, 15.8, 12.1, 11.3, 9.79, 12.9};
-
-    Default_Data_Store d; d.load();
-    Thermophysical_Properties tp;
-    ASSERT_TRUE(tp.initialize(&d));
-
-    ASSERT_TRUE(tp.setComposition({"LiF","BeF2","ThF4"},{0.7001, 0.2388, 0.0611}));
-
-    std::cout << "Density:" << std::endl
-              << " T(c) experimental calc_ref calced" << std::endl;
-
-    for( size_t i = 0; i < tcs.size(); ++i)
-    {
-        double t_c = tcs[i];
-        EXPECT_NEAR(mu_calc_ref[i], tp.mu(utils::c2k(t_c)), 5e-2);
-        // print data
-        std::cout << t_c << " " << mu_exp[i]
-                         << " " << mu_calc_ref[i]
-                         << " " << tp.mu(utils::c2k(t_c))
-                         << " " << mu_calc_ref[i] - tp.mu(utils::c2k(t_c)) << std::endl;
-    }
-}
-TEST(default_data, mu_LiFBeF2ThF4_7140_2259_601)
-{
-    // measured t(c) for LiF-BeF2-ThF4 @ 70.11, 23.88, 6.01 mole %) Cantor '73 (https://www.osti.gov/servlets/purl/4419855)
-    std::vector<double> tcs           = {653, 547, 598, 633, 526, 567, 579, 603, 557};
-    // Experimental values
-    std::vector<double> mu_exp       = {7.30, 14.15, 9.88, 8.97, 16.53, 12.56, 11.06, 10.19, 12.69};
-    // Expected calculated values (note these have been rounded)
-    std::vector<double> mu_calc_ref  = {7.47, 13.8, 10.1, 8.30, 15.8, 12.1, 11.3, 9.79, 12.9};
-
-    Default_Data_Store d; d.load();
-    Thermophysical_Properties tp;
-    ASSERT_TRUE(tp.initialize(&d));
-
-    ASSERT_TRUE(tp.setComposition({"LiF","BeF2","ThF4"},{0.7140, 0.2259, 0.0601}));
-
-    std::cout << "Density:" << std::endl
-              << " T(c) experimental calc_ref calced" << std::endl;
-
-    for( size_t i = 0; i < tcs.size(); ++i)
-    {
-        double t_c = tcs[i];
-        EXPECT_NEAR(mu_calc_ref[i], tp.mu(utils::c2k(t_c)), 5e-2);
-        // print data
-        std::cout << t_c << " " << mu_exp[i]
-                         << " " << mu_calc_ref[i]
-                         << " " << tp.mu(utils::c2k(t_c))
-                         << " " << mu_calc_ref[i] - tp.mu(utils::c2k(t_c)) << std::endl;
-    }
-}
-
-TEST(default_data, rho_cp_mu_k_LiFNaFKF_465_115_042)
+//---------------------------------------------------------------------------//
+// Test a compound from default data
+TEST(default_data, FLiNaK_465_115_042)
 {
     Default_Data_Store d; d.load();
     Thermophysical_Properties tp;

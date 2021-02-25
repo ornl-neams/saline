@@ -60,7 +60,7 @@ class Default_Data_Store : public Data_Store
     // >>> ACCESSORS
 
     // the number of entries in the data store
-    int size() const { return static_cast<int>(compounds.size());}
+    size_t size() const { return static_cast<int>(compounds.size());}
 
     // the constituents names in a given compound
     Vec_Name names(Id id) const { return compounds[id].names;}
@@ -88,10 +88,10 @@ class Default_Data_Store : public Data_Store
     double t_h(Id id, Id data_id, double enthalpy) const;
 
     // melting temperature
-    double melt(Id id) const;
+    double melt(Id id, Id data_id) const;
 
     // boiling temperature
-    double boil(Id id) const;
+    double boil(Id id, Id data_id) const;
 
     // number of constituents for the given compound
     std::size_t constituent_count(Id id) const;
