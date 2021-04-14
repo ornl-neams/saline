@@ -54,10 +54,9 @@ TEST(default_data_store,load_testData_literal)
     static constexpr double mGas_const = 8.314462618;
     // Generate some scrap data
     static const char* scrap = R"test_data(
-    S1   ,Pure Salt,500.00,1.00,ref1,1000.00,NaN,ref1,1.0, 0.002,500-1000,1.00,ref1,0.50,2.0E+04,NaN,NaN,NaN,500-1000,1.00,ref1,1.8E+00,-3.9E-04,500-1000,20.00,ref1,6.5E+01,0.0,0.0,0.0,1.50,ref1
-    S1-S2,0.36-0.64,500.00,0.50,ref2,1000.00,NaN,ref2,2.0,-0.002,500-750 ,0.20,ref2,1.25,2.0E+04,NaN,NaN,NaN,800-1000,1.00,ref2,1.2E+00,-2.8E-04,600-900 ,20.00,ref2,6.8E+01,0.0,0.0,0.0,0.10,ref2
+    S1   ,Pure Salt,1.0,500.00,1.00,ref1,1000.00,0.0,ref1,1.0, 0.002,500-1000,1.00,ref1,0.50,2.0E+04,0.0,0.0,0.0,500-1000,1.00,ref1,1.8E+00,-3.9E-04,500-1000,20.00,ref1,6.5E+01,0.0,0.0,0.0,1.50,ref1
+    S1-S2,0.36-0.64,2.0,500.00,0.50,ref2,1000.00,0.0,ref2,2.0,-0.002,500-750 ,0.20,ref2,1.25,2.0E+04,0.0,0.0,0.0,800-1000,1.00,ref2,1.2E+00,-2.8E-04,600-900 ,20.00,ref2,6.8E+01,0.0,0.0,0.0,0.10,ref2
     )test_data";
-
 
     // Set-up work
     Default_Data_Store d;
@@ -99,7 +98,7 @@ TEST(default_data_store,load_testData_literal)
         EXPECT_FLOAT_EQ(1.8+(-3.9E-04*tVecK[i]),d.k(refID,tstRecID,tVecK[i]));
         // Heat capacity uses a degree 4 polynomial only the scalar portion is used here
         EXPECT_FLOAT_EQ(6.5E01,d.cp(refID,tstRecID,tVecK[i]));
-        // h(t) = A * (T - Tmelt);  Tmelt:=500 
+        // h(t) = A * (T - Tmelt);  Tmelt:=500
         double ht = 6.5E01*(tVecK[i]-500);
         EXPECT_FLOAT_EQ(ht,d.h_t(refID,tstRecID,tVecK[i]));
         EXPECT_FLOAT_EQ(tVecK[i],d.t_h(refID,tstRecID,ht));
@@ -146,11 +145,11 @@ TEST(default_data_store,load_testData_binary)
     static constexpr double mGas_const = 8.314462618;
     // Generate some scrap data
     static const char* scrap = R"test_data(
-    S1      ,Pure Salt     ,500.00,1.00,ref1,1000.00,NaN,ref1,1.0, 0.002,500-1000,1.00,ref1,0.50,2.0E+04,NaN,NaN,NaN,500-1000,1.00,ref1,1.8E+00,-3.9E-04,500-1000,20.00,ref1,6.5E+01,0.0,0.0,0.0,1.50,ref1
-    S1-S2   ,0.36-0.64     ,500.00,0.50,ref2,1000.00,NaN,ref2,2.0,-0.002,500-750 ,0.20,ref2,1.25,2.0E+04,NaN,NaN,NaN,800-1000,1.00,ref2,1.2E+00,-2.8E-04,600-900 ,20.00,ref2,6.8E+01,0.0,0.0,0.0,0.10,ref2
-    S1-S2   ,0.64-0.36     ,550.00,0.50,ref2,1500.00,NaN,ref2,3.0,-0.004,500-750 ,0.20,ref2,3.25,2.0E+04,NaN,NaN,NaN,800-1000,1.00,ref2,2.2E+00,-2.5E-04,600-900 ,20.00,ref2,6.8E+01,0.0,0.0,0.0,0.10,ref2
-    S1-S2   ,0.50-0.50     ,600.00,0.50,ref2,2000.00,NaN,ref2,4.0,-0.006,500-750 ,0.20,ref2,2.25,2.0E+04,NaN,NaN,NaN,800-1000,1.00,ref2,1.7E+00,-1.2E-04,600-900 ,20.00,ref2,6.8E+01,0.0,0.0,0.0,0.10,ref2
-    S1-S2-S3,0.23-0.50-0.27,131.20,0.50,ref3,1771.00,NaN,ref3,1.5, 0.002,100-400 ,1.00,ref3,1.68,2.3E+04,NaN,NaN,NaN,141-1327,2.00,ref3,8.5E-01,-2.4E-04,129-1800,20.00,ref3,7.6E+01,0.0,0.0,0.0,1.00,ref3
+    S1      ,Pure Salt     ,1.0,500.00,1.00,ref1,1000.00,0.0,ref1,1.0, 0.002,500-1000,1.00,ref1,0.50,2.0E+04,0.0,0.0,0.0,500-1000,1.00,ref1,1.8E+00,-3.9E-04,500-1000,20.00,ref1,6.5E+01,0.0,0.0,0.0,1.50,ref1
+    S1-S2   ,0.36-0.64     ,2.0,500.00,0.50,ref2,1000.00,0.0,ref2,2.0,-0.002,500-750 ,0.20,ref2,1.25,2.0E+04,0.0,0.0,0.0,800-1000,1.00,ref2,1.2E+00,-2.8E-04,600-900 ,20.00,ref2,6.8E+01,0.0,0.0,0.0,0.10,ref2
+    S1-S2   ,0.64-0.36     ,2.0,550.00,0.50,ref2,1500.00,0.0,ref2,3.0,-0.004,500-750 ,0.20,ref2,3.25,2.0E+04,0.0,0.0,0.0,800-1000,1.00,ref2,2.2E+00,-2.5E-04,600-900 ,20.00,ref2,6.8E+01,0.0,0.0,0.0,0.10,ref2
+    S1-S2   ,0.50-0.50     ,2.0,600.00,0.50,ref2,2000.00,0.0,ref2,4.0,-0.006,500-750 ,0.20,ref2,2.25,2.0E+04,0.0,0.0,0.0,800-1000,1.00,ref2,1.7E+00,-1.2E-04,600-900 ,20.00,ref2,6.8E+01,0.0,0.0,0.0,0.10,ref2
+    S1-S2-S3,0.23-0.50-0.27,4.0,131.20,0.50,ref3,1771.00,0.0,ref3,1.5, 0.002,100-400 ,1.00,ref3,1.68,2.3E+04,0.0,0.0,0.0,141-1327,2.00,ref3,8.5E-01,-2.4E-04,129-1800,20.00,ref3,7.6E+01,0.0,0.0,0.0,1.00,ref3
     )test_data";
 
     // Set-up work
@@ -194,7 +193,7 @@ TEST(default_data_store,load_testData_binary)
         EXPECT_FLOAT_EQ(1.2+(-2.8E-04*tVecK[i]),d.k(refID,tstRecID,tVecK[i]));
         // Heat capacity uses a degree 4 polynomial only the scalar portion is used here
         EXPECT_FLOAT_EQ(6.8E01,d.cp(refID,tstRecID,tVecK[i]));
-        // h(t) = A * (T - Tmelt);  Tmelt:=500 
+        // h(t) = A * (T - Tmelt);  Tmelt:=500
         double ht = 6.8E01*(tVecK[i]-500);
         EXPECT_FLOAT_EQ(ht,d.h_t(refID,tstRecID,tVecK[i]));
         EXPECT_FLOAT_EQ(tVecK[i],d.t_h(refID,tstRecID,ht));
@@ -273,7 +272,7 @@ TEST(default_data, FLiNaK_465_115_042)
     Thermophysical_Properties tp;
     ASSERT_TRUE(tp.initialize(&d));
 
-    ASSERT_TRUE(tp.setComposition({"LiF","NaF","KF"},{0.465,0.115,0.042}));
+    ASSERT_TRUE(tp.setComposition({"LiF","NaF","KF"},{0.465,0.115,0.42}));
 
     EXPECT_NEAR(2.01770, tp.rho(900), 1e-5);
     EXPECT_NEAR(tp.rho_h(tp.h_t(900)), tp.rho(900), 1e-4);
@@ -285,7 +284,7 @@ TEST(default_data, FLiNaK_465_115_042)
     std::vector<double> cp_exp       = {73.22, 75.43752, 75.43752, 77.8224};
     // Expected calculated values (note these have been rounded)
     std::vector<double> cp_calc_ref  = {73.2255, 75.4194, 77.6133, 78.0521};
-    
+
     std::cout << "Heat Capacity:" << std::endl
               << " T(K) experimental calc_ref calced" << std::endl;
     for( size_t i = 0; i < tks.size(); ++i)
@@ -304,7 +303,7 @@ TEST(default_data, FLiNaK_465_115_042)
     // Using values from reference https://doi.org/10.1021/je60084a007
     tks                              = {822.45, 872.65, 973.45, 922.95, 770.15};
     // Experimental values
-    std::vector<double> mu_exp       =  {5.615,  4.097,  2.535,  3.156,  8.551}; 
+    std::vector<double> mu_exp       =  {5.615,  4.097,  2.535,  3.156,  8.551};
     // Expected calculated value
     std::vector<double> mu_calc_ref  = {5.6296, 4.0862, 2.5436, 3.1494, 8.5459};
 
@@ -321,13 +320,13 @@ TEST(default_data, FLiNaK_465_115_042)
                          << " " << mu_calc_ref[i] - tp.mu(t_k) << std::endl;
     }
     tks.clear();
-    
+
     EXPECT_NEAR(tp.mu_h(tp.h_t(900)), tp.mu(900), 6e-4);
 
     // Using values from reference https://doi.org/10.1016/j.ijheatmasstransfer.2015.07.042
     tks                              = {773.0,  823.0,  873.0,  923.0,  973.0};
     // Experimental values
-    std::vector<double> k_exp       = {0.6520, 0.7730, 0.7720, 0.8320, 0.9270}; 
+    std::vector<double> k_exp       = {0.6520, 0.7730, 0.7720, 0.8320, 0.9270};
     // Expected calculated value
     std::vector<double> k_calc_ref  = {0.6549, 0.7199, 0.7849, 0.8499, 0.9149};
 

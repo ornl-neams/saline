@@ -87,6 +87,9 @@ class Default_Data_Store : public Data_Store
     // temperature
     double t_h(Id id, Id data_id, double enthalpy) const;
 
+    // molecular weight
+    double molecularWeight(Id id, Id data_id) const;
+
     // melting temperature
     double melt(Id id, Id data_id) const;
 
@@ -102,10 +105,6 @@ class Default_Data_Store : public Data_Store
 
     View setView(const Vec_Name& names, const Vec_Mole& mole_percents);
 
-    // obtain the lower and upper data identifiers for the given mole percent
-    // if the exact mole_percent is contained, lower will equal upper
-    // if only a single data indentifier exists, lower will equal upper
-    std::pair<Id, Id> extents(Id id, Id data_id, double mole_percent) const;
     //Obtain the nearest neighboring composition
     Id nearest(Id id, const Vec_Mole& mole_percent) const;
 
@@ -126,6 +125,9 @@ class Default_Data_Store : public Data_Store
 
         double melt() const {return m_melt;}
         double boil() const {return m_boil;}
+
+        // molecular weight
+        double molecularWeight() const {return m_mole_weight;}
 
         // density
         double rho(double t) const {return m_rho_a - m_rho_b * t;}
@@ -182,6 +184,9 @@ class Default_Data_Store : public Data_Store
         // Melting Temperature
         double m_melt;
         double m_melt_unc;
+
+        // Molecular Weight
+        double m_mole_weight;
 
         // Boiling Temperature
         double m_boil;

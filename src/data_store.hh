@@ -21,12 +21,12 @@ namespace saline
  * \class Data_Store
  * \brief Interface for insulating thermophysical property queries from format
  *
- *  The Data Store consists of compounds with one or more data sets for 
+ *  The Data Store consists of compounds with one or more data sets for
  *  each property.
- * 
- *  A compound may consist of a single or multiple components (E.g., BeF2, LiF-NaF-KF) 
- * 
- * Units: 
+ *
+ *  A compound may consist of a single or multiple components (E.g., BeF2, LiF-NaF-KF)
+ *
+ * Units:
  *   Conductivity  - Watts per Meter-Kelvin (W/m K)
  *   Pressure      - Kilopascal (kPa)
  *   Temperature   - Kelvin (K)
@@ -48,11 +48,11 @@ class Data_Store
     using Vec_Id   = std::vector<Id>;
     using Vec_Name = std::vector<Name>;
     using Vec_Mole = std::vector<double>;
-    using Vec_Mole_Bounds = std::vector<std::pair<Id, Id>>; 
+    using Vec_Mole_Bounds = std::vector<std::pair<Id, Id>>;
     //@}
 
     virtual ~Data_Store(){}
-    
+
     // convenience accessor/view of data store
     struct View
     {
@@ -61,7 +61,7 @@ class Data_Store
         Vec_Mole mole_percents;
         const Data_Store* d = nullptr;
 
-        // assign bounds and mole percents for given view        
+        // assign bounds and mole percents for given view
         void assign_record(const Vec_Mole& mole_percents);
 
         // the number of constituents for this compound
@@ -97,6 +97,9 @@ class Data_Store
 
         // boiling temperature
         double boil() const;
+        //
+        // molecular weight
+        double molecularWeight() const;
 
     }; // Data_Store::View
 
@@ -108,8 +111,8 @@ class Data_Store
 
     // the constituents names in a given compound
     virtual Vec_Name names(Id) const = 0;
-    
-    // specific heat 
+
+    // specific heat
     virtual double cp(Id id, Id data_id, double temperature, double pressure = 101.325) const = 0;
     virtual double cp_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const = 0;
 
@@ -134,16 +137,15 @@ class Data_Store
     // melting temperature
     virtual double melt(Id id, Id data_id) const = 0;
 
+    // molecular weight
+    virtual double molecularWeight(Id id, Id data_id) const = 0;
+
     // boiling temperature
     virtual double boil(Id id, Id data_id) const = 0;
 
     // number of constituents for the given compound
     virtual std::size_t constituent_count(Id id) const = 0;
 
-    // obtain the lower and upper data identifiers for the given mole percent
-    // if the exact mole_percent is contained, lower will equal upper
-    // if only a single data indentifier exists, lower will equal upper
-    virtual std::pair<Id, Id> extents(Id id, Id data_id, double mole_percent) const = 0;
     //Obtain the nearest neighboring composition
     virtual Id nearest(Id id, const Vec_Mole& mole_percent) const = 0;
 

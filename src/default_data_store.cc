@@ -22,7 +22,6 @@ namespace saline
  */
 Default_Data_Store::Default_Data_Store()
 {
-
 }
 
 //---------------------------------------------------------------------------//
@@ -55,10 +54,14 @@ void Default_Data_Store::load(std::istream& inFile)
 
     // Default input file has one salt entry per line
     std::string line;
+    std::getline(inFile,line);
     while (std::getline(inFile,line))
     {
         utils::trim(line);
-        if( line.empty() ) continue;
+        //For now if an empty line signals the end of data
+        if( line.empty() ) break;
+        //Skip any comments
+        if( line[0] == '/' && line[1] == '/' ) continue;
 
         // names, id, mole_percents, tmelt, tboil, rho_a,  rho_b, mu_a, mu_b, k_a, k_b, cp_a, cp_b, cp_c, cp_d
         auto tokens = utils::split(",",line);
@@ -108,67 +111,70 @@ void Default_Data_Store::load(std::istream& inFile)
         auto& d = it->data.back();
         d.m_mole_percents = molfrac;
 
+        //Molecular Weight
+        d.m_mole_weight = std::stod(tokens[2]);
         //Melt
-        d.m_melt = std::stod(tokens[2]);
+        d.m_melt = std::stod(tokens[3]);
         //Melt uncertainty
-        d.m_melt_unc = std::stod(tokens[3]);
+        d.m_melt_unc = std::stod(tokens[4]);
         //Melt Reference
 
         //Boil
-        d.m_boil = std::stod(tokens[5]);
+        d.m_boil = std::stod(tokens[6]);
         //Boil Uncertainty
-        d.m_boil_unc = std::stod(tokens[6]);
+        d.m_boil_unc = std::stod(tokens[7]);
         //Boil Reference
 
         //Density A and B as parameters for A - BT
-        d.m_rho_a = std::stod(tokens[8]);
+        d.m_rho_a = std::stod(tokens[9]);
+        d.m_rho_b = std::stod(tokens[10]);
 
-        d.m_rho_b = std::stod(tokens[9]);
         //Applicability range
-        std::vector<std::string> rho_rng_str = utils::split("-",tokens[10]);
+        std::vector<std::string> rho_rng_str = utils::split("-",tokens[11]);
         d.m_rho_rng = std::make_pair(std::stod(rho_rng_str[0]),std::stod(rho_rng_str[1]));
         //uncertainty
-        d.m_rho_unc = std::stod(tokens[11]);
+        d.m_rho_unc = std::stod(tokens[12]);
         //reference
 
         //Viscosity A and B as parameters A*exp(B/(RT)) ... OR
-        d.m_mu_a = std::stod(tokens[13]);
-        d.m_mu_b = std::stod(tokens[14])/mGas_const;
+        d.m_mu_a = std::stod(tokens[14]);
+        d.m_mu_b = std::stod(tokens[15])/mGas_const;
         d.m_mu_c = std::numeric_limits<double>::quiet_NaN();
         //Test if we received inputs for two parameter viscosity model
-        if( std::isnan(d.m_mu_a) and std::isnan(d.m_mu_b))
+        if( d.m_mu_a == 0.0 and d.m_mu_b == 0.0)
         {
+            // Since both a and b are zero try the other model
             // A, B, C for 10^(A + B/T + C/T**2)
-            d.m_mu_a = std::stod(tokens[15]);
-            d.m_mu_b = std::stod(tokens[16]);
-            d.m_mu_c = std::stod(tokens[17]);
+            d.m_mu_a = std::stod(tokens[16]);
+            d.m_mu_b = std::stod(tokens[17]);
+            d.m_mu_c = std::stod(tokens[18]);
         }
         //Applicability range
-        std::vector<std::string> mu_rng_str = utils::split("-",tokens[18]);
+        std::vector<std::string> mu_rng_str = utils::split("-",tokens[19]);
         d.m_mu_rng = std::make_pair(std::stod(mu_rng_str[0]),std::stod(mu_rng_str[1]));
         //uncertainty
-        d.m_mu_unc = std::stod(tokens[19]);
+        d.m_mu_unc = std::stod(tokens[20]);
         //reference
 
         //Thermal conductivity A and B as parameters for A + BT
-        d.m_k_a  = std::stod(tokens[21]);
-        d.m_k_b  = std::stod(tokens[22]);
+        d.m_k_a  = std::stod(tokens[22]);
+        d.m_k_b  = std::stod(tokens[23]);
         //Applicability range
-        std::vector<std::string> k_rng_str = utils::split("-",tokens[23]);
+        std::vector<std::string> k_rng_str = utils::split("-",tokens[24]);
         d.m_k_rng = std::make_pair(std::stod(k_rng_str[0]),std::stod(k_rng_str[1]));
         //uncertainty
-        d.m_k_unc = std::stod(tokens[24]);
+        d.m_k_unc = std::stod(tokens[25]);
         //reference
 
         //heat capacity A, B, C, D for A + B*T(K) + C*T-2(K) + D*T2(K)
-        d.m_cp_a = std::stod(tokens[26]);
-        d.m_cp_b = std::stod(tokens[27]);
-        d.m_cp_c = std::stod(tokens[28]);
-        d.m_cp_d = std::stod(tokens[29]);
+        d.m_cp_a = std::stod(tokens[27]);
+        d.m_cp_b = std::stod(tokens[28]);
+        d.m_cp_c = std::stod(tokens[29]);
+        d.m_cp_d = std::stod(tokens[30]);
         //Applicability range --  Not included in data
 
         //uncertainty
-        d.m_cp_unc = std::stod(tokens[30]);
+        d.m_cp_unc = std::stod(tokens[31]);
         //reference
 
     }
@@ -176,7 +182,10 @@ void Default_Data_Store::load(std::istream& inFile)
     setup_enthalpy_tables();
 }
 
-// setup the enthalpy 2 temperature interpolation tables
+//----------------------------------------------------------------------------//
+/*!
+ * \brief setup the enthalpy 2 temperature interpolation tables
+ */
 void Default_Data_Store::setup_enthalpy_tables()
 {
     for (auto& c : compounds)
@@ -188,6 +197,10 @@ void Default_Data_Store::setup_enthalpy_tables()
     }
 }
 
+//----------------------------------------------------------------------------//
+/*!
+ * \brief calculate the values of the enthalpy interpolation tables
+ */
 void Default_Data_Store::Data::calc_h_t(size_t table_size)
 {
     if (m_melt == 0 || m_boil == 0) return;
@@ -206,6 +219,10 @@ void Default_Data_Store::Data::calc_h_t(size_t table_size)
     }
 }
 
+//----------------------------------------------------------------------------//
+/*!
+ * \brief helper function to calculate the enthalpy integration
+ */
 double Default_Data_Store::Data::h_t(double t) const
 {
     double t2 = t * t;
@@ -214,7 +231,10 @@ double Default_Data_Store::Data::h_t(double t) const
     return m_cp_a * t + m_cp_b / 2.0 * t2 - m_cp_c / t + m_cp_d / 3.0 * t3 - m_e;
 }
 
-// enthalpy to temperature
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the enthalpy for the selected compound based on temperature
+ */
 double Default_Data_Store::Data::h_to_t(double h) const
 {
     if (m_h.empty()) return std::numeric_limits<double>::quiet_NaN();
@@ -233,6 +253,10 @@ double Default_Data_Store::Data::h_to_t(double h) const
     return y0 + (h-x0) * (y1-y0) / (x1-x0);
 }
 
+//----------------------------------------------------------------------------//
+/*!
+ * \brief returns the number of compound stored in this data store
+ */
 std::size_t Default_Data_Store::constituent_count(Id id) const
 {
     saline_require(id < compounds.size());
@@ -282,48 +306,11 @@ auto Default_Data_Store::nearest(Id id, const Vec_Mole& mole_percent) const
     return i_min;
 }
 
-//---------------------------------------------------------------------------//
+
+//----------------------------------------------------------------------------//
 /*!
- * \brief retrieves a pair indicating the index of the highest and lowest mole
- * fraction of a particular constituent.
+ * \brief retrieve the heat capacity for the selected compound based on temperature
  */
-auto Default_Data_Store::extents(Id id, Id mp_id, double mp) const
- -> std::pair<Id, Id>
-{
-    saline_require(id < compounds.size());
-    saline_require(mp_id < compounds[id].data.size());
-
-    size_t i_min = 0;
-    size_t i_max = 0;
-    bool max_assigned = false;
-    bool min_assigned = false;
-    // loop over data records looking for min and max percents for the given constituent (mp_id)
-    for (size_t i = 0, count = compounds[id].data.size(); i < count; ++i)
-    {
-        auto datas = compounds[id].data;
-        auto data = datas[i];
-        const auto& mps = data.mole_percents();
-        // is the new entry (mps[mp_id]) greater or equal to search term (mp)
-        bool is_max_gte = mps[mp_id] >= mp;
-        if ((is_max_gte && !max_assigned) ||
-            (max_assigned && is_max_gte && mps[mp_id] <= datas[i_max].mole_percents()[mp_id]))
-        {
-            i_max = i;
-            max_assigned = true;
-        }
-        // is the new entry (mps[mp_id]) less or equal to search term (mp)
-        bool is_min_lte = mps[mp_id] <= mp;
-        if ((is_min_lte && !min_assigned) ||
-            (min_assigned && is_min_lte && mps[mp_id] >= datas[i_min].mole_percents()[mp_id]))
-        {
-            i_min = i;
-            min_assigned = true;
-        }
-    }
-    return {i_min, i_max};
-}
-
-// specific heat
 double Default_Data_Store::cp(Id id, Id data_id, double t, double p) const
 {
     const auto& d = compounds[id].data[data_id];
@@ -339,7 +326,10 @@ double Default_Data_Store::cp_h(Id id, Id data_id, double enthalpy, double p) co
     return d.cp_h(enthalpy);
 }
 
-// viscosity
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the viscosity for the selected compound based on temperature
+ */
 double Default_Data_Store::mu(Id id, Id data_id, double t, double p) const
 {
     const auto& d = compounds[id].data[data_id];
@@ -351,7 +341,10 @@ double Default_Data_Store::mu_h(Id id, Id data_id, double enthalpy, double p) co
     return d.mu_h(enthalpy);
 }
 
-// conductivity
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the conductivity for the selected compound based on temperature
+ */
 double Default_Data_Store::k(Id id, Id data_id, double t, double p) const
 {
        const auto& d = compounds[id].data[data_id];
@@ -364,7 +357,10 @@ double Default_Data_Store::k_h(Id id, Id data_id, double enthalpy, double p) con
     return d.k_h(enthalpy);
 }
 
-// density
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the density for the selected compound based on temperature
+ */
 double Default_Data_Store::rho(Id id, Id data_id, double t, double p) const
 {
     const auto& d = compounds[id].data[data_id];
@@ -376,34 +372,60 @@ double Default_Data_Store::rho_h(Id id, Id data_id, double enthalpy, double p) c
     return d.rho_h(enthalpy);
 }
 
-// enthalpy
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the enthalpy for the selected compound based on temperature
+ */
 double Default_Data_Store::h_t(Id id, Id data_id, double temperature) const
 {
     const auto& d = compounds[id].data[data_id];
     return d.h_t(temperature);
 }
 
-// temperature
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the temperature for the selected compound based on enthalpy
+ */
 double Default_Data_Store::t_h(Id id, Id data_id, double enthalpy) const
 {
     const auto& d = compounds[id].data[data_id];
     return d.h_to_t(enthalpy);
 }
 
-// melting temperature
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the melting temperature of the selected compound
+ */
 double Default_Data_Store::melt(Id id, Id data_id) const
 {
     const auto& d = compounds[id].data[data_id];
     return d.melt();
 }
 
-// boiling temperature
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the boiling temperature of the selected compound
+ */
 double Default_Data_Store::boil(Id id, Id data_id) const
 {
     const auto& d = compounds[id].data[data_id];
     return d.boil();
 }
 
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieves the molecular weight for the provided salt
+ */
+double Default_Data_Store::molecularWeight(Id id, Id data_id) const
+{
+    const auto& d = compounds[id].data[data_id];
+    return d.molecularWeight();
+}
+
+//----------------------------------------------------------------------------//
+/*!
+ *
+ */
 void Default_Data_Store::Data::to_stream(std::ostream& s) const
 {
     s << "% [";

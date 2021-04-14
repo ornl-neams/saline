@@ -5,6 +5,7 @@ TRIBITS_CONFIGURE_FILE(version.hh)
 SET(SOURCE
 data_store.cc
 default_data_store.cc
+r_kister_data_store.cc
 thermophysical_properties.cc
 utils.cc
 )
@@ -13,6 +14,7 @@ SET(HEADERS
 data_store.hh
 default_data.hh
 default_data_store.hh
+r_kister_data_store.hh
 thermophysical_properties.hh
 utils.hh
 saline_bug.hh
