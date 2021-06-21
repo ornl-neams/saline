@@ -4,6 +4,11 @@
 #include "utils.hh"
 #include "default_data.hh"
 
+#include <stdexcept>
+#include <algorithm>
+#include <fstream>  
+#include <sstream>  
+
 //TODO all the enthalpy functions. They rely on setting up enthalpy tables. This
 //is done for all the end members, but its not clear that carries much meaning
 //for compositions of end members. We certainly shouldn't set up enthalpy tables
@@ -20,7 +25,22 @@ R_Kister_Data_Store::R_Kister_Data_Store()
     : d(nullptr)
 {
 }
-
+void R_Kister_Data_Store::load()
+{
+    std::cout << "This is not implemented instead use :\n"
+        "void R_Kister_Data_Store::load(std::istream& inFile)\n"
+        "\tor\n"
+        "void R_Kister_Data_Store::load(Data_Store* ds)" << std::endl;
+}
+//---------------------------------------------------------------------------//
+/*!
+ * \brief helper function to load data into data store
+ */
+void R_Kister_Data_Store::load(const std::string& fPath)
+{
+    std::ifstream inFile(fPath.data());
+    load(inFile);
+}
 //---------------------------------------------------------------------------//
 /*!
  * \brief helper function to load data Redlich-Kister parameters into data store
@@ -42,9 +62,11 @@ void R_Kister_Data_Store::load(std::istream& inFile)
     {
         if( line.find("RK parameters") != std::string::npos ) break;
     }
+    // Its possible we could have a bum input. That should break here.
 
     // this is  a comment line
     std::getline(inFile,line);
+
     // Read the input data. TODO currently only uses density
     while( std::getline(inFile,line))
     {
@@ -54,27 +76,38 @@ void R_Kister_Data_Store::load(std::istream& inFile)
             utils::trim(tokens[i]);
         }
 
-        //comp_a, comp_b
-        auto id_a = d->names_to_id({tokens[0]});
-        auto id_b = d->names_to_id({tokens[1]});
-
+        //Sort components and adjust value if required
         //L1_a, L1_b, L2_a, L2_b, L3_a, L3_b, L4_a, L4_b
+        size_t id_a;
+        size_t id_b;
+        double sortFactor;
+        if(tokens[0] < tokens[1])
+        {
+          id_a = d->names_to_id({tokens[0]});
+          id_b = d->names_to_id({tokens[1]});
+          sortFactor = 1.0;
+        }
+          else
+        {
+          id_a = d->names_to_id({tokens[1]});
+          id_b = d->names_to_id({tokens[0]});
+          sortFactor = -1.0;
+        }
+
         //component a
         m_rho[id_a][id_b].a_n.resize(4);
         m_rho[id_a][id_b].a_n[0] = std::stod(tokens[2]);
-        m_rho[id_a][id_b].a_n[1] = std::stod(tokens[4]);
+        m_rho[id_a][id_b].a_n[1] = sortFactor * std::stod(tokens[4]);
         m_rho[id_a][id_b].a_n[2] = std::stod(tokens[6]);
-        m_rho[id_a][id_b].a_n[3] = std::stod(tokens[8]);
         //componet b
         m_rho[id_a][id_b].b_n.resize(4);
         m_rho[id_a][id_b].b_n[0] = std::stod(tokens[3]);
-        m_rho[id_a][id_b].b_n[1] = std::stod(tokens[5]);
+        m_rho[id_a][id_b].b_n[1] = sortFactor * std::stod(tokens[5]);
         m_rho[id_a][id_b].b_n[2] = std::stod(tokens[7]);
-        m_rho[id_a][id_b].b_n[3] = std::stod(tokens[9]);
 
         //T_min, T_max
-        m_rho[id_a][id_b].t_min = std::stod(tokens[10]);
-        m_rho[id_a][id_b].t_max = std::stod(tokens[11]);
+        m_rho[id_a][id_b].t_min = std::stod(tokens[8]);
+        m_rho[id_a][id_b].t_max = std::stod(tokens[9]);
 
         //algorithm
         //reference
@@ -106,18 +139,29 @@ Data_Store::View R_Kister_Data_Store::setView( const Vec_Name& names, const Vec_
     end_members.clear();
     end_members.resize(names.size());
 
+    //Get the permutation to sort names alphabetically
+    auto sp = utils::getSortPermutation(names);
+    //Use that to sort the names and mole percents
+    auto sort_names = utils::applySortPermuation(names,sp);
+    endMem_moleFracs = utils::applySortPermuation(mole_percents,sp);;
+
     // For the functioning of this data store...views of end_members are stored
     for(size_t i=0; i<names.size(); ++i)
     {
         //TODO Assuming they are all valid single components for now.
-        end_members[i] = (d->setView({names[i]},{1.0}));
+        //Get the ids of the sorted names...so all the ids are in order
+        end_members[i] = (d->setView({sort_names[i]},{1.0}));
     }
-    endMem_moleFracs = mole_percents;
 
     // To adapt the interfaces a "minimal" view is returned to the client
     Data_Store::View v;
-    v = view(0);
-    v.mole_percents = mole_percents;
+
+    if(std::all_of(end_members.begin(),end_members.end(),[] 
+          (Data_Store::View v){return !v.null();}))
+    {
+      v = view(0);
+      v.mole_percents = mole_percents;
+    }
     return v;
 }
 
@@ -400,7 +444,7 @@ double R_Kister_Data_Store::RK_Polynomial::getRK_solution(double x, double y, do
     double summation = l_n[0];
     for(int i=1; i<l_n.size(); ++i)
     {
-        summation += l_n[i]*std::pow(w_diff,i-1);
+        summation += l_n[i]*std::pow(w_diff,i);
     }
 
     return (x*y)*summation;

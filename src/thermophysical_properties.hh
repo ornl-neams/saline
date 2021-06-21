@@ -71,7 +71,7 @@ class Thermophysical_Properties
     // temperature
     double t_h(double enthalpy) const;
 
-    // list of specifies for which properties are being tracked
+    // list of species for which properties are being tracked
     const Vec_Name& species() const {return m_comp_names;}
 
     // list of species mole % for which properties are being tracked

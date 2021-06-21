@@ -132,8 +132,8 @@ void Default_Data_Store::load(std::istream& inFile)
         //Applicability range
         std::vector<std::string> rho_rng_str = utils::split("-",tokens[11]);
         d.m_rho_rng = std::make_pair(std::stod(rho_rng_str[0]),std::stod(rho_rng_str[1]));
-        //uncertainty
-        d.m_rho_unc = std::stod(tokens[12]);
+        //uncertainty in percent
+        d.m_rho_unc = std::stod(tokens[12])/100.0;
         //reference
 
         //Viscosity A and B as parameters A*exp(B/(RT)) ... OR

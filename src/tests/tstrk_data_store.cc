@@ -36,3 +36,39 @@ TEST(rk_data_store,load)
         EXPECT_NEAR(tp_rk.rho(t_k),tp_dflt.rho(t_k),5e-2);
     }
 }
+
+// Test to make sure we get the same answer regardless of input order
+TEST(rk_data_store,input_order)
+{
+    // Set up the interpolation object
+    Default_Data_Store dflt_DS;
+    std::istringstream in(default_data_rk);
+    dflt_DS.load(in);
+    R_Kister_Data_Store rk_DS;
+    rk_DS.load(&dflt_DS);
+    Thermophysical_Properties tp_rk;
+    ASSERT_TRUE(tp_rk.initialize(&rk_DS));
+
+    std::vector<double> tks           = {1080,1130,1180,1230};
+    tp_rk.setComposition({"LiF","NaF","KF"},{0.465,0.115,0.42});
+    std::vector<double> ref(tks.size());
+    for( size_t i = 0; i < tks.size(); ++i)
+    {
+        double t_k = tks[i];
+        ref[i] = tp_rk.rho(t_k);
+    }
+
+    tp_rk.setComposition({"NaF","LiF","KF"},{0.115,0.465,0.42});
+    for( size_t i = 0; i < tks.size(); ++i)
+    {
+        double t_k = tks[i];
+        EXPECT_NEAR(tp_rk.rho(t_k),ref[i],1e-6);
+    }
+
+    tp_rk.setComposition({"KF","NaF","LiF"},{0.42,0.115,0.465});
+    for( size_t i = 0; i < tks.size(); ++i)
+    {
+        double t_k = tks[i];
+        EXPECT_NEAR(tp_rk.rho(t_k),ref[i],1e-6);
+    }
+}

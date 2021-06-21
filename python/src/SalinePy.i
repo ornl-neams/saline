@@ -4,6 +4,7 @@
 #define SWIG_FILE_INIT
 #include "data_store.hh"
 #include "default_data_store.hh"
+#include "r_kister_data_store.hh"
 #include "thermophysical_properties.hh"
 %}
 
@@ -18,4 +19,5 @@ namespace std
 }
 %include data_store.hh
 %include default_data_store.hh
+%include r_kister_data_store.hh
 %include thermophysical_properties.hh

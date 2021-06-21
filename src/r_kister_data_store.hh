@@ -38,6 +38,7 @@ class R_Kister_Data_Store : public Data_Store
     R_Kister_Data_Store();
 
     void load();
+    void load(const std::string& fPath);
     void load(std::istream& inFile);
     void load(Data_Store* ds);
     // >>> ACCESSORS
