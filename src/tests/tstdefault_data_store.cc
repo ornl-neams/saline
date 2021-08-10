@@ -272,78 +272,64 @@ TEST(default_data, FLiNaK_465_115_042)
     Thermophysical_Properties tp;
     ASSERT_TRUE(tp.initialize(&d));
 
+    // Ensure that the composition set correctly
     ASSERT_TRUE(tp.setComposition({"LiF","NaF","KF"},{0.465,0.115,0.42}));
 
-    EXPECT_NEAR(2.01770, tp.rho(900), 1e-5);
-    EXPECT_NEAR(tp.rho_h(tp.h_t(900)), tp.rho(900), 1e-4);
-
-    // Using values from reference https://doi.org/10.1021/je00029a041
-    std::vector<double> tks           = {750, 800, 850, 860};
-    // Experimental values
-    // NOTE reference values are {17.50, 18.03, 18.55, 18.60} cal mol^-1 K^-1, but we use J mol^-1 K^-1
-    std::vector<double> cp_exp       = {73.22, 75.43752, 75.43752, 77.8224};
+    // Test Density
+    std::vector<double> tks           = {700.0, 750.0, 800.0, 850.0, 860.0, 1000.0};
     // Expected calculated values (note these have been rounded)
-    std::vector<double> cp_calc_ref  = {73.2255, 75.4194, 77.6133, 78.0521};
+    std::vector<double> rho_calc_ref  = {2.1425,2.1113,2.0801,2.04890,2.04266,1.9553};
+    for( size_t i = 0; i < tks.size(); ++i)
+    {
+        double t_k = tks[i];
+        EXPECT_NEAR(rho_calc_ref[i], tp.rho(t_k), 5e-4);
+    }
+    EXPECT_NEAR(tp.rho_h(tp.h_t(900)), tp.rho(900), 1e-4);
+    tks.clear();
 
-    std::cout << "Heat Capacity:" << std::endl
-              << " T(K) experimental calc_ref calced" << std::endl;
+    // Test Heat Capacity
+    // Using values from reference https://doi.org/10.1021/je00029a041
+    tks           = {700.0, 750.0, 800.0, 850.0, 860.0, 1000.0};
+    // Expected calculated values (note these have been rounded)
+    std::vector<double> cp_calc_ref  = {71.0316, 73.2255, 75.4194, 77.6133, 78.0521, 84.195};
+
     for( size_t i = 0; i < tks.size(); ++i)
     {
         double t_k = tks[i];
         EXPECT_NEAR(cp_calc_ref[i], tp.cp(t_k), 5e-4);
-        // print data
-        std::cout << t_k << " " << cp_exp[i]
-                         << " " << cp_calc_ref[i]
-                         << " " << tp.cp(t_k)
-                         << " " << cp_calc_ref[i] - tp.mu(t_k) << std::endl;
     }
     EXPECT_NEAR(tp.cp_h(tp.h_t(1200)), tp.cp(1200), 4e-2);
     tks.clear();
 
+    // Test Viscosity
     // Using values from reference https://doi.org/10.1021/je60084a007
-    tks                              = {822.45, 872.65, 973.45, 922.95, 770.15};
-    // Experimental values
-    std::vector<double> mu_exp       =  {5.615,  4.097,  2.535,  3.156,  8.551};
+    tks                              = {700.0, 822.45, 872.65, 973.45, 922.95, 770.15, 1000.0};
     // Expected calculated value
-    std::vector<double> mu_calc_ref  = {5.6296, 4.0862, 2.5436, 3.1494, 8.5459};
+    std::vector<double> mu_calc_ref  = {17.9814 , 5.6296, 4.0862, 2.5436, 3.1494, 8.5459, 2.3095};
 
-    std::cout << "Viscosity :" << std::endl
-              << " T(K) experimental calc_ref calced" << std::endl;
     for( size_t i = 0; i < tks.size(); ++i)
     {
         double t_k = tks[i];
         EXPECT_NEAR(mu_calc_ref[i], tp.mu(t_k), 5e-4);
-        // print data
-        std::cout << t_k << " " << mu_exp[i]
-                         << " " << mu_calc_ref[i]
-                         << " " << tp.mu(t_k)
-                         << " " << mu_calc_ref[i] - tp.mu(t_k) << std::endl;
     }
     tks.clear();
 
     EXPECT_NEAR(tp.mu_h(tp.h_t(900)), tp.mu(900), 6e-4);
 
+    // Test Thermal Conductivity
     // Using values from reference https://doi.org/10.1016/j.ijheatmasstransfer.2015.07.042
-    tks                              = {773.0,  823.0,  873.0,  923.0,  973.0};
-    // Experimental values
-    std::vector<double> k_exp       = {0.6520, 0.7730, 0.7720, 0.8320, 0.9270};
+    tks                              = {700.0, 773.0,  823.0,  873.0,  923.0,  973.0, 1000.0};
     // Expected calculated value
-    std::vector<double> k_calc_ref  = {0.6549, 0.7199, 0.7849, 0.8499, 0.9149};
+    std::vector<double> k_calc_ref  = {0.56, 0.6549, 0.7199, 0.7849, 0.8499, 0.9149, 0.95};
 
-    std::cout << "Thermal Conductivity :" << std::endl
-              << " T(K) experimental calc_ref calced" << std::endl;
     for( size_t i = 0; i < tks.size(); ++i)
     {
         double t_k = tks[i];
         EXPECT_NEAR(k_calc_ref[i], tp.k(t_k), 5e-4);
-        // print data
-        std::cout << t_k << " " << k_exp[i]
-                         << " " << k_calc_ref[i]
-                         << " " << tp.k(t_k)
-                         << " " << k_calc_ref[i] - tp.mu(t_k) << std::endl;
     }
     EXPECT_NEAR(tp.k_h(tp.h_t(970)), tp.k(970), 1e-4);
 
+    // Test temperature to enthalpy conversion
     EXPECT_NEAR(748.77235618, tp.t_h(1000), 1e-6);
     EXPECT_NEAR(tp.t_h(tp.h_t(970)),970,5e-2);
 }
