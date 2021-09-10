@@ -17,11 +17,7 @@ TEST(rk_data_store,load)
     ASSERT_TRUE(tp_dflt.setComposition({"LiF","NaF","KF"},{0.465,0.115,0.42}));
 
     // Set up the interpolation object
-    Default_Data_Store dflt_DS;
-    std::istringstream in(default_data_rk);
-    dflt_DS.load(in);
-    R_Kister_Data_Store rk_DS;
-    rk_DS.load(&dflt_DS);
+    R_Kister_Data_Store rk_DS; rk_DS.load();
     Thermophysical_Properties tp_rk;
     ASSERT_TRUE(tp_rk.initialize(&rk_DS));
 
@@ -41,11 +37,7 @@ TEST(rk_data_store,load)
 TEST(rk_data_store,input_order)
 {
     // Set up the interpolation object
-    Default_Data_Store dflt_DS;
-    std::istringstream in(default_data_rk);
-    dflt_DS.load(in);
-    R_Kister_Data_Store rk_DS;
-    rk_DS.load(&dflt_DS);
+    R_Kister_Data_Store rk_DS; rk_DS.load();
     Thermophysical_Properties tp_rk;
     ASSERT_TRUE(tp_rk.initialize(&rk_DS));
 

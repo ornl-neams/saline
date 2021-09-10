@@ -3,12 +3,14 @@ TRIBITS_SUBPACKAGE(fortran)
 SET(HEADERS
 data_storeInterface.h
 default_data_storeInterface.h
+r_kister_data_storeInterface.h
 thermophysical_propertiesInterface.h
 )
 
 SET(C_SOURCES
 data_storeInterface.cpp
 default_data_storeInterface.cpp
+r_kister_data_storeInterface.cpp
 thermophysical_propertiesInterface.cpp
 )
 
@@ -17,6 +19,8 @@ data_store_I.f90
 data_store_M.f90
 default_data_store_I.f90
 default_data_store_M.f90
+r_kister_data_store_I.f90
+r_kister_data_store_M.f90
 thermophysical_properties_I.f90
 thermophysical_properties_M.f90
 )

@@ -9,6 +9,7 @@
 //---------------------------------------------------------------------------//
 
 #include "data_store.hh"
+#include "default_data_store.hh"
 
 #include <cmath>
 #include <iostream>
@@ -44,7 +45,7 @@ class R_Kister_Data_Store : public Data_Store
     // >>> ACCESSORS
 
     // the number of entries in the data store
-    size_t size() const { return d->size();}
+    size_t size() const { return d.size();}
 
     // the constituents names in a given compound
     Vec_Name names(Id id) const;
@@ -90,7 +91,7 @@ class R_Kister_Data_Store : public Data_Store
 
     private:
         // Data_Store providing the base information
-        Data_Store* d;
+        Default_Data_Store d;
 
         // >>> DATA
         std::vector<View> end_members;

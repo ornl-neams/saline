@@ -1,4 +1,5 @@
 #include "r_kister_data_store.hh"
+#include "default_data_store.hh"
 #include "data_store.hh"
 #include "saline_bug.hh"
 #include "utils.hh"
@@ -22,15 +23,15 @@ namespace saline
  * \brief constructs the Redlich-Kister data store extension
  */
 R_Kister_Data_Store::R_Kister_Data_Store()
-    : d(nullptr)
 {
 }
+
 void R_Kister_Data_Store::load()
 {
-    std::cout << "This is not implemented instead use :\n"
-        "void R_Kister_Data_Store::load(std::istream& inFile)\n"
-        "\tor\n"
-        "void R_Kister_Data_Store::load(Data_Store* ds)" << std::endl;
+    d = Default_Data_Store();
+    std::istringstream in(default_data_rk);
+    d.load(in);
+    load(in);
 }
 //---------------------------------------------------------------------------//
 /*!
@@ -38,7 +39,9 @@ void R_Kister_Data_Store::load()
  */
 void R_Kister_Data_Store::load(const std::string& fPath)
 {
+    d = Default_Data_Store();
     std::ifstream inFile(fPath.data());
+    d.load(inFile);
     load(inFile);
 }
 //---------------------------------------------------------------------------//
@@ -48,7 +51,7 @@ void R_Kister_Data_Store::load(const std::string& fPath)
 void R_Kister_Data_Store::load(std::istream& inFile)
 {
     // Set up space for the mixing models
-    int num_binaries = d->size();
+    int num_binaries = d.size();
     m_rho.resize(num_binaries,std::vector<R_Kister_Data_Store::RK_Polynomial>(num_binaries));
 
     ////TODO no input for these, implemented only for downstream process
@@ -83,14 +86,14 @@ void R_Kister_Data_Store::load(std::istream& inFile)
         double sortFactor;
         if(tokens[0] < tokens[1])
         {
-          id_a = d->names_to_id({tokens[0]});
-          id_b = d->names_to_id({tokens[1]});
+          id_a = d.names_to_id({tokens[0]});
+          id_b = d.names_to_id({tokens[1]});
           sortFactor = 1.0;
         }
           else
         {
-          id_a = d->names_to_id({tokens[1]});
-          id_b = d->names_to_id({tokens[0]});
+          id_a = d.names_to_id({tokens[1]});
+          id_b = d.names_to_id({tokens[0]});
           sortFactor = -1.0;
         }
 
@@ -113,23 +116,6 @@ void R_Kister_Data_Store::load(std::istream& inFile)
         //reference
     }
 }
-
-
-//----------------------------------------------------------------------------//
-/*!
- * \brief associates a data store to use for "base" data
- */
-void R_Kister_Data_Store::load(Data_Store* ds)
-{
-    if (ds != nullptr && ds->size() > 0)
-    {
-        d = ds;
-    }
-
-    std::istringstream in(default_data_rk);
-    load(in);
-}
-
 //----------------------------------------------------------------------------//
 /*!
  * \brief finds and sets the required information for modeling a requested salt
@@ -150,7 +136,7 @@ Data_Store::View R_Kister_Data_Store::setView( const Vec_Name& names, const Vec_
     {
         //TODO Assuming they are all valid single components for now.
         //Get the ids of the sorted names...so all the ids are in order
-        end_members[i] = (d->setView({sort_names[i]},{1.0}));
+        end_members[i] = (d.setView({sort_names[i]},{1.0}));
     }
 
     // To adapt the interfaces a "minimal" view is returned to the client
