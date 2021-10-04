@@ -285,6 +285,7 @@ TEST(default_data, FLiNaK_465_115_042)
         EXPECT_NEAR(rho_calc_ref[i], tp.rho(t_k), 5e-4);
     }
     EXPECT_NEAR(tp.rho_h(tp.h_t(900)), tp.rho(900), 1e-4);
+    EXPECT_FLOAT_EQ(tp.rho(900)*1000.0,tp.rho_kgm3(900));
     tks.clear();
 
     // Test Heat Capacity

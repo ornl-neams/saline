@@ -103,6 +103,24 @@ double Thermophysical_Properties::rho_h(double enthalpy, double pressure) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * \brief density in kg/m^3 for given temperature and pressure
+ */
+double Thermophysical_Properties::rho_kgm3(double temperature, double pressure) const
+{
+    return m_impl.rho(temperature, pressure) * 1000.0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * \brief density in kg/m^3 for given enthalpy and pressure
+ */
+double Thermophysical_Properties::rho_h_kgm3(double enthalpy, double pressure) const
+{
+    return m_impl.rho_h(enthalpy, pressure) * 1000.0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * \brief enthalpy given temperature
  */
 double Thermophysical_Properties::h_t(double temperature) const

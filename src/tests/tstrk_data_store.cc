@@ -31,6 +31,7 @@ TEST(rk_data_store,load)
         double t_k = tks[i];
         EXPECT_NEAR(tp_rk.rho(t_k),tp_dflt.rho(t_k),5e-2);
     }
+    EXPECT_FLOAT_EQ(tp_rk.rho(1100)*1000.0,tp_rk.rho_kgm3(1100));
 }
 
 // Test to make sure we get the same answer regardless of input order

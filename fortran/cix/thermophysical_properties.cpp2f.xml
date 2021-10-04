@@ -37,6 +37,14 @@
       <param name="h" type="double"/>
       <param name="p" type="double"/>
     </method>
+    <method name="rho_kgm3" return_type="double">
+      <param name="t" type="double"/>
+      <param name="p" type="double"/>
+    </method>
+    <method name="rho_h_kgm3" return_type="double">
+      <param name="h" type="double"/>
+      <param name="p" type="double"/>
+    </method>
     <method name="init_data_store" cname="initialize">
       <param name="data" type="Data_Store*"/>      
     </method>

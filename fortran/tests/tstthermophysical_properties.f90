@@ -32,6 +32,11 @@ contains
       print *,"Failed to equate values!"
       stop 2
     endif
+
+    if ( tp%rho(926.00_8, 101.0_8) * 1000.0 /= tp%rho_kgm3(926.00_8,101.0_8)) then
+      print *,"Failed to equate values!"
+      stop 2
+    endif
     
     call tp%destroy()
     call dflt_data%destroy()

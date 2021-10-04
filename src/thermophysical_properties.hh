@@ -64,6 +64,8 @@ class Thermophysical_Properties
     // density
     double rho(double temperature, double pressure = 101.325) const;
     double rho_h(double enthalpy, double pressure = 101.325) const;
+    double rho_kgm3(double temperature, double pressure = 101.325) const;
+    double rho_h_kgm3(double enthalpy, double pressure = 101.325) const;
 
     // enthalpy
     double h_t(double temperature) const;
