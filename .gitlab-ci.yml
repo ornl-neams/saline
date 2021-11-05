@@ -1,0 +1,35 @@
+variables:
+  GIT_SUBMODULE_STRATEGY: normal
+.stage_artifacts: &stage_artifacts
+  artifacts:
+    paths:
+      - build/
+      - TriBITS/
+      - googletest/
+      - testframework/
+    expire_in: 1 day
+
+stages:
+- test
+- analysis
+
+linux_gcc485_testing:
+  stage: test
+  tags:
+    - linux
+    - gcc
+  script:
+    - git clone https://github.com/lefebvre/TriBITS.git TriBITS
+    - ./TriBITS/tribits/ci_support/clone_extra_repos.py 
+    - ci/linux_gcc_test.sh
+
+linux_gcc_analysis:
+  stage: analysis
+  tags:
+    - linux
+    - valgrind
+  script:
+    - git clone https://github.com/lefebvre/TriBITS.git TriBITS
+    - ./TriBITS/tribits/ci_support/clone_extra_repos.py
+    - ci/linux_gcc_analysis.sh
+  allow_failure: true

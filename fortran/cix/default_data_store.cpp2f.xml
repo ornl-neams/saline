@@ -1,0 +1,8 @@
+<generate name="default_data_store">
+  <using_namespace name="saline"/>
+  <include_relative name="default_data_store.hh"/>
+  <class name="Default_Data_Store" parent="Data_Store">
+    <method name="load" return_type="void"/>
+  </class>
+    
+</generate>

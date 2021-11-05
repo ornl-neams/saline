@@ -1,0 +1,57 @@
+<generate name="thermophysical_properties">
+  <include_relative name="data_store.hh"/>
+  <include_relative name="thermophysical_properties.hh"/>
+  <using_namespace name="saline"/>
+  <class name="Thermophysical_Properties">
+    
+    <method name="cp" return_type="double">
+      <param name="t" type="double"/>
+      <param name="p" type="double"/>
+    </method>
+    <method name="cp_h" return_type="double">
+      <param name="h" type="double"/>
+      <param name="p" type="double"/>
+    </method>
+
+    <method name="mu" return_type="double">
+      <param name="t" type="double"/>
+      <param name="p" type="double"/>
+    </method>
+    <method name="mu_h" return_type="double">
+      <param name="h" type="double"/>
+      <param name="p" type="double"/>
+    </method>
+    <method name="k" return_type="double">
+      <param name="t" type="double"/>
+      <param name="p" type="double"/>
+    </method>
+    <method name="k_h" return_type="double">
+      <param name="h" type="double"/>
+      <param name="p" type="double"/>
+    </method>
+    <method name="rho" return_type="double">
+      <param name="t" type="double"/>
+      <param name="p" type="double"/>
+    </method>
+    <method name="rho_h" return_type="double">
+      <param name="h" type="double"/>
+      <param name="p" type="double"/>
+    </method>
+    <method name="rho_kgm3" return_type="double">
+      <param name="t" type="double"/>
+      <param name="p" type="double"/>
+    </method>
+    <method name="rho_h_kgm3" return_type="double">
+      <param name="h" type="double"/>
+      <param name="p" type="double"/>
+    </method>
+    <method name="init_data_store" cname="initialize">
+      <param name="data" type="Data_Store*"/>      
+    </method>
+    <method name="set_composition" cname="setComposition" return_type="bool">
+      <param name="name" type="char*"/>
+      <param name="mole_perecents" type="double*"/>
+      <param name="count" type="int"/>
+    </method>
+  </class>
+</generate>

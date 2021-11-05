@@ -1,0 +1,10 @@
+<generate name="data_store">
+  <using_namespace name="saline"/>  
+  <include_relative name="data_store.hh"/>
+  <class name="Data_Store" abstract="yes">
+    <method name="valid" return_type="bool">
+      <param name="id" type="int"/>
+    </method>  
+    <method name="size" return_type="int"/>
+  </class>
+</generate>
