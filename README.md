@@ -3,10 +3,10 @@ This project provides an interface for thermophysical properties used in molten 
 
 All properties are evualted as saturated liquid.
 
- The default data is transcribed from 
+ Data derivation is described in: 
  
- Jerden, James. Molten Salt Thermophysical Properties Database Development: 2019 Update. 
- United States: N. p., 2019. Web. doi:10.2172/1559846.
+ Henderson, Shane, Agca, Can, McMurray, Jake W., and Lefebvre, Robert Alexander. Saline: An API for Thermophysical Properties.
+ United States: N. p., 2021.
  
  Units: 
   - Conductivity  - Watts per Meter-Kelvin (W/m K)
