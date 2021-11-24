@@ -12,7 +12,14 @@
       <param name="h" type="double"/>
       <param name="p" type="double"/>
     </method>
-
+    <method name="cp_kg" return_type="double">
+      <param name="t" type="double"/>
+      <param name="p" type="double"/>
+    </method>
+    <method name="cp_h_kg" return_type="double">
+      <param name="h" type="double"/>
+      <param name="p" type="double"/>
+    </method>
     <method name="mu" return_type="double">
       <param name="t" type="double"/>
       <param name="p" type="double"/>
@@ -44,6 +51,18 @@
     <method name="rho_h_kgm3" return_type="double">
       <param name="h" type="double"/>
       <param name="p" type="double"/>
+    </method>
+    <method name="h_t" return_type="double">
+      <param name="t" type="double"/>
+    </method>
+    <method name="h_t_kg" return_type="double">
+      <param name="t" type="double"/>
+    </method>
+    <method name="t_h" return_type="double">
+      <param name="h" type="double"/>
+    </method>
+    <method name="t_h_kg" return_type="double">
+      <param name="h" type="double"/>
     </method>
     <method name="init_data_store" cname="initialize">
       <param name="data" type="Data_Store*"/>      

@@ -52,6 +52,8 @@ class Thermophysical_Properties
     // specific heat
     double cp(double temperature, double pressure = 101.325) const;
     double cp_h(double enthalpy, double pressure = 101.325) const;
+    double cp_kg(double temperature, double pressure = 101.325) const;
+    double cp_h_kg(double enthalpy, double pressure = 101.325) const;
 
     // viscosity
     double mu(double temperature, double pressure = 101.325) const;
@@ -69,9 +71,11 @@ class Thermophysical_Properties
 
     // enthalpy
     double h_t(double temperature) const;
+    double h_t_kg(double temperature) const;
 
     // temperature
     double t_h(double enthalpy) const;
+    double t_h_kg(double enthalpy) const;
 
     // list of species for which properties are being tracked
     const Vec_Name& species() const {return m_comp_names;}

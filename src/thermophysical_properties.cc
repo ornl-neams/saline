@@ -31,7 +31,7 @@ Thermophysical_Properties::Thermophysical_Properties()
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief specific heat given temperature and pressure
+ * \brief specific heat given temperature and pressure, returns units J/(mol*K)
  */
 double Thermophysical_Properties::cp(double temperature, double pressure) const
 {
@@ -40,11 +40,29 @@ double Thermophysical_Properties::cp(double temperature, double pressure) const
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief specific heat given enthalpy and pressure
+ * \brief specific heat given enthalpy and pressure, returns units J/(mol*K)
  */
 double Thermophysical_Properties::cp_h(double enthalpy, double pressure) const
 {
     return m_impl.cp_h(enthalpy, pressure);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * \brief specific heat given temperature and pressure, returns units J/(kg*K)
+ */
+double Thermophysical_Properties::cp_kg(double temperature, double pressure) const
+{
+    return m_impl.cp(temperature, pressure) * ( 1000.0/m_impl.molecularWeight());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * \brief specific heat given enthalpy and pressure, returns units J/(kg*K)
+ */
+double Thermophysical_Properties::cp_h_kg(double enthalpy, double pressure) const
+{
+    return m_impl.cp_h(enthalpy, pressure) * ( 1000.0/m_impl.molecularWeight());
 }
 
 //---------------------------------------------------------------------------//
@@ -121,7 +139,7 @@ double Thermophysical_Properties::rho_h_kgm3(double enthalpy, double pressure) c
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief enthalpy given temperature
+ * \brief enthalpy in J/mol given temperature
  */
 double Thermophysical_Properties::h_t(double temperature) const
 {
@@ -130,13 +148,32 @@ double Thermophysical_Properties::h_t(double temperature) const
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief temperature given enthalpy
+ * \brief enthalpy in J/kg given temperature
+ */
+double Thermophysical_Properties::h_t_kg(double temperature) const
+{
+    return m_impl.h_t(temperature) * (1000.0/m_impl.molecularWeight());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * \brief temperature given enthalpy in units J/mol
  */
 double Thermophysical_Properties::t_h(double enthalpy) const
 {
     return m_impl.t_h(enthalpy);
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * \brief temperature given enthalpy in units J/kg
+ */
+double Thermophysical_Properties::t_h_kg(double enthalpy) const
+{
+    return m_impl.t_h(enthalpy * (m_impl.molecularWeight()/1000.0));
+}
+
+//---------------------------------------------------------------------------//
 /*!
  * \set the mole % and select the composition
  */
