@@ -6,6 +6,9 @@ use thermophysical_properties_M
 
 implicit none
 
+CALL tst_DefaultData()
+CALL tst_RKData()
+
 contains
   !
   subroutine tst_DefaultData()
@@ -56,13 +59,13 @@ contains
     ! Assign data store to
     call tp%init_data_store(rk_data)
     
-    if (.not.tp%set_composition("LiF-BeF2-ThF4",[0.7011_8, 0.2388_8, 0.0601_8],3)) then
+    if (.not.tp%set_composition("LiF-NaF-KF",[0.465_8,0.115_8,0.42_8],3)) then
       print *,"Failure to set composition!"
       stop 1
     endif
     
-    print *,tp%mu(926.00_8, 101.0_8)
-    if ( tp%mu(926.00_8, 101.0_8) /= 7.4798896290598522_8) then
+    print *,tp%rho(850.0_8, 101.0_8)
+    if ( tp%rho(850.0_8, 101.0_8) /= 2.0407662634789121_8 ) then
       print *,"Failed to equate values!"
       stop 2
     endif
