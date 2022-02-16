@@ -1,5 +1,9 @@
-variables:
-  GIT_SUBMODULE_STRATEGY: normal
+stages:
+- test
+
+before_script:
+  - if [[ -f "/data/test_gcc/gcc-8.3.0/load_dev_env.sh" ]]; then BASE_DIR="/data/gitlab-runner"; . /data/test_gcc/gcc-8.3.0/load_dev_env.sh; ENV_BASE=/data/test_gcc/gcc-8.3.0; else BASE_DIR="/localhome/gitlab-runner"; . /projects/vera/gcc-8.3.0/load_dev_env.sh; ENV_BASE=/projects/vera/gcc-8.3.0; fi
+
 .stage_artifacts: &stage_artifacts
   artifacts:
     paths:
@@ -9,11 +13,7 @@ variables:
       - testframework/
     expire_in: 1 day
 
-stages:
-- test
-- analysis
-
-linux_gcc485_testing:
+linux_gcc83_testing:
   stage: test
   tags:
     - linux
@@ -21,15 +21,9 @@ linux_gcc485_testing:
   script:
     - git clone https://github.com/lefebvre/TriBITS.git TriBITS
     - ./TriBITS/tribits/ci_support/clone_extra_repos.py 
-    - ci/linux_gcc_test.sh
-
-linux_gcc_analysis:
-  stage: analysis
-  tags:
-    - linux
-    - valgrind
-  script:
-    - git clone https://github.com/lefebvre/TriBITS.git TriBITS
-    - ./TriBITS/tribits/ci_support/clone_extra_repos.py
-    - ci/linux_gcc_analysis.sh
-  allow_failure: true
+    - SRC_DIR=`pwd`
+    - BLD_DIR="/tmp/$CI_PIPELINE_ID/$BLD_NAME"
+    - mkdir -p $BLD_DIR
+    - cd $BLD_DIR
+    - rm -rf *
+    - $SRC_DIR/ci/linux_gcc83_test.sh $SRC_DIR
