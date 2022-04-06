@@ -64,6 +64,10 @@
     <method name="t_h_kg" return_type="double">
       <param name="h" type="double"/>
     </method>
+    <method name="t_melt" return_type="double">
+    </method>
+    <method name="t_boil" return_type="double">
+    </method>
     <method name="init_data_store" cname="initialize">
       <param name="data" type="Data_Store*"/>      
     </method>

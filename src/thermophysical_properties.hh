@@ -77,6 +77,9 @@ class Thermophysical_Properties
     double t_h(double enthalpy) const;
     double t_h_kg(double enthalpy) const;
 
+    double t_melt() const;
+    double t_boil() const;
+
     // list of species for which properties are being tracked
     const Vec_Name& species() const {return m_comp_names;}
 
