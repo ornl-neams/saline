@@ -124,19 +124,13 @@ Data_Store::View R_Kister_Data_Store::setView( const Vec_Name& names, const Vec_
 {
     end_members.clear();
     end_members.resize(names.size());
-
-    //Get the permutation to sort names alphabetically
-    auto sp = utils::getSortPermutation(names);
-    //Use that to sort the names and mole percents
-    auto sort_names = utils::applySortPermuation(names,sp);
-    endMem_moleFracs = utils::applySortPermuation(mole_percents,sp);;
+    endMem_moleFracs = mole_percents;
 
     // For the functioning of this data store...views of end_members are stored
     for(size_t i=0; i<names.size(); ++i)
     {
-        //TODO Assuming they are all valid single components for now.
-        //Get the ids of the sorted names...so all the ids are in order
-        end_members[i] = (d.setView({sort_names[i]},{1.0}));
+      auto iname = names[i];
+        if (valid(iname)) end_members[i] = (d.setView({names[i]},{1.0}));
     }
 
     // To adapt the interfaces a "minimal" view is returned to the client
@@ -146,7 +140,6 @@ Data_Store::View R_Kister_Data_Store::setView( const Vec_Name& names, const Vec_
           (Data_Store::View v){return !v.null();}))
     {
       v = view(0);
-      v.mole_percents = mole_percents;
     }
     return v;
 }
@@ -409,6 +402,15 @@ double R_Kister_Data_Store::molecularWeight(Id id, Id data_id) const
 
 //----------------------------------------------------------------------------//
 /*!
+ * \brief retrieves the molecular weight for the provided salt
+ */
+const R_Kister_Data_Store::Vec_Mole R_Kister_Data_Store::mole_percent(Id id, Id data_id) const
+{
+    return endMem_moleFracs;
+}
+
+//----------------------------------------------------------------------------//
+/*!
  * \brief Calculates the solution to a Redlich-Kister polynomial
  */
 double R_Kister_Data_Store::RK_Polynomial::getRK_solution(double x, double y, double temperature)
@@ -434,6 +436,31 @@ double R_Kister_Data_Store::RK_Polynomial::getRK_solution(double x, double y, do
     }
 
     return (x*y)*summation;
+}
+
+//----------------------------------------------------------------------------//
+/*!
+ * \brief Test if a salt is valid
+ */
+bool R_Kister_Data_Store::valid(Id id) const
+{
+  // It is anticipated that this is only used internally. R_kister_data_store
+  // sets this to 0 on successful loading of end members
+  return id == 0;
+}
+
+bool R_Kister_Data_Store::valid(Vec_Name& names) const
+{
+  for (int i=0; i<names.size(); ++i)
+  {
+    if( !d.valid(d.name_to_id(names[i]))) return false;
+  }
+  return true;
+}
+
+bool R_Kister_Data_Store::valid(Name& name) const
+{
+  return d.valid(d.name_to_id(name));
 }
 
 } // namespace saline

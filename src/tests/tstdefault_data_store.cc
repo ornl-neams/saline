@@ -64,18 +64,22 @@ TEST(default_data_store,load_testData_literal)
     d.load(in);
 
     // Verify Data was loaded (critical)
+    std::vector<std::string> check_names = {"S1","S2"};
     size_t dSize = 2;
     ASSERT_EQ(dSize,d.size());
     ASSERT_TRUE(d.valid(0));
     ASSERT_TRUE(d.valid(1));
     ASSERT_TRUE(!d.valid(2));
+    ASSERT_TRUE(d.valid(check_names[0]));
+    ASSERT_TRUE(!d.valid(check_names[1]));
+    ASSERT_TRUE(d.valid(check_names));
 
     // Check that the data id interface works (critical)
-    size_t tstID = d.name_to_id("S1");
+    size_t tstID = d.name_to_id(check_names[0]);
     size_t refID = 0;
     ASSERT_EQ(refID,tstID);
-    ASSERT_EQ(refID,d.names_to_id({"S1"}));
-    EXPECT_EQ(1,d.names_to_id({"S1","S2"}));
+    ASSERT_EQ(refID,d.names_to_id({check_names[0]}));
+    EXPECT_EQ(1,d.names_to_id(check_names));
 
     //Check Data directly from data store, i.e. using ID and recID
     size_t nConstituents = d.constituent_count(refID);
@@ -119,13 +123,6 @@ TEST(default_data_store,load_testData_literal)
     EXPECT_EQ(d.constituent_count(refID),v.constituent_count());
     EXPECT_EQ(refID,v.id);
     EXPECT_EQ(tstRecID,v.rec_id);
-
-    std::vector<double> testMP = {1.0};
-    ASSERT_EQ(testMP.size(),v.mole_percents.size());
-    for( size_t i=0; i<testMP.size(); ++i)
-    {
-        EXPECT_DOUBLE_EQ(testMP[i],v.mole_percents[i]);
-    }
 
     EXPECT_DOUBLE_EQ(v.melt(),d.melt(refID,tstRecID));
     EXPECT_DOUBLE_EQ(v.boil(),d.boil(refID,tstRecID));
@@ -215,12 +212,6 @@ TEST(default_data_store,load_testData_binary)
     EXPECT_EQ(refID,v.id);
     EXPECT_EQ(tstRecID,v.rec_id);
 
-    std::vector<double> testMP = {0.36,0.64};
-    ASSERT_EQ(testMP.size(),v.mole_percents.size());
-    for( size_t i=0; i<testMP.size(); ++i)
-    {
-        EXPECT_DOUBLE_EQ(testMP[i],v.mole_percents[i]);
-    }
     EXPECT_DOUBLE_EQ(v.melt(),d.melt(refID,tstRecID));
     EXPECT_DOUBLE_EQ(v.boil(),d.boil(refID,tstRecID));
 

@@ -80,6 +80,9 @@ class R_Kister_Data_Store : public Data_Store
     // boiling temperature
     double boil(Id id, Id data_id) const;
 
+    // mole percents
+    const Vec_Mole mole_percent(Id id, Id data_id) const;
+
     // number of constituents for the given compound
     std::size_t constituent_count(Id id) const;
 
@@ -87,6 +90,11 @@ class R_Kister_Data_Store : public Data_Store
 
     //Obtain the nearest neighboring composition
     Id nearest(Id id, const Vec_Mole& mole_percent) const;
+
+    // is the salt valid
+    bool valid(Id id) const;
+    bool valid(Vec_Name& names) const;
+    bool valid(Name& name) const;
 
     private:
         // Data_Store providing the base information

@@ -58,7 +58,6 @@ class Data_Store
     {
         Id id = std::numeric_limits<std::size_t>::max();
         Id rec_id = std::numeric_limits<std::size_t>::max();
-        Vec_Mole mole_percents;
         const Data_Store* d = nullptr;
 
         // assign bounds and mole percents for given view
@@ -97,9 +96,12 @@ class Data_Store
 
         // boiling temperature
         double boil() const;
-        //
+
         // molecular weight
         double molecularWeight() const;
+
+        // mole percents
+        const Vec_Mole mole_percent() const;
 
     }; // Data_Store::View
 
@@ -140,6 +142,9 @@ class Data_Store
     // molecular weight
     virtual double molecularWeight(Id id, Id data_id) const = 0;
 
+    // molecular weight
+    virtual const Vec_Mole mole_percent(Id id, Id data_id) const = 0;
+
     // boiling temperature
     virtual double boil(Id id, Id data_id) const = 0;
 
@@ -149,16 +154,12 @@ class Data_Store
     //Obtain the nearest neighboring composition
     virtual Id nearest(Id id, const Vec_Mole& mole_percent) const = 0;
 
-    // obtain data store id given a compound name (e.g., BeF2, NaCl)
-    Id name_to_id(const Name& name) const;
-
-    // obtain data store id given a set of compound names (e.g., LiF-NaF-KF, LiF-BeF2-ZrF4-ThF4)
-    Id names_to_id(Vec_Name names) const;
-
-    // is the id valid
-    bool valid(Id id) const {return id < size();}
-
+    // sets up the data representation
     virtual View setView(const Vec_Name& names, const Vec_Mole& mole_percents) = 0;
+
+    virtual bool valid(Vec_Name& names) const = 0;
+    virtual bool valid(Name& name) const = 0;
+    virtual bool valid(Id id) const = 0;
 
   private:
 

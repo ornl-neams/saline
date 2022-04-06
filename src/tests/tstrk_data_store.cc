@@ -17,9 +17,13 @@ TEST(rk_data_store,load)
     ASSERT_TRUE(tp_dflt.setComposition({"LiF","NaF","KF"},{0.465,0.115,0.42}));
 
     // Set up the interpolation object
+    std::vector<std::string> right_names = {"LiF","NaF","KF"};
+    std::vector<std::string> wrong_names = {"LiF2","NaF","KF"};
     R_Kister_Data_Store rk_DS; rk_DS.load();
     Thermophysical_Properties tp_rk;
     ASSERT_TRUE(tp_rk.initialize(&rk_DS));
+    ASSERT_TRUE(rk_DS.valid(right_names));
+    ASSERT_TRUE(!rk_DS.valid(wrong_names));
 
     tp_rk.setComposition({"LiF","NaF","KF"},{0.465,0.115,0.42});
 

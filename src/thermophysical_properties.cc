@@ -181,7 +181,20 @@ bool Thermophysical_Properties::setComposition(const Vec_Name& names,
                         const Vec_Mole& mole_percents)
 {
     saline_require(names.size() == mole_percents.size());
-    m_impl = m_data->setView(names,mole_percents);
+
+    // The data store keeps all the records sorted
+    auto sp = utils::getSortPermutation(names);
+    auto sort_names = utils::applySortPermuation(names,sp);
+    auto sort_percents = utils::applySortPermuation(mole_percents,sp);
+
+    m_impl = m_data->setView(sort_names,sort_percents);
+    // Store values as appropriate
+    if ( !m_impl.null() )
+    {
+      m_comp_names = names;
+    } else {
+      m_comp_names.clear();
+    }
     return !m_impl.null();
 }
 
@@ -210,6 +223,27 @@ bool Thermophysical_Properties::initialize(Data_Store* d)
         return true;
     }
     return false;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * \brief checks that the requested salt is valid
+ * \returns true, iff the salt named is included in the loaded data_store
+ */
+bool Thermophysical_Properties::isSaltValid(const Vec_Name& names)
+{
+    auto sp = utils::getSortPermutation(names);
+    auto sort_names = utils::applySortPermuation(names,sp);
+    return m_data->valid(sort_names);
+}
+
+bool Thermophysical_Properties::isSaltValid(const std::string& names, int name_count)
+{
+  saline_require(name_count > 0);
+  auto comps = utils::split("-",names);
+  if(comps.size() != name_count) return false;
+
+  return isSaltValid(comps);
 }
 
 } // namespace saline

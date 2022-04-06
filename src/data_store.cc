@@ -25,47 +25,14 @@ Data_Store::View Data_Store::view(Id id) const
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief obtain the data store id for the given single component compound
- */
-Data_Store::Id Data_Store::name_to_id(const Name& name) const
-{
-    return names_to_id({name});
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * \brief obtain the data store id for the given multi-component compound
- */
-Data_Store::Id Data_Store::names_to_id(Vec_Name snames) const
-{
-
-    // ensure lower case comparison
-    // for ( auto& name : snames)
-    // {
-    //     std::transform(name.begin(),name.end(), name.begin(), ::tolower);
-    // }
-
-    auto sp = utils::getSortPermutation(snames);
-    auto sort_names = utils::applySortPermuation(snames,sp);
-    for (size_t i = 0; i < size(); ++i)
-    {
-        auto inames = names(i);
-        if (sort_names == inames) return i;
-    }
-    return std::numeric_limits<std::size_t>::max();
-}
-//---------------------------------------------------------------------------//
-/*!
  * \brief assigns the data data ID of the nearest matching composition
  */
 void Data_Store::View::assign_record(const Vec_Mole& mp)
 {
     saline_require(!mp.empty());
     saline_require(mp.size() == d->constituent_count(id));
-    mole_percents = mp;
 
     rec_id = d->nearest(id, mp);
-
 }
 
 //---------------------------------------------------------------------------//
@@ -205,6 +172,15 @@ double Data_Store::View::boil() const
 double Data_Store::View::molecularWeight() const
 {
     return d->molecularWeight(id,rec_id);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * \brief retrieves mole percent for the View
+ */
+const Data_Store::Vec_Mole Data_Store::View::mole_percent() const
+{
+    return d->mole_percent(id, rec_id);
 }
 
 } // namespace saline
