@@ -175,6 +175,24 @@ double Thermophysical_Properties::t_h_kg(double enthalpy) const
 
 //---------------------------------------------------------------------------//
 /*!
+ *  \brief returns the melting temperature of the set composition
+ */
+double Thermophysical_Properties::t_melt() const
+{
+  return m_impl.melt();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ *  \brief returns the boiling temperature of the set composition
+ */
+double Thermophysical_Properties::t_boil() const
+{
+  return m_impl.boil();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * \set the mole % and select the composition
  */
 bool Thermophysical_Properties::setComposition(const Vec_Name& names,

@@ -50,6 +50,16 @@ contains
       stop 3
     endif
     
+    if ( tp%t_melt() /= 828.3_8) then
+      print *,"Failed to equate values!"
+      stop 2
+    endif
+
+    if ( tp%t_boil() /= 0.0_8) then
+      print *,"Failed to equate values!"
+      stop 2
+    endif
+
     call tp%destroy()
     call dflt_data%destroy()
   end subroutine tst_DefaultData
