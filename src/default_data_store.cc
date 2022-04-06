@@ -268,16 +268,13 @@ std::size_t Default_Data_Store::constituent_count(Id id) const
  */
 Data_Store::View Default_Data_Store::setView(const Vec_Name& names, const Vec_Mole& mole_percents)
 {
-    auto sp = utils::getSortPermutation(names);
-    auto names_sort = utils::applySortPermuation(names,sp);
-    Id id = names_to_id(names_sort);
+    Id id = names_to_id(names);
     Data_Store::View m_impl;
     if( valid(id) )
     {
         // This uses a nearest neighbor search to set the composition
         m_impl = view(id);
-        auto molfrac = utils::applySortPermuation(mole_percents,sp);
-        m_impl.assign_record(molfrac);
+        m_impl.assign_record(mole_percents);
     }
     return m_impl;
 }
@@ -424,6 +421,16 @@ double Default_Data_Store::molecularWeight(Id id, Id data_id) const
 
 //----------------------------------------------------------------------------//
 /*!
+ * \brief retrieves the mole percent
+ */
+const Default_Data_Store::Vec_Mole Default_Data_Store::mole_percent(Id id, Id data_id) const
+{
+    const auto& d = compounds[id].data[data_id];
+    return d.mole_percents();
+}
+
+//----------------------------------------------------------------------------//
+/*!
  *
  */
 void Default_Data_Store::Data::to_stream(std::ostream& s) const
@@ -438,5 +445,28 @@ void Default_Data_Store::Data::to_stream(std::ostream& s) const
     s << "conductivity :" << m_k_a << ", " << m_k_b << std::endl;
     s << "specific heat :" << m_cp_a << ", " << m_cp_b << ", " << m_cp_c << ", " << m_cp_d << std::endl;
 
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * \brief obtain the data store id for the given single component compound
+ */
+Default_Data_Store::Id Default_Data_Store::name_to_id(Name& name) const
+{
+    return names_to_id({name});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * \brief obtain the data store id for the given multi-component compound
+ */
+Default_Data_Store::Id Default_Data_Store::names_to_id(Vec_Name in_names) const
+{
+
+    for (size_t i = 0; i < size(); ++i)
+    {
+        if (in_names == names(i)) return i;
+    }
+    return std::numeric_limits<std::size_t>::max();
 }
 } // namespace saline

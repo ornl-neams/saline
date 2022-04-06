@@ -96,6 +96,9 @@ class Default_Data_Store : public Data_Store
     // boiling temperature
     double boil(Id id, Id data_id) const;
 
+    // mole percents
+    const Vec_Mole mole_percent(Id id, Id data_id) const;
+
     // number of constituents for the given compound
     std::size_t constituent_count(Id id) const;
 
@@ -104,6 +107,16 @@ class Default_Data_Store : public Data_Store
     void load(std::istream& inFile);
 
     View setView(const Vec_Name& names, const Vec_Mole& mole_percents);
+
+    // is the id valid
+    bool valid(Id id) const {return id < size();};
+    bool valid(Vec_Name& names) const {return valid(names_to_id(names));};
+    bool valid(Name& name) const {return valid(name_to_id(name));};
+
+    // obtain data store id given a set of compound names (e.g., LiF-NaF-KF, LiF-BeF2-ZrF4-ThF4)
+    Id names_to_id(Vec_Name names) const;
+    // obtain data store id given a compound name (e.g., BeF2, NaCl)
+    Id name_to_id(Name& name) const;
 
     //Obtain the nearest neighboring composition
     Id nearest(Id id, const Vec_Mole& mole_percent) const;

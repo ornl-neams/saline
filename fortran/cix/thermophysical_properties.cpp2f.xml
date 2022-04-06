@@ -72,5 +72,9 @@
       <param name="mole_perecents" type="double*"/>
       <param name="count" type="int"/>
     </method>
+    <method name="is_SaltValid" cname="isSaltValid" return_type="bool">
+      <param name="name" type="char*"/>
+      <param name="count" type="int"/>
+    </method>
   </class>
 </generate>

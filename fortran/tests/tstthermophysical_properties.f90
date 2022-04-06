@@ -24,6 +24,15 @@ contains
     
     ! Assign data store to
     call tp%init_data_store(dflt_data)
+    if (.not.tp%is_SaltValid("LiF-BeF2-ThF4",3)) then
+      print *,"Failure to validate composition!"
+      stop 1
+    endif
+
+    if (tp%is_SaltValid("Li2F-BeF2-ThF4",3)) then
+      print *,"Failure to validate composition!"
+      stop 1
+    endif
     
     if (.not.tp%set_composition("LiF-BeF2-ThF4",[0.7011_8, 0.2388_8, 0.0601_8],3)) then
       print *,"Failure to set composition!"
@@ -58,6 +67,15 @@ contains
     
     ! Assign data store to
     call tp%init_data_store(rk_data)
+    if (.not.tp%is_SaltValid("LiF-BeF2-ThF4",3)) then
+      print *,"Failure to validate composition!"
+      stop 1
+    endif
+
+    if (tp%is_SaltValid("Li2F-BeF2-ThF4",3)) then
+      print *,"Failure to validate composition!"
+      stop 1
+    endif
     
     if (.not.tp%set_composition("LiF-NaF-KF",[0.465_8,0.115_8,0.42_8],3)) then
       print *,"Failure to set composition!"

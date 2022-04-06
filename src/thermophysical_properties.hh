@@ -81,7 +81,7 @@ class Thermophysical_Properties
     const Vec_Name& species() const {return m_comp_names;}
 
     // list of species mole % for which properties are being tracked
-    const Vec_Mole& composition() const {return m_mole_percents;}
+    const Vec_Mole& composition() const {return m_impl.mole_percent();}
 
     // set the mole % and select the composition
     bool setComposition(const Vec_Name& names,
@@ -95,16 +95,17 @@ class Thermophysical_Properties
     bool setComposition(const std::string& names, double* mole_percents,
                         int mole_percent_count);
 
+    // interface for checking if salt is valid
+    bool isSaltValid(const Vec_Name& names);
+    bool isSaltValid(const std::string& names, int name_count);
+
     // initialize the properties data
     bool initialize(Data_Store* d);
 
   private:
 
-    // names of the constituents of this instance
+    // the most recent species used by the client (names in order of request)
     std::vector<std::string> m_comp_names;
-
-    // index-associated mole %
-    std::vector<double> m_mole_percents;
 
     // the data store backing this instance of material properties
     Data_Store* m_data;
