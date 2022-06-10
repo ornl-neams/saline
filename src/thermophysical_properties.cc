@@ -184,6 +184,42 @@ double Thermophysical_Properties::t_melt() const
 
 //---------------------------------------------------------------------------//
 /*!
+ *  \brief returns whether there is valid data for the property
+ */
+bool Thermophysical_Properties::valid_k() const
+{
+  return m_impl.valid_k();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ *  \brief returns whether there is valid data for the property
+ */
+bool Thermophysical_Properties::valid_mu() const
+{
+  return m_impl.valid_mu();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ *  \brief returns whether there is valid data for the property
+ */
+bool Thermophysical_Properties::valid_cp() const
+{
+  return m_impl.valid_cp();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ *  \brief returns whether there is valid data for the property
+ */
+bool Thermophysical_Properties::valid_rho() const
+{
+  return m_impl.valid_rho();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  *  \brief returns the boiling temperature of the set composition
  */
 double Thermophysical_Properties::t_boil() const

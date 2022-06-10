@@ -326,4 +326,13 @@ TEST(default_data, FLiNaK_465_115_042)
     EXPECT_NEAR(748.77152178380845, tp.t_h(1000), 1e-6);
     EXPECT_NEAR(tp.t_h(tp.h_t(970)),970,5e-2);
     EXPECT_NEAR(tp.t_h_kg(tp.h_t_kg(970)),970,5e-2);
+
+    // Set an incomplete data sets to test validity functions
+    tp.setComposition({"LiF","BeF2","ThF4"},{0.727,0.157,0.116});
+    ASSERT_FALSE(tp.valid_rho());
+    ASSERT_FALSE(tp.valid_k());
+    ASSERT_FALSE(tp.valid_cp());
+    ASSERT_TRUE(tp.valid_mu());
+    tp.setComposition({"LiF","BeF2","ThF4"},{0.6998,0.1499,0.1503});
+    ASSERT_FALSE(tp.valid_mu());
 }

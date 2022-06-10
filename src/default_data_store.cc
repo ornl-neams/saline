@@ -303,6 +303,39 @@ auto Default_Data_Store::nearest(Id id, const Vec_Mole& mole_percent) const
     return i_min;
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * \brief returns whether or not the selected data is valid
+ */
+bool Default_Data_Store::valid_rho(Id id, Id data_id) const
+{
+  return compounds[id].data[data_id].valid_rho();
+}
+//---------------------------------------------------------------------------//
+/*!
+ * \brief returns whether or not the selected data is valid
+ */
+bool Default_Data_Store::valid_mu(Id id, Id data_id) const
+{
+  return compounds[id].data[data_id].valid_mu();
+}
+//---------------------------------------------------------------------------//
+/*!
+ * \brief returns whether or not the selected data is valid
+ */
+bool Default_Data_Store::valid_k(Id id, Id data_id) const
+{
+  return compounds[id].data[data_id].valid_k();
+}
+//---------------------------------------------------------------------------//
+/*!
+ * \brief returns whether or not the selected data is valid
+ */
+bool Default_Data_Store::valid_cp(Id id, Id data_id) const
+{
+  return compounds[id].data[data_id].valid_cp();
+}
+
 
 //----------------------------------------------------------------------------//
 /*!

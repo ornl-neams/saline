@@ -74,6 +74,15 @@ double Data_Store::View::cp_h(double enthalpy, double pressure) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * \brief Retrieves the validity of the view data
+ */
+bool Data_Store::View::valid_cp() const
+{
+  return d->valid_cp(id, rec_id);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * \brief retrieves the viscosity for the View object based on temperature
  */
 // viscosity
@@ -89,6 +98,15 @@ double Data_Store::View::mu(double temperature, double pressure) const
 double Data_Store::View::mu_h(double enthalpy, double pressure) const
 {
     return d->mu_h(id, rec_id, enthalpy, pressure);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * \brief Retrieves the validity of the view data
+ */
+bool Data_Store::View::valid_mu() const
+{
+  return d->valid_mu(id, rec_id);
 }
 
 //---------------------------------------------------------------------------//
@@ -110,6 +128,15 @@ double Data_Store::View::k_h(double enthalpy, double pressure) const
     return d->k_h(id, rec_id, enthalpy, pressure);
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * \brief Retrieves the validity of the view data
+ */
+bool Data_Store::View::valid_k() const
+{
+  return d->valid_k(id, rec_id);
+}
+
 //----------------------------------------------------------------------------//
 /*!
  * \brief retrieves the density for the View object based on temperature
@@ -127,6 +154,15 @@ double Data_Store::View::rho(double temperature, double pressure) const
 double Data_Store::View::rho_h(double enthalpy, double pressure) const
 {
     return d->rho_h(id, rec_id, enthalpy, pressure);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * \brief Retrieves the validity of the view data
+ */
+bool Data_Store::View::valid_rho() const
+{
+  return d->valid_rho(id, rec_id);
 }
 
 //----------------------------------------------------------------------------//

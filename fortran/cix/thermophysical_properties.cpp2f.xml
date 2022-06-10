@@ -8,6 +8,8 @@
       <param name="t" type="double"/>
       <param name="p" type="double"/>
     </method>
+    <method name="valid_cp" return_type="bool">
+    </method>
     <method name="cp_h" return_type="double">
       <param name="h" type="double"/>
       <param name="p" type="double"/>
@@ -28,6 +30,8 @@
       <param name="h" type="double"/>
       <param name="p" type="double"/>
     </method>
+    <method name="valid_mu" return_type="bool">
+    </method>
     <method name="k" return_type="double">
       <param name="t" type="double"/>
       <param name="p" type="double"/>
@@ -35,6 +39,8 @@
     <method name="k_h" return_type="double">
       <param name="h" type="double"/>
       <param name="p" type="double"/>
+    </method>
+    <method name="valid_k" return_type="bool">
     </method>
     <method name="rho" return_type="double">
       <param name="t" type="double"/>
@@ -51,6 +57,8 @@
     <method name="rho_h_kgm3" return_type="double">
       <param name="h" type="double"/>
       <param name="p" type="double"/>
+    </method>
+    <method name="valid_rho" return_type="bool">
     </method>
     <method name="h_t" return_type="double">
       <param name="t" type="double"/>

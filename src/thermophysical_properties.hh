@@ -54,20 +54,24 @@ class Thermophysical_Properties
     double cp_h(double enthalpy, double pressure = 101.325) const;
     double cp_kg(double temperature, double pressure = 101.325) const;
     double cp_h_kg(double enthalpy, double pressure = 101.325) const;
+    bool valid_cp() const;
 
     // viscosity
     double mu(double temperature, double pressure = 101.325) const;
     double mu_h(double enthalpy, double pressure = 101.325) const;
+    bool valid_mu() const;
 
     // conductivity
     double k(double temperature, double pressure = 101.325) const;
     double k_h(double enthalpy, double pressure = 101.325) const;
+    bool valid_k() const;
 
     // density
     double rho(double temperature, double pressure = 101.325) const;
     double rho_h(double enthalpy, double pressure = 101.325) const;
     double rho_kgm3(double temperature, double pressure = 101.325) const;
     double rho_h_kgm3(double enthalpy, double pressure = 101.325) const;
+    bool valid_rho() const;
 
     // enthalpy
     double h_t(double temperature) const;
