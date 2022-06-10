@@ -68,4 +68,12 @@ TEST(rk_data_store,input_order)
         double t_k = tks[i];
         EXPECT_NEAR(tp_rk.rho(t_k),ref[i],1e-6);
     }
+
+    // Set an incomplete data sets to test validity functions
+    tp_rk.setComposition({"LiF","UF3","ZrF4"},{0.80,0.07,0.13});
+    ASSERT_FALSE(tp_rk.valid_rho());
+    ASSERT_FALSE(tp_rk.valid_k());
+    ASSERT_FALSE(tp_rk.valid_cp());
+    ASSERT_FALSE(tp_rk.valid_mu());
+
 }

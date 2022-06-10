@@ -52,18 +52,22 @@ class R_Kister_Data_Store : public Data_Store
     // specific heat
     double cp(Id id, Id data_id, double temperature, double pressure = 101.325) const;
     double cp_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const;
+    bool valid_cp(Id id, Id data_id) const;
 
     // viscosity
     double mu(Id id, Id data_id, double temperature, double pressure = 101.325) const;
     double mu_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const;
+    bool valid_mu(Id id, Id data_id) const;
 
     // conductivity
     double k(Id id, Id data_id, double temperature, double pressure = 101.325) const;
     double k_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const;
+    bool valid_k(Id id, Id data_id) const;
 
     // density
     double rho(Id id, Id data_id, double temperature, double pressure = 101.325) const;
     double rho_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const;
+    bool valid_rho(Id id, Id data_id) const;
 
     // enthalpy
     double h_t(Id id, Id data_id, double temperature) const;

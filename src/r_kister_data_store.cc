@@ -7,8 +7,8 @@
 
 #include <stdexcept>
 #include <algorithm>
-#include <fstream>  
-#include <sstream>  
+#include <fstream>
+#include <sstream>
 
 //TODO all the enthalpy functions. They rely on setting up enthalpy tables. This
 //is done for all the end members, but its not clear that carries much meaning
@@ -136,7 +136,7 @@ Data_Store::View R_Kister_Data_Store::setView( const Vec_Name& names, const Vec_
     // To adapt the interfaces a "minimal" view is returned to the client
     Data_Store::View v;
 
-    if(std::all_of(end_members.begin(),end_members.end(),[] 
+    if(std::all_of(end_members.begin(),end_members.end(),[]
           (Data_Store::View v){return !v.null();}))
     {
       v = view(0);
@@ -393,7 +393,7 @@ std::size_t R_Kister_Data_Store::nearest(Id id, const Vec_Mole& mole_percent) co
 double R_Kister_Data_Store::molecularWeight(Id id, Id data_id) const
 {
     double molWt = 0.0;
-    for(size_t i=0; i<end_members.size();++i)
+    for(size_t i=0; i<end_members.size(); ++i)
     {
         molWt += endMem_moleFracs[i]* end_members[i].molecularWeight();
     }
@@ -438,6 +438,42 @@ double R_Kister_Data_Store::RK_Polynomial::getRK_solution(double x, double y, do
     return (x*y)*summation;
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * \brief returns whether or not the selected data is valid
+ */
+bool R_Kister_Data_Store::valid_rho(Id id, Id data_id) const
+{
+  return (std::all_of(end_members.begin(),end_members.end(),[]
+          (Data_Store::View v){return v.valid_rho();}));
+}
+//---------------------------------------------------------------------------//
+/*!
+ * \brief returns whether or not the selected data is valid
+ */
+bool R_Kister_Data_Store::valid_mu(Id id, Id data_id) const
+{
+  return (std::all_of(end_members.begin(),end_members.end(),[]
+          (Data_Store::View v){return v.valid_mu();}));
+}
+//---------------------------------------------------------------------------//
+/*!
+ * \brief returns whether or not the selected data is valid
+ */
+bool R_Kister_Data_Store::valid_k(Id id, Id data_id) const
+{
+  return (std::all_of(end_members.begin(),end_members.end(),[]
+          (Data_Store::View v){return v.valid_k();}));
+}
+//---------------------------------------------------------------------------//
+/*!
+ * \brief returns whether or not the selected data is valid
+ */
+bool R_Kister_Data_Store::valid_cp(Id id, Id data_id) const
+{
+  return (std::all_of(end_members.begin(),end_members.end(),[]
+          (Data_Store::View v){return v.valid_cp();}));
+}
 //----------------------------------------------------------------------------//
 /*!
  * \brief Test if a salt is valid

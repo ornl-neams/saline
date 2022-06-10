@@ -68,18 +68,22 @@ class Default_Data_Store : public Data_Store
     // specific heat
     double cp(Id id, Id data_id, double temperature, double pressure = 101.325) const;
     double cp_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const;
+    bool valid_cp(Id id, Id data_id) const;
 
     // viscosity
     double mu(Id id, Id data_id, double temperature, double pressure = 101.325) const;
     double mu_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const;
+    bool valid_mu(Id id, Id data_id) const;
 
     // conductivity
     double k(Id id, Id data_id, double temperature, double pressure = 101.325) const;
     double k_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const;
+    bool valid_k(Id id, Id data_id) const;
 
     // density
     double rho(Id id, Id data_id, double temperature, double pressure = 101.325) const;
     double rho_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const;
+    bool valid_rho(Id id, Id data_id) const;
 
     // enthalpy
     double h_t(Id id, Id data_id, double temperature) const;
@@ -145,6 +149,7 @@ class Default_Data_Store : public Data_Store
         // density
         double rho(double t) const {return m_rho_a - m_rho_b * t;}
         double rho_h(double h) const {return rho(h_to_t(h));}
+        bool valid_rho() const {return (rho_a() != 0.0 && rho_b() != 0.0); }
 
         // density coefficients
         double rho_a() const {return m_rho_a;}
@@ -155,6 +160,7 @@ class Default_Data_Store : public Data_Store
                                   m_mu_a * std::exp(m_mu_b / t)         :
                                   std::pow(10.0,m_mu_a + (m_mu_b/t) + (m_mu_c/(t*t)));}
         double mu_h(double h) const {return mu(h_to_t(h));}
+        bool valid_mu() const {return (mu_a() != 0.0 && mu_b() != 0.0 && mu_c() != mu_c()) ; }
 
         // viscosity coefficients
         double mu_a() const {return m_mu_a;}
@@ -164,6 +170,7 @@ class Default_Data_Store : public Data_Store
         // conductivity
         double k(double t) const  {return m_k_a + m_k_b * t;}
         double k_h(double h) const {return k(h_to_t(h));}
+        bool valid_k() const {return (k_a() != 0.0 && k_b() != 0.0); }
 
         // conductivity coefficients
         double k_a() const {return m_k_a;}
@@ -173,6 +180,8 @@ class Default_Data_Store : public Data_Store
         double cp(double t) const {double t2 = t * t;
                                   return m_cp_a + m_cp_b * t + m_cp_c * 1/(t2) + m_cp_d * t2;}
         double cp_h(double h) const {return cp(h_to_t(h));}
+        bool valid_cp() const
+        {return (cp_a() != 0.0 && cp_b() != 0.0 && cp_c() != 0.0 && cp_d() != 0.0); }
 
         // specific heat coefficients
         double cp_a() const {return m_cp_a;}

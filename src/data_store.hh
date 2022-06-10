@@ -72,18 +72,22 @@ class Data_Store
 
         double cp(double temperature, double pressure = 101.325) const;
         double cp_h(double enthalpy, double pressure = 101.325) const;
+        bool valid_cp() const;
 
         // viscosity
         double mu(double temperature, double pressure = 101.325) const;
         double mu_h(double enthalpy, double pressure = 101.325) const;
+        bool valid_mu() const;
 
         // conductivity
         double k(double temperature, double pressure = 101.325) const;
         double k_h(double enthalpy, double pressure = 101.325) const;
+        bool valid_k() const;
 
         // density
         double rho(double temperature, double pressure = 101.325) const;
         double rho_h(double enthalpy, double pressure = 101.325) const;
+        bool valid_rho() const;
 
         // enthalpy given temperature
         double h_t(double t) const;
@@ -117,18 +121,22 @@ class Data_Store
     // specific heat
     virtual double cp(Id id, Id data_id, double temperature, double pressure = 101.325) const = 0;
     virtual double cp_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const = 0;
+    virtual bool valid_cp(Id id, Id data_id) const = 0;
 
     // viscosity
     virtual double mu(Id id, Id data_id, double temperature, double pressure = 101.325) const = 0;
     virtual double mu_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const = 0;
+    virtual bool valid_mu(Id id, Id data_id) const = 0;
 
     // conductivity
     virtual double k(Id id, Id data_id, double temperature, double pressure = 101.325) const = 0;
     virtual double k_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const = 0;
+    virtual bool valid_k(Id id, Id data_id) const = 0;
 
     // density
     virtual double rho(Id id, Id data_id, double temperature, double pressure = 101.325) const = 0;
     virtual double rho_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const = 0;
+    virtual bool valid_rho(Id id, Id data_id) const = 0;
 
     // enthalpy
     virtual double h_t(Id id, Id data_id, double temperature) const = 0;

@@ -39,25 +39,49 @@ contains
       stop 1
     endif
     
-    print *,tp%mu(926.00_8, 101.0_8)
     if ( tp%mu(926.00_8, 101.0_8) /= 7.4825131826198357_8) then
-      print *,"Failed to equate values!"
-      stop 2
+      print *,"Failed to equate mu values!"
+      stop 1
     endif
 
     if ( tp%rho(926.00_8, 101.0_8) * 1000.0 /= tp%rho_kgm3(926.00_8,101.0_8)) then
-      print *,"Failed to equate values!"
-      stop 3
+      print *,"Failed to equate rho values!"
+      stop 1
     endif
     
     if ( tp%t_melt() /= 828.3_8) then
-      print *,"Failed to equate values!"
-      stop 2
+      print *,"Failed to equate melt values!"
+      stop 1
     endif
 
     if ( tp%t_boil() /= 0.0_8) then
-      print *,"Failed to equate values!"
-      stop 2
+      print *,"Failed to equate boil values!"
+      stop 1
+    endif
+
+    if ( tp%set_Composition("LiF-BeF2-ThF4",[0.727_8,0.157_8,0.116_8],3) ) then
+      if (tp%valid_rho()) then
+        print *,"valid check rho failed"
+        stop 1
+      end if
+      if (tp%valid_k()) then
+        print *,"valid check k failed"
+        stop 1
+      end if
+      if (tp%valid_cp()) then
+        print *,"valid check cp failed"
+        stop 1
+      end if
+      if ( .not. tp%valid_mu()) then
+        print *,"valid check mu failed"
+        stop 1
+      end if
+    endif
+    if ( tp%set_Composition("LiF-BeF2-ThF4",[0.6998_8,0.1499_8,0.1503_8],3) ) then
+      if ( tp%valid_mu()) then
+        print *,"valid check mu failed"
+        stop 1
+      end if
     endif
 
     call tp%destroy()
@@ -92,12 +116,30 @@ contains
       stop 1
     endif
     
-    print *,tp%rho(850.0_8, 101.0_8)
     if ( tp%rho(850.0_8, 101.0_8) /= 2.0406762757251267_8 ) then
       print *,"Failed to equate values!"
       stop 2
     endif
     
+    if ( tp%set_Composition("LiF-UF3-ZrF4",[0.727_8,0.157_8,0.116_8],3) ) then
+      if (tp%valid_rho()) then
+        print *,"valid check rho failed"
+        stop 3
+      endif
+      if (tp%valid_k()) then
+        print *,"valid check k failed"
+        stop 3
+      endif
+      if (tp%valid_cp()) then
+        print *,"valid check cp failed"
+        stop 3
+      endif
+      if (tp%valid_mu()) then
+        print *,"valid check mu failed"
+        stop 3
+      endif
+    endif
+
     call tp%destroy()
     call rk_data%destroy()
   end subroutine tst_RKData

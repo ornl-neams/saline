@@ -3,6 +3,7 @@ stages:
 
 before_script:
   - if [[ -f "/data/test_gcc/gcc-8.3.0/load_dev_env.sh" ]]; then BASE_DIR="/data/gitlab-runner"; . /data/test_gcc/gcc-8.3.0/load_dev_env.sh; ENV_BASE=/data/test_gcc/gcc-8.3.0; else BASE_DIR="/localhome/gitlab-runner"; . /projects/vera/gcc-8.3.0/load_dev_env.sh; ENV_BASE=/projects/vera/gcc-8.3.0; fi
+  - which gcc
 
 .stage_artifacts: &stage_artifacts
   artifacts:
@@ -26,4 +27,7 @@ linux_gcc83_testing:
     - mkdir -p $BLD_DIR
     - cd $BLD_DIR
     - rm -rf *
+    - echo $PATH
+    - which gcc
+    - echo "$PATH"
     - $SRC_DIR/ci/linux_gcc83_test.sh $SRC_DIR
