@@ -2,7 +2,9 @@
   <using_namespace name="saline"/>
   <include_relative name="default_data_store.hh"/>
   <class name="Default_Data_Store" parent="Data_Store">
-    <method name="load" return_type="void"/>
+    <method name="load" return_type="void">
+      <param name="path" type="char*"/>
+    </method>
   </class>
     
 </generate>

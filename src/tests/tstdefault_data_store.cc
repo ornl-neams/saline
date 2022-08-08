@@ -1,8 +1,9 @@
 #include "gtest/gtest.h"
 
-#include "../default_data_store.hh"
-#include "../thermophysical_properties.hh"
-#include "../utils.hh"
+#include "default_data_store.hh"
+#include "thermophysical_properties.hh"
+#include "utils.hh"
+#include "default_data.hh"
 
 #include <iostream>
 #include <fstream>
@@ -54,8 +55,10 @@ TEST(default_data_store,load_testData_literal)
     static constexpr double mGas_const = 8.314462618;
     // Generate some scrap data
     static const char* scrap = R"test_data(
-    S1   ,Pure Salt,1.0,500.00,1.00,ref1,1000.00,0.0,ref1,1.0, 0.002,500-1000,1.00,ref1,0.50,2.0E+04,0.0,0.0,0.0,500-1000,1.00,ref1,1.8E+00,-3.9E-04,500-1000,20.00,ref1,6.5E+01,0.0,0.0,0.0,1.50,ref1
-    S1-S2,0.36-0.64,2.0,500.00,0.50,ref2,1000.00,0.0,ref2,2.0,-0.002,500-750 ,0.20,ref2,1.25,2.0E+04,0.0,0.0,0.0,800-1000,1.00,ref2,1.2E+00,-2.8E-04,600-900 ,20.00,ref2,6.8E+01,0.0,0.0,0.0,0.10,ref2
+
+
+    S1   ,1,1.0,Pure Salt,500.00,1.00,ref1,1000.00,0.0,ref1,1.0, 0.002,500-1000,1.00,ref1,0.50,2.0E+04,0.0,0.0,0.0,500-1000,1.00,ref1,1.8E+00,-3.9E-04,500-1000,20.00,ref1,6.5E+01,0.0,0.0,0.0,1.50,ref1
+    S1-S2,2,2.0,0.36-0.64,500.00,0.50,ref2,1000.00,0.0,ref2,2.0,-0.002,500-750 ,0.20,ref2,1.25,2.0E+04,0.0,0.0,0.0,800-1000,1.00,ref2,1.2E+00,-2.8E-04,600-900 ,20.00,ref2,6.8E+01,0.0,0.0,0.0,0.10,ref2
     )test_data";
 
     // Set-up work
@@ -91,7 +94,19 @@ TEST(default_data_store,load_testData_literal)
     // Testing the first record of a given salt
     size_t tstRecID = 0;
     EXPECT_DOUBLE_EQ(500,d.melt(refID,tstRecID));
+    EXPECT_DOUBLE_EQ(0.01,d.melt_unc(refID,tstRecID));
+    ASSERT_EQ("ref1",d.melt_ref(refID,tstRecID));
     EXPECT_DOUBLE_EQ(1000,d.boil(refID,tstRecID));
+    EXPECT_DOUBLE_EQ(0.0,d.boil_unc(refID,tstRecID));
+    ASSERT_EQ("ref1",d.boil_ref(refID,tstRecID));
+    EXPECT_DOUBLE_EQ(0.01,d.rho_unc(refID,tstRecID));
+    ASSERT_EQ("ref1",d.rho_ref(refID,tstRecID));
+    EXPECT_DOUBLE_EQ(0.01,d.mu_unc(refID,tstRecID));
+    ASSERT_EQ("ref1",d.mu_ref(refID,tstRecID));
+    EXPECT_DOUBLE_EQ(0.2,d.k_unc(refID,tstRecID));
+    ASSERT_EQ("ref1",d.k_ref(refID,tstRecID));
+    EXPECT_DOUBLE_EQ(0.015,d.cp_unc(refID,tstRecID));
+    ASSERT_EQ("ref1",d.cp_ref(refID,tstRecID));
     for(size_t i=0; i<tVecK.size(); ++i)
     {
         // Density implements a linear model, A-(B*T)
@@ -142,11 +157,13 @@ TEST(default_data_store,load_testData_binary)
     static constexpr double mGas_const = 8.314462618;
     // Generate some scrap data
     static const char* scrap = R"test_data(
-    S1      ,Pure Salt     ,1.0,500.00,1.00,ref1,1000.00,0.0,ref1,1.0, 0.002,500-1000,1.00,ref1,0.50,2.0E+04,0.0,0.0,0.0,500-1000,1.00,ref1,1.8E+00,-3.9E-04,500-1000,20.00,ref1,6.5E+01,0.0,0.0,0.0,1.50,ref1
-    S1-S2   ,0.36-0.64     ,2.0,500.00,0.50,ref2,1000.00,0.0,ref2,2.0,-0.002,500-750 ,0.20,ref2,1.25,2.0E+04,0.0,0.0,0.0,800-1000,1.00,ref2,1.2E+00,-2.8E-04,600-900 ,20.00,ref2,6.8E+01,0.0,0.0,0.0,0.10,ref2
-    S1-S2   ,0.64-0.36     ,2.0,550.00,0.50,ref2,1500.00,0.0,ref2,3.0,-0.004,500-750 ,0.20,ref2,3.25,2.0E+04,0.0,0.0,0.0,800-1000,1.00,ref2,2.2E+00,-2.5E-04,600-900 ,20.00,ref2,6.8E+01,0.0,0.0,0.0,0.10,ref2
-    S1-S2   ,0.50-0.50     ,2.0,600.00,0.50,ref2,2000.00,0.0,ref2,4.0,-0.006,500-750 ,0.20,ref2,2.25,2.0E+04,0.0,0.0,0.0,800-1000,1.00,ref2,1.7E+00,-1.2E-04,600-900 ,20.00,ref2,6.8E+01,0.0,0.0,0.0,0.10,ref2
-    S1-S2-S3,0.23-0.50-0.27,4.0,131.20,0.50,ref3,1771.00,0.0,ref3,1.5, 0.002,100-400 ,1.00,ref3,1.68,2.3E+04,0.0,0.0,0.0,141-1327,2.00,ref3,8.5E-01,-2.4E-04,129-1800,20.00,ref3,7.6E+01,0.0,0.0,0.0,1.00,ref3
+
+
+    S1      ,1,1.0,Pure Salt     ,500.00,1.00,ref1,1000.00,0.0,ref1,1.0, 0.002,500-1000,1.00,ref1,0.50,2.0E+04,0.0,0.0,0.0,500-1000,1.00,ref1,1.8E+00,-3.9E-04,500-1000,20.00,ref1,6.5E+01,0.0,0.0,0.0,1.50,ref1
+    S1-S2   ,2,2.0,0.36-0.64     ,500.00,0.50,ref2,1000.00,0.0,ref2,2.0,-0.002,500-750 ,0.20,ref2,1.25,2.0E+04,0.0,0.0,0.0,800-1000,1.00,ref2,1.2E+00,-2.8E-04,600-900 ,20.00,ref2,6.8E+01,0.0,0.0,0.0,0.10,ref2
+    S1-S2   ,3,2.0,0.64-0.36     ,550.00,0.50,ref2,1500.00,0.0,ref2,3.0,-0.004,500-750 ,0.20,ref2,3.25,2.0E+04,0.0,0.0,0.0,800-1000,1.00,ref2,2.2E+00,-2.5E-04,600-900 ,20.00,ref2,6.8E+01,0.0,0.0,0.0,0.10,ref2
+    S1-S2   ,4,2.0,0.50-0.50     ,600.00,0.50,ref2,2000.00,0.0,ref2,4.0,-0.006,500-750 ,0.20,ref2,2.25,2.0E+04,0.0,0.0,0.0,800-1000,1.00,ref2,1.7E+00,-1.2E-04,600-900 ,20.00,ref2,6.8E+01,0.0,0.0,0.0,0.10,ref2
+    S1-S2-S3,5,4.0,0.23-0.50-0.27,131.20,0.50,ref3,1771.00,0.0,ref3,1.5, 0.002,100-400 ,1.00,ref3,1.68,2.3E+04,0.0,0.0,0.0,141-1327,2.00,ref3,8.5E-01,-2.4E-04,129-1800,20.00,ref3,7.6E+01,0.0,0.0,0.0,1.00,ref3
     )test_data";
 
     // Set-up work
@@ -259,7 +276,8 @@ TEST(default_data_store,load_testData_binary)
 // Test a compound from default data
 TEST(default_data, FLiNaK_465_115_042)
 {
-    Default_Data_Store d; d.load();
+    std::istringstream in(tst_data_rk);
+    Default_Data_Store d; d.load(in);
     Thermophysical_Properties tp;
     ASSERT_TRUE(tp.initialize(&d));
 

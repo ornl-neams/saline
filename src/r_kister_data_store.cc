@@ -25,23 +25,13 @@ namespace saline
 R_Kister_Data_Store::R_Kister_Data_Store()
 {
 }
-
-void R_Kister_Data_Store::load()
-{
-    d = Default_Data_Store();
-    std::istringstream in(default_data_rk);
-    d.load(in);
-    load(in);
-}
 //---------------------------------------------------------------------------//
 /*!
  * \brief helper function to load data into data store
  */
 void R_Kister_Data_Store::load(const std::string& fPath)
 {
-    d = Default_Data_Store();
     std::ifstream inFile(fPath.data());
-    d.load(inFile);
     load(inFile);
 }
 //---------------------------------------------------------------------------//
@@ -50,6 +40,10 @@ void R_Kister_Data_Store::load(const std::string& fPath)
  */
 void R_Kister_Data_Store::load(std::istream& inFile)
 {
+    //Set up a default data store TODO this may not always be desirable
+    d = Default_Data_Store();
+    d.load(inFile);
+
     // Set up space for the mixing models
     int num_binaries = d.size();
     m_rho.resize(num_binaries,std::vector<R_Kister_Data_Store::RK_Polynomial>(num_binaries));

@@ -80,6 +80,22 @@ bool Data_Store::View::valid_cp() const
 {
   return d->valid_cp(id, rec_id);
 }
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieves the heat capacity uncertainty for the view object
+ */
+double Data_Store::View::cp_unc() const
+{
+    return d->cp_unc(id,rec_id);
+}
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieves the heat capacity reference for the view object
+ */
+std::string Data_Store::View::cp_ref() const
+{
+    return d->cp_ref(id,rec_id);
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -107,6 +123,22 @@ double Data_Store::View::mu_h(double enthalpy, double pressure) const
 bool Data_Store::View::valid_mu() const
 {
   return d->valid_mu(id, rec_id);
+}
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieves the viscosity uncertainty for the view object
+ */
+double Data_Store::View::mu_unc() const
+{
+    return d->mu_unc(id,rec_id);
+}
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieves the viscosity reference for the view object
+ */
+std::string Data_Store::View::mu_ref() const
+{
+    return d->mu_ref(id,rec_id);
 }
 
 //---------------------------------------------------------------------------//
@@ -136,6 +168,22 @@ bool Data_Store::View::valid_k() const
 {
   return d->valid_k(id, rec_id);
 }
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieves the thermal conductivity uncertainty for the view object
+ */
+double Data_Store::View::k_unc() const
+{
+    return d->k_unc(id,rec_id);
+}
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieves the thermal conductivity reference for the view object
+ */
+std::string Data_Store::View::k_ref() const
+{
+    return d->k_ref(id,rec_id);
+}
 
 //----------------------------------------------------------------------------//
 /*!
@@ -164,6 +212,22 @@ bool Data_Store::View::valid_rho() const
 {
   return d->valid_rho(id, rec_id);
 }
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieves the density uncertainty for the view object
+ */
+double Data_Store::View::rho_unc() const
+{
+    return d->rho_unc(id,rec_id);
+}
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieves the density reference for the view object
+ */
+std::string Data_Store::View::rho_ref() const
+{
+    return d->rho_ref(id,rec_id);
+}
 
 //----------------------------------------------------------------------------//
 /*!
@@ -191,6 +255,22 @@ double Data_Store::View::melt() const
 {
     return d->melt(id,rec_id);
 }
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieves the melting temperature uncertainty for the view object
+ */
+double Data_Store::View::melt_unc() const
+{
+    return d->melt_unc(id,rec_id);
+}
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieves the melting temperature reference for the view object
+ */
+std::string Data_Store::View::melt_ref() const
+{
+    return d->melt_ref(id,rec_id);
+}
 
 //----------------------------------------------------------------------------//
 /*!
@@ -199,6 +279,22 @@ double Data_Store::View::melt() const
 double Data_Store::View::boil() const
 {
     return d->boil(id,rec_id);
+}
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieves the boiling temperature uncertainty for the view object
+ */
+double Data_Store::View::boil_unc() const
+{
+    return d->boil_unc(id,rec_id);
+}
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieves the boiling temperature reference for the view object
+ */
+std::string Data_Store::View::boil_ref() const
+{
+    return d->boil_ref(id,rec_id);
 }
 
 //----------------------------------------------------------------------------//

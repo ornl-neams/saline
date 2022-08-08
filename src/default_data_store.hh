@@ -17,10 +17,10 @@
 #include <limits>
 #include <string>
 #include <vector>
+#include <list>
 
 namespace saline
 {
-
 //===========================================================================//
 /*!
  * \class Default_Data_Store
@@ -41,6 +41,18 @@ namespace saline
  *   Density       - Grams per Cubic Centimeter (g/cc)
  */
 //===========================================================================//
+
+enum DataQualifier
+{
+  NONE, // Default assignment
+  // /* Represent variations on melting and boiling data
+  PRESSURIZED,
+  SUBLIMATES,
+  LIQUIDGAS,
+  // */
+  NONSPECIFIC //This is targeted at uncharacterized data (uncertainty).
+};
+
 class Default_Data_Store : public Data_Store
 {
   public:
@@ -69,21 +81,29 @@ class Default_Data_Store : public Data_Store
     double cp(Id id, Id data_id, double temperature, double pressure = 101.325) const;
     double cp_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const;
     bool valid_cp(Id id, Id data_id) const;
+    double cp_unc(Id id, Id data_id) const;
+    std::string cp_ref(Id id, Id data_id) const;
 
     // viscosity
     double mu(Id id, Id data_id, double temperature, double pressure = 101.325) const;
     double mu_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const;
     bool valid_mu(Id id, Id data_id) const;
+    double mu_unc(Id id, Id data_id) const;
+    std::string mu_ref(Id id, Id data_id) const;
 
     // conductivity
     double k(Id id, Id data_id, double temperature, double pressure = 101.325) const;
     double k_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const;
     bool valid_k(Id id, Id data_id) const;
+    double k_unc(Id id, Id data_id) const;
+    std::string k_ref(Id id, Id data_id) const;
 
     // density
     double rho(Id id, Id data_id, double temperature, double pressure = 101.325) const;
     double rho_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const;
     bool valid_rho(Id id, Id data_id) const;
+    double rho_unc(Id id, Id data_id) const;
+    std::string rho_ref(Id id, Id data_id) const;
 
     // enthalpy
     double h_t(Id id, Id data_id, double temperature) const;
@@ -96,9 +116,13 @@ class Default_Data_Store : public Data_Store
 
     // melting temperature
     double melt(Id id, Id data_id) const;
+    double melt_unc(Id id, Id data_id) const;
+    std::string melt_ref(Id id, Id data_id) const;
 
     // boiling temperature
     double boil(Id id, Id data_id) const;
+    double boil_unc(Id id, Id data_id) const;
+    std::string boil_ref(Id id, Id data_id) const;
 
     // mole percents
     const Vec_Mole mole_percent(Id id, Id data_id) const;
@@ -106,7 +130,6 @@ class Default_Data_Store : public Data_Store
     // number of constituents for the given compound
     std::size_t constituent_count(Id id) const;
 
-    void load();
     void load(const std::string& fPath);
     void load(std::istream& inFile);
 
@@ -125,7 +148,7 @@ class Default_Data_Store : public Data_Store
     //Obtain the nearest neighboring composition
     Id nearest(Id id, const Vec_Mole& mole_percent) const;
 
-    private:
+  private:
 
 
     class Data
@@ -141,7 +164,12 @@ class Default_Data_Store : public Data_Store
         const std::vector<double>& h_t() const {return m_h;}
 
         double melt() const {return m_melt;}
+        double melt_unc() const {return m_melt_unc;}
+        std::string melt_ref() const {return m_melt_ref;}
+
         double boil() const {return m_boil;}
+        double boil_unc() const {return m_boil_unc;}
+        std::string boil_ref() const {return m_boil_ref;}
 
         // molecular weight
         double molecularWeight() const {return m_mole_weight;}
@@ -150,17 +178,23 @@ class Default_Data_Store : public Data_Store
         double rho(double t) const {return m_rho_a - m_rho_b * t;}
         double rho_h(double h) const {return rho(h_to_t(h));}
         bool valid_rho() const {return (rho_a() != 0.0 && rho_b() != 0.0); }
+        double rho_unc() const {return m_rho_unc;}
+        std::string rho_ref() const {return m_rho_ref;}
 
         // density coefficients
         double rho_a() const {return m_rho_a;}
         double rho_b() const {return m_rho_b;}
 
         // viscosity
-        double mu(double t) const {return std::isnan(m_mu_c)  ?
-                                  m_mu_a * std::exp(m_mu_b / t)         :
+        double mu(double t) const {return std::isnan(m_mu_c) ?
+                                  m_mu_a * std::exp(m_mu_b / t) :
                                   std::pow(10.0,m_mu_a + (m_mu_b/t) + (m_mu_c/(t*t)));}
         double mu_h(double h) const {return mu(h_to_t(h));}
-        bool valid_mu() const {return (mu_a() != 0.0 && mu_b() != 0.0 && mu_c() != mu_c()) ; }
+        bool valid_mu() const {return std::isnan(m_mu_c) ?
+                                  (mu_a() != 0.0 && mu_b() != 0.0) :
+                                  (mu_a() != 0.0 && mu_b() != 0.0 && m_mu_c != 0.0);}
+        double mu_unc() const {return m_mu_unc;}
+        std::string mu_ref() const {return m_mu_ref;}
 
         // viscosity coefficients
         double mu_a() const {return m_mu_a;}
@@ -171,6 +205,8 @@ class Default_Data_Store : public Data_Store
         double k(double t) const  {return m_k_a + m_k_b * t;}
         double k_h(double h) const {return k(h_to_t(h));}
         bool valid_k() const {return (k_a() != 0.0 && k_b() != 0.0); }
+        double k_unc() const {return m_k_unc;}
+        std::string k_ref() const {return m_k_ref;}
 
         // conductivity coefficients
         double k_a() const {return m_k_a;}
@@ -182,6 +218,8 @@ class Default_Data_Store : public Data_Store
         double cp_h(double h) const {return cp(h_to_t(h));}
         bool valid_cp() const
         {return (cp_a() != 0.0 && cp_b() != 0.0 && cp_c() != 0.0 && cp_d() != 0.0); }
+        double cp_unc() const {return m_cp_unc;}
+        std::string cp_ref() const {return m_cp_ref;}
 
         // specific heat coefficients
         double cp_a() const {return m_cp_a;}
@@ -205,33 +243,45 @@ class Default_Data_Store : public Data_Store
 
         // Melting Temperature
         double m_melt;
+        DataQualifier m_melt_qualifier;
         double m_melt_unc;
+        DataQualifier m_melt_unc_qualifier;
+        std::string m_melt_ref;
 
         // Molecular Weight
         double m_mole_weight;
 
         // Boiling Temperature
         double m_boil;
+        DataQualifier m_boil_qualifier;
         double m_boil_unc;
+        DataQualifier m_boil_unc_qualifier;
+        std::string m_boil_ref;
 
         // density
         double m_rho_a;
         double m_rho_b;
         double m_rho_unc;
+        DataQualifier m_rho_unc_qualifier;
         std::pair<double,double> m_rho_rng;
+        std::string m_rho_ref;
 
         // viscosity
         double m_mu_a;
         double m_mu_b;
         double m_mu_c;
         double m_mu_unc;
+        DataQualifier m_mu_unc_qualifier;
         std::pair<double,double> m_mu_rng;
+        std::string m_mu_ref;
 
         // conductivity
         double m_k_a;
         double m_k_b;
         double m_k_unc;
+        DataQualifier m_k_unc_qualifier;
         std::pair<double,double> m_k_rng;
+        std::string m_k_ref;
 
         // specific heat
         double m_cp_a;
@@ -239,7 +289,9 @@ class Default_Data_Store : public Data_Store
         double m_cp_c;
         double m_cp_d;
         double m_cp_unc;
+        DataQualifier m_cp_unc_qualifier;
         std::pair<double,double> m_cp_rng;
+        std::string m_cp_ref;
 
         // enthalpy to temperature table
         std::vector<double> m_h;
@@ -261,6 +313,9 @@ class Default_Data_Store : public Data_Store
   private:
 
     // >>> DATA
+    void parse_data_qualifier(std::string&,DataQualifier&);
+    void parse_data_token(std::string&,double&);
+    void parse_range_token(std::string&,std::pair<double,double>&);
 
     // All compounds in this data store
     std::vector<Compound> compounds;
@@ -269,6 +324,8 @@ class Default_Data_Store : public Data_Store
 
     // calculate the enthalpy interpolation tables as a function of temperature
     void setup_enthalpy_tables();
+
+    Default_Data_Store::Data& getDataReference(std::string, std::string);
 
 };
 
