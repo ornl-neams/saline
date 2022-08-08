@@ -5,13 +5,18 @@
 #include "r_kister_data_store.hh"
 #include "default_data.hh"
 
+#include <iostream>
+#include <fstream>
+#include <sstream>
+
 using namespace saline;
 
 TEST(rk_data_store,load)
 {
     // Obtain the base data
     Default_Data_Store ds;
-    ds.load();
+    std::istringstream in(tst_data_rk);
+    ds.load(in);
     Thermophysical_Properties tp_dflt;
     ASSERT_TRUE(tp_dflt.initialize(&ds));
     ASSERT_TRUE(tp_dflt.setComposition({"LiF","NaF","KF"},{0.465,0.115,0.42}));
@@ -19,7 +24,8 @@ TEST(rk_data_store,load)
     // Set up the interpolation object
     std::vector<std::string> right_names = {"LiF","NaF","KF"};
     std::vector<std::string> wrong_names = {"LiF2","NaF","KF"};
-    R_Kister_Data_Store rk_DS; rk_DS.load();
+    std::istringstream in_rk(tst_data_rk);
+    R_Kister_Data_Store rk_DS; rk_DS.load(in_rk);
     Thermophysical_Properties tp_rk;
     ASSERT_TRUE(tp_rk.initialize(&rk_DS));
     ASSERT_TRUE(rk_DS.valid(right_names));
@@ -42,7 +48,8 @@ TEST(rk_data_store,load)
 TEST(rk_data_store,input_order)
 {
     // Set up the interpolation object
-    R_Kister_Data_Store rk_DS; rk_DS.load();
+    std::istringstream in(tst_data_rk);
+    R_Kister_Data_Store rk_DS; rk_DS.load(in);
     Thermophysical_Properties tp_rk;
     ASSERT_TRUE(tp_rk.initialize(&rk_DS));
 

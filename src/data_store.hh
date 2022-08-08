@@ -73,21 +73,29 @@ class Data_Store
         double cp(double temperature, double pressure = 101.325) const;
         double cp_h(double enthalpy, double pressure = 101.325) const;
         bool valid_cp() const;
+        double cp_unc() const;
+        std::string cp_ref() const;
 
         // viscosity
         double mu(double temperature, double pressure = 101.325) const;
         double mu_h(double enthalpy, double pressure = 101.325) const;
         bool valid_mu() const;
+        double mu_unc() const;
+        std::string mu_ref() const;
 
         // conductivity
         double k(double temperature, double pressure = 101.325) const;
         double k_h(double enthalpy, double pressure = 101.325) const;
         bool valid_k() const;
+        double k_unc() const;
+        std::string k_ref() const;
 
         // density
         double rho(double temperature, double pressure = 101.325) const;
         double rho_h(double enthalpy, double pressure = 101.325) const;
         bool valid_rho() const;
+        double rho_unc() const;
+        std::string rho_ref() const;
 
         // enthalpy given temperature
         double h_t(double t) const;
@@ -97,9 +105,13 @@ class Data_Store
 
         // melting temperature
         double melt() const;
+        double melt_unc() const;
+        std::string melt_ref() const;
 
         // boiling temperature
         double boil() const;
+        double boil_unc() const;
+        std::string boil_ref() const;
 
         // molecular weight
         double molecularWeight() const;
@@ -122,21 +134,29 @@ class Data_Store
     virtual double cp(Id id, Id data_id, double temperature, double pressure = 101.325) const = 0;
     virtual double cp_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const = 0;
     virtual bool valid_cp(Id id, Id data_id) const = 0;
+    virtual double cp_unc(Id id, Id data_id) const = 0;
+    virtual std::string cp_ref(Id id, Id data_id) const = 0;
 
     // viscosity
     virtual double mu(Id id, Id data_id, double temperature, double pressure = 101.325) const = 0;
     virtual double mu_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const = 0;
     virtual bool valid_mu(Id id, Id data_id) const = 0;
+    virtual double mu_unc(Id id, Id data_id) const = 0;
+    virtual std::string mu_ref(Id id, Id data_id) const = 0;
 
     // conductivity
     virtual double k(Id id, Id data_id, double temperature, double pressure = 101.325) const = 0;
     virtual double k_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const = 0;
     virtual bool valid_k(Id id, Id data_id) const = 0;
+    virtual double k_unc(Id id, Id data_id) const = 0;
+    virtual std::string k_ref(Id id, Id data_id) const = 0;
 
     // density
     virtual double rho(Id id, Id data_id, double temperature, double pressure = 101.325) const = 0;
     virtual double rho_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const = 0;
     virtual bool valid_rho(Id id, Id data_id) const = 0;
+    virtual double rho_unc(Id id, Id data_id) const = 0;
+    virtual std::string rho_ref(Id id, Id data_id) const = 0;
 
     // enthalpy
     virtual double h_t(Id id, Id data_id, double temperature) const = 0;
@@ -146,6 +166,8 @@ class Data_Store
 
     // melting temperature
     virtual double melt(Id id, Id data_id) const = 0;
+    virtual double melt_unc(Id id, Id data_id) const = 0;
+    virtual std::string melt_ref(Id id, Id data_id) const = 0;
 
     // molecular weight
     virtual double molecularWeight(Id id, Id data_id) const = 0;
@@ -155,6 +177,8 @@ class Data_Store
 
     // boiling temperature
     virtual double boil(Id id, Id data_id) const = 0;
+    virtual double boil_unc(Id id, Id data_id) const = 0;
+    virtual std::string boil_ref(Id id, Id data_id) const = 0;
 
     // number of constituents for the given compound
     virtual std::size_t constituent_count(Id id) const = 0;

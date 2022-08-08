@@ -28,16 +28,6 @@ Default_Data_Store::Default_Data_Store()
 /*!
  * \brief helper function to load data into data store
  */
-void Default_Data_Store::load()
-{
-    std::istringstream in(default_data);
-    load(in);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * \brief helper function to load data into data store
- */
 void Default_Data_Store::load(const std::string& fPath)
 {
     std::ifstream inFile(fPath.data());
@@ -54,128 +44,115 @@ void Default_Data_Store::load(std::istream& inFile)
 
     // Default input file has one salt entry per line
     std::string line;
+    // First two lines are header information not useful here
+    std::getline(inFile,line);
+    std::getline(inFile,line);
     std::getline(inFile,line);
     while (std::getline(inFile,line))
     {
         utils::trim(line);
         //For now if an empty line signals the end of data
         if( line.empty() ) break;
+
         //Skip any comments
         if( line[0] == '/' && line[1] == '/' ) continue;
 
         // names, id, mole_percents, tmelt, tboil, rho_a,  rho_b, mu_a, mu_b, k_a, k_b, cp_a, cp_b, cp_c, cp_d
         auto tokens = utils::split(",",line);
+
+        // trim leading and trailing white space from all tokens
         for(size_t i=0; i<tokens.size(); ++i)
         {
             utils::trim(tokens[i]);
         }
 
-        //Chemical symbols
-        auto symbols = utils::split("-",tokens[0]);
-
-        //mole fraction of each salt
-        std::vector<double> molfrac;
-        if( symbols.size() == 1)
-        {
-            //This is for pure salt and might benefit from some error checking
-            molfrac.push_back(1.0);
-        }
-        else
-        {
-            // Parse out the mole fractions
-            for(auto mp : utils::split("-",tokens[1]))
-            {
-                molfrac.push_back(std::stod(mp));
-            }
-            //Sort symbols alphabetically arranged mole fractions as needed
-            auto sp = utils::getSortPermutation(symbols);
-            utils::applySortPermuation_inPlace(symbols,sp);
-            utils::applySortPermuation_inPlace(molfrac,sp);
-        }
-
-        // Find reference to the salt if it exists
-        auto it = find_if(compounds.begin(),compounds.end(),
-                [&symbols](const Compound& c) {return c.names == symbols;});
-
-        // Make a new salt if one cannot be found
-        if (it == compounds.end())
-        {
-            // new salt
-            compounds.resize(compounds.size()+1);
-            it = std::prev(compounds.end());       //update iterator
-            it->names = symbols;
-        }
-
-        // Create a space for the new data of the salt
-        it->data.resize(it->data.size()+1);
-        auto& d = it->data.back();
-        d.m_mole_percents = molfrac;
+        //Get the Data instance to fill in
+        Default_Data_Store::Data& d = getDataReference(tokens[0],tokens[3]);
 
         //Molecular Weight
-        d.m_mole_weight = std::stod(tokens[2]);
+        parse_data_token(tokens[2],d.m_mole_weight);
+
         //Melt
-        d.m_melt = std::stod(tokens[3]);
+        parse_data_qualifier(tokens[4],d.m_melt_qualifier);
+        parse_data_token(tokens[4],d.m_melt);
         //Melt uncertainty
-        d.m_melt_unc = std::stod(tokens[4]);
+        parse_data_qualifier(tokens[5],d.m_melt_unc_qualifier);
+        parse_data_token(tokens[5],d.m_melt_unc);
+        d.m_melt_unc /= 100.0;
         //Melt Reference
+        d.m_melt_ref = tokens[6];
 
         //Boil
-        d.m_boil = std::stod(tokens[6]);
+        parse_data_qualifier(tokens[7],d.m_boil_qualifier);
+        parse_data_token(tokens[7],d.m_boil);
         //Boil Uncertainty
-        d.m_boil_unc = std::stod(tokens[7]);
+        parse_data_qualifier(tokens[8],d.m_boil_unc_qualifier);
+        parse_data_token(tokens[8],d.m_boil_unc);
+        d.m_boil_unc /= 100.0;
         //Boil Reference
+        d.m_boil_ref = tokens[9];
 
         //Density A and B as parameters for A - BT
-        d.m_rho_a = std::stod(tokens[9]);
-        d.m_rho_b = std::stod(tokens[10]);
+        parse_data_token(tokens[10],d.m_rho_a);
+        parse_data_token(tokens[11],d.m_rho_b);
 
         //Applicability range
-        std::vector<std::string> rho_rng_str = utils::split("-",tokens[11]);
-        d.m_rho_rng = std::make_pair(std::stod(rho_rng_str[0]),std::stod(rho_rng_str[1]));
+        parse_range_token(tokens[12],d.m_rho_rng);
         //uncertainty in percent
-        d.m_rho_unc = std::stod(tokens[12])/100.0;
+        parse_data_qualifier(tokens[13],d.m_rho_unc_qualifier);
+        parse_data_token(tokens[13],d.m_rho_unc);
+        d.m_rho_unc /= 100.0;
         //reference
+        d.m_rho_ref = tokens[14];
 
         //Viscosity A and B as parameters A*exp(B/(RT)) ... OR
-        d.m_mu_a = std::stod(tokens[14]);
-        d.m_mu_b = std::stod(tokens[15])/mGas_const;
+        parse_data_token(tokens[15],d.m_mu_a);
+        parse_data_token(tokens[16],d.m_mu_b);
+        d.m_mu_b /= mGas_const;
         d.m_mu_c = std::numeric_limits<double>::quiet_NaN();
         //Test if we received inputs for two parameter viscosity model
-        if( d.m_mu_a == 0.0 and d.m_mu_b == 0.0)
+        if (d.m_mu_a == 0.0)
         {
             // Since both a and b are zero try the other model
             // A, B, C for 10^(A + B/T + C/T**2)
-            d.m_mu_a = std::stod(tokens[16]);
-            d.m_mu_b = std::stod(tokens[17]);
-            d.m_mu_c = std::stod(tokens[18]);
+            parse_data_token(tokens[17],d.m_mu_a);
+            parse_data_token(tokens[18],d.m_mu_b);
+            parse_data_token(tokens[19],d.m_mu_c);
         }
         //Applicability range
-        std::vector<std::string> mu_rng_str = utils::split("-",tokens[19]);
-        d.m_mu_rng = std::make_pair(std::stod(mu_rng_str[0]),std::stod(mu_rng_str[1]));
+        parse_range_token(tokens[20],d.m_rho_rng);
         //uncertainty
-        d.m_mu_unc = std::stod(tokens[20]);
+        parse_data_qualifier(tokens[21],d.m_mu_unc_qualifier);
+        parse_data_token(tokens[21],d.m_mu_unc);
+        d.m_mu_unc /= 100.0;
         //reference
+        d.m_mu_ref = tokens[22];
 
         //Thermal conductivity A and B as parameters for A + BT
-        d.m_k_a  = std::stod(tokens[22]);
-        d.m_k_b  = std::stod(tokens[23]);
+        parse_data_token(tokens[23],d.m_k_a);
+        parse_data_token(tokens[24],d.m_k_b);
         //Applicability range
-        std::vector<std::string> k_rng_str = utils::split("-",tokens[24]);
-        d.m_k_rng = std::make_pair(std::stod(k_rng_str[0]),std::stod(k_rng_str[1]));
+        parse_range_token(tokens[25],d.m_rho_rng);
         //uncertainty
-        d.m_k_unc = std::stod(tokens[25]);
+        parse_data_qualifier(tokens[26],d.m_k_unc_qualifier);
+        parse_data_token(tokens[26],d.m_k_unc);
+        d.m_k_unc /= 100.0;
         //reference
+        d.m_k_ref = tokens[27];
 
         //heat capacity A, B, C, D for A + B*T(K) + C*T-2(K) + D*T2(K)
-        d.m_cp_a = std::stod(tokens[27]);
-        d.m_cp_b = std::stod(tokens[28]);
-        d.m_cp_c = std::stod(tokens[29]);
-        d.m_cp_d = std::stod(tokens[30]);
+        parse_data_token(tokens[28],d.m_cp_a);
+        parse_data_token(tokens[29],d.m_cp_b);
+        parse_data_token(tokens[30],d.m_cp_c);
+        parse_data_token(tokens[31],d.m_cp_d);
         //Applicability range --  Not included in data
 
         //uncertainty
-        d.m_cp_unc = std::stod(tokens[31]);
+        parse_data_qualifier(tokens[32],d.m_cp_unc_qualifier);
+        parse_data_token(tokens[32],d.m_cp_unc);
+        d.m_cp_unc /= 100.0;
         //reference
+        d.m_cp_ref = tokens[33];
 
     }
 
@@ -288,9 +265,9 @@ auto Default_Data_Store::nearest(Id id, const Vec_Mole& mole_percent) const
 {
     double min_dist = std::numeric_limits<double>::max();
     size_t i_min = 0;
-    for(size_t i =0; i < compounds[id].data.size(); i++)
+    auto datas = compounds[id].data;
+    for(size_t i =0; i < datas.size(); i++)
     {
-        auto datas = compounds[id].data;
         auto data = datas[i];
         const auto& mps = data.mole_percents();
         double dist = utils::euclidean_distance(mole_percent,mps);
@@ -336,7 +313,6 @@ bool Default_Data_Store::valid_cp(Id id, Id data_id) const
   return compounds[id].data[data_id].valid_cp();
 }
 
-
 //----------------------------------------------------------------------------//
 /*!
  * \brief retrieve the heat capacity for the selected compound based on temperature
@@ -358,6 +334,26 @@ double Default_Data_Store::cp_h(Id id, Id data_id, double enthalpy, double p) co
 
 //----------------------------------------------------------------------------//
 /*!
+ * \brief retrieve the heat capacity uncertainty for the selected compound
+ */
+double Default_Data_Store::cp_unc(Id id, Id data_id) const
+{
+    const auto& d = compounds[id].data[data_id];
+    return d.cp_unc();
+}
+
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the heat capacity reference for the selected compound
+ */
+std::string Default_Data_Store::cp_ref(Id id, Id data_id) const
+{
+    const auto& d = compounds[id].data[data_id];
+    return d.cp_ref();
+}
+
+//----------------------------------------------------------------------------//
+/*!
  * \brief retrieve the viscosity for the selected compound based on temperature
  */
 double Default_Data_Store::mu(Id id, Id data_id, double t, double p) const
@@ -369,6 +365,26 @@ double Default_Data_Store::mu_h(Id id, Id data_id, double enthalpy, double p) co
 {
     const auto& d = compounds[id].data[data_id];
     return d.mu_h(enthalpy);
+}
+
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the viscosity uncertainty for the selected compound
+ */
+double Default_Data_Store::mu_unc(Id id, Id data_id) const
+{
+    const auto& d = compounds[id].data[data_id];
+    return d.mu_unc();
+}
+
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the viscosity reference for the selected compound
+ */
+std::string Default_Data_Store::mu_ref(Id id, Id data_id) const
+{
+    const auto& d = compounds[id].data[data_id];
+    return d.mu_ref();
 }
 
 //----------------------------------------------------------------------------//
@@ -389,6 +405,28 @@ double Default_Data_Store::k_h(Id id, Id data_id, double enthalpy, double p) con
 
 //----------------------------------------------------------------------------//
 /*!
+ * \brief retrieve the conductivity uncertainty for the selected compound
+ */
+double Default_Data_Store::k_unc(Id id, Id data_id) const
+{
+       const auto& d = compounds[id].data[data_id];
+       // k(t) = a + b * t
+       return d.k_unc();
+}
+
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the conductivity reference for the selected compound
+ */
+std::string Default_Data_Store::k_ref(Id id, Id data_id) const
+{
+       const auto& d = compounds[id].data[data_id];
+       // k(t) = a + b * t
+       return d.k_ref();
+}
+
+//----------------------------------------------------------------------------//
+/*!
  * \brief retrieve the density for the selected compound based on temperature
  */
 double Default_Data_Store::rho(Id id, Id data_id, double t, double p) const
@@ -400,6 +438,26 @@ double Default_Data_Store::rho_h(Id id, Id data_id, double enthalpy, double p) c
 {
     const auto& d = compounds[id].data[data_id];
     return d.rho_h(enthalpy);
+}
+
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the density uncertainty for the selected compound
+ */
+double Default_Data_Store::rho_unc(Id id, Id data_id) const
+{
+    const auto& d = compounds[id].data[data_id];
+    return d.rho_unc();
+}
+
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the density reference for the selected compound
+ */
+std::string Default_Data_Store::rho_ref(Id id, Id data_id) const
+{
+    const auto& d = compounds[id].data[data_id];
+    return d.rho_ref();
 }
 
 //----------------------------------------------------------------------------//
@@ -424,6 +482,26 @@ double Default_Data_Store::t_h(Id id, Id data_id, double enthalpy) const
 
 //----------------------------------------------------------------------------//
 /*!
+ * \brief retrieve the uncertainty in melting temperature of the selected compound
+ */
+double Default_Data_Store::melt_unc(Id id, Id data_id) const
+{
+    const auto& d = compounds[id].data[data_id];
+    return d.melt_unc();
+}
+
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the melting temperature reference of the selected compound
+ */
+std::string Default_Data_Store::melt_ref(Id id, Id data_id) const
+{
+    const auto& d = compounds[id].data[data_id];
+    return d.melt_ref();
+}
+
+//----------------------------------------------------------------------------//
+/*!
  * \brief retrieve the melting temperature of the selected compound
  */
 double Default_Data_Store::melt(Id id, Id data_id) const
@@ -440,6 +518,26 @@ double Default_Data_Store::boil(Id id, Id data_id) const
 {
     const auto& d = compounds[id].data[data_id];
     return d.boil();
+}
+
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the uncertainty in boiling temperature of the selected compound
+ */
+double Default_Data_Store::boil_unc(Id id, Id data_id) const
+{
+    const auto& d = compounds[id].data[data_id];
+    return d.boil_unc();
+}
+
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the boiling temperature reference of the selected compound
+ */
+std::string Default_Data_Store::boil_ref(Id id, Id data_id) const
+{
+    const auto& d = compounds[id].data[data_id];
+    return d.boil_ref();
 }
 
 //----------------------------------------------------------------------------//
@@ -501,5 +599,110 @@ Default_Data_Store::Id Default_Data_Store::names_to_id(Vec_Name in_names) const
         if (in_names == names(i)) return i;
     }
     return std::numeric_limits<std::size_t>::max();
+}
+
+Default_Data_Store::Data& Default_Data_Store::getDataReference(std::string names, std::string fracs)
+{
+  // Retrieve the chemical symbols from the salt description
+  auto symbols = utils::split("-",names);
+
+  //mole fraction of each salt
+  std::vector<double> molfrac;
+  if( symbols.size() == 1)
+  {
+      //This is for pure salt and might benefit from some error checking
+      molfrac.push_back(1.0);
+  }
+  else
+  {
+      // Parse out the mole fractions
+      for(auto mp : utils::split("-",fracs))
+      {
+          molfrac.push_back(std::stod(mp));
+      }
+      //Sort symbols alphabetically arranged mole fractions as needed
+      auto sp = utils::getSortPermutation(symbols);
+      utils::applySortPermuation_inPlace(symbols,sp);
+      utils::applySortPermuation_inPlace(molfrac,sp);
+  }
+
+  // Attempt to find the salt in the existing data store
+  auto it = find_if(compounds.begin(),compounds.end(),
+          [&symbols](const Compound& c) {return c.names == symbols;});
+
+  // Make a new salt if one cannot be found
+  if (it == compounds.end())
+  {
+      // new salt
+      compounds.resize(compounds.size()+1);
+      it = std::prev(compounds.end());       //update iterator
+      it->names = symbols;
+  }
+
+  // Create a space for the new data of the salt
+  it->data.resize(it->data.size()+1);
+  auto& d = it->data.back();
+  d.m_mole_percents = molfrac;
+        
+  return d;
+}
+
+void Default_Data_Store::parse_data_token(std::string &token,double &val)
+{
+  if (all_of(token.begin(),token.end(),[] (char c){ return c == '-';}))
+  {
+    val = 0.0;
+  }else{
+    // sometimes data comes packaged with a less than or greater than
+    if (token[0] == '<') token.erase(0,1);
+    if (token[0] == '>') token.erase(0,1);
+    val = std::stod(token);
+  }
+}
+
+void Default_Data_Store::parse_range_token(std::string &token,std::pair<double,double> &val)
+{
+  double stt = 0.0;
+  double stp = 0.0;
+  if (!all_of(token.begin(),token.end(),[] (char c){ return c == '-';}))
+  {
+    std::vector<std::string> rng_str = utils::split("-",token);
+    stt = std::stod(rng_str[0]);
+    if (rng_str.size() == 2)
+    {
+      stp = std::stod(rng_str[1]);
+    }
+  }
+  val = std::make_pair(stt,stp);
+}
+
+void Default_Data_Store::parse_data_qualifier(std::string &token,DataQualifier &qualifier)
+{
+  qualifier = NONE;
+  // List of possible data qualifiers
+  // TODO make legend style implementation
+  //static const std::list<std::string> qualifiers_list() {return {"^","s","LG","*"};}
+  switch(*token.end())
+  {
+    case '^':
+      qualifier = PRESSURIZED;
+      token.pop_back();
+      break;
+    case 's':
+      qualifier = SUBLIMATES;
+      token.pop_back();
+      break;
+    case 'G':// this actually represents "LG"
+      qualifier = LIQUIDGAS;
+      token.pop_back();
+      token.pop_back();
+      break;
+    case '*':
+      qualifier = PRESSURIZED;
+      token.pop_back();
+      break;
+    default :
+      break;
+  }
 }
 } // namespace saline
