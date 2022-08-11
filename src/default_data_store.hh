@@ -204,7 +204,7 @@ class Default_Data_Store : public Data_Store
         // conductivity
         double k(double t) const  {return m_k_a + m_k_b * t;}
         double k_h(double h) const {return k(h_to_t(h));}
-        bool valid_k() const {return (k_a() != 0.0 && k_b() != 0.0); }
+        bool valid_k() const {return k_a() != 0.0; }
         double k_unc() const {return m_k_unc;}
         std::string k_ref() const {return m_k_ref;}
 
@@ -216,8 +216,7 @@ class Default_Data_Store : public Data_Store
         double cp(double t) const {double t2 = t * t;
                                   return m_cp_a + m_cp_b * t + m_cp_c * 1/(t2) + m_cp_d * t2;}
         double cp_h(double h) const {return cp(h_to_t(h));}
-        bool valid_cp() const
-        {return (cp_a() != 0.0 && cp_b() != 0.0 && cp_c() != 0.0 && cp_d() != 0.0); }
+        bool valid_cp() const {return cp_a() != 0.0; }
         double cp_unc() const {return m_cp_unc;}
         std::string cp_ref() const {return m_cp_ref;}
 
