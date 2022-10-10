@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 
 #include "thermophysical_properties.hh"
-#include <algorithm>
 #include "utils.hh"
 #include "saline_bug.hh"
 
@@ -243,13 +242,13 @@ bool Thermophysical_Properties::setComposition(const Vec_Name& names,
 
     m_impl = m_data->setView(sort_names,sort_percents);
     // Store values as appropriate
-    if ( !m_impl.null() )
+    if ( !m_impl.nullView() )
     {
       m_comp_names = names;
     } else {
       m_comp_names.clear();
     }
-    return !m_impl.null();
+    return !m_impl.nullView();
 }
 
 bool Thermophysical_Properties::setComposition(const std::string& names,

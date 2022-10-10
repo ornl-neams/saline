@@ -131,7 +131,7 @@ Data_Store::View R_Kister_Data_Store::setView( const Vec_Name& names, const Vec_
     Data_Store::View v;
 
     if(std::all_of(end_members.begin(),end_members.end(),[]
-          (Data_Store::View v){return !v.null();}))
+          (Data_Store::View v){return !v.nullView();}))
     {
       v = view(0);
     }

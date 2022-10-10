@@ -10,7 +10,9 @@
 
 #include <string>
 #include <vector>
-
+#if defined _WIN32 || defined __CYGWIN__
+#include <saline-cpp_export.h>
+#endif
 #include "data_store.hh"
 
 namespace saline
