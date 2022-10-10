@@ -133,7 +133,7 @@ TEST(default_data_store,load_testData_literal)
     Data_Store::View v = d.setView({"S1"},{1.0});
 
     // basic view info
-    ASSERT_TRUE(!v.null());
+    ASSERT_TRUE(!v.nullView());
     ASSERT_TRUE(v.d != nullptr);
     EXPECT_EQ(d.constituent_count(refID),v.constituent_count());
     EXPECT_EQ(refID,v.id);
@@ -223,7 +223,7 @@ TEST(default_data_store,load_testData_binary)
     Data_Store::View v = d.setView({"S1","S2"},{0.36,0.64});
 
     // basic view info
-    ASSERT_TRUE(!v.null());
+    ASSERT_TRUE(!v.nullView());
     ASSERT_TRUE(v.d != nullptr);
     EXPECT_EQ(d.constituent_count(refID),v.constituent_count());
     EXPECT_EQ(refID,v.id);

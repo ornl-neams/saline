@@ -1,4 +1,6 @@
 %module SalinePy
+%include std_string.i
+%include std_vector.i
 
 %{
 #define SWIG_FILE_INIT
@@ -8,8 +10,6 @@
 #include "thermophysical_properties.hh"
 %}
 
-%include std_string.i
-%include std_vector.i
 // Instantiate templates used by example
 namespace std
 {

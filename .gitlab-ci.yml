@@ -20,8 +20,6 @@ linux_gcc83_testing:
     - linux
     - gcc
   script:
-    - git clone https://github.com/lefebvre/TriBITS.git TriBITS
-    - ./TriBITS/tribits/ci_support/clone_extra_repos.py 
     - SRC_DIR=`pwd`
     - BLD_DIR="/tmp/$CI_PIPELINE_ID/$BLD_NAME"
     - mkdir -p $BLD_DIR

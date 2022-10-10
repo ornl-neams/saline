@@ -68,7 +68,7 @@ class Data_Store
         std::size_t constituent_count() const;
 
         // does view reference data
-        bool null() const;
+        bool nullView() const;
 
         double cp(double temperature, double pressure = 101.325) const;
         double cp_h(double enthalpy, double pressure = 101.325) const;

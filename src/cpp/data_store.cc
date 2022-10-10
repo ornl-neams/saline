@@ -49,7 +49,7 @@ std::size_t Data_Store::View::constituent_count() const
  * \brief checks if the view is null
  */
 // view is null if data is null and data id is valid
-bool Data_Store::View::null() const
+bool Data_Store::View::nullView() const
 {
     return d == nullptr || (d != nullptr && !d->valid(id));
 }
