@@ -90,6 +90,14 @@ double Data_Store::View::cp_unc() const
 }
 //----------------------------------------------------------------------------//
 /*!
+ * \brief retrieves the density experimental range for the view object
+ */
+std::pair<double,double> Data_Store::View::cp_rng() const
+{
+    return d->cp_rng(id,rec_id);
+}
+//----------------------------------------------------------------------------//
+/*!
  * \brief retrieves the heat capacity reference for the view object
  */
 std::string Data_Store::View::cp_ref() const
@@ -123,6 +131,14 @@ double Data_Store::View::mu_h(double enthalpy, double pressure) const
 bool Data_Store::View::valid_mu() const
 {
   return d->valid_mu(id, rec_id);
+}
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieves the density experimental range for the view object
+ */
+std::pair<double,double> Data_Store::View::mu_rng() const
+{
+    return d->mu_rng(id,rec_id);
 }
 //----------------------------------------------------------------------------//
 /*!
@@ -178,6 +194,14 @@ double Data_Store::View::k_unc() const
 }
 //----------------------------------------------------------------------------//
 /*!
+ * \brief retrieves the density experimental range for the view object
+ */
+std::pair<double,double> Data_Store::View::k_rng() const
+{
+    return d->k_rng(id,rec_id);
+}
+//----------------------------------------------------------------------------//
+/*!
  * \brief retrieves the thermal conductivity reference for the view object
  */
 std::string Data_Store::View::k_ref() const
@@ -211,6 +235,14 @@ double Data_Store::View::rho_h(double enthalpy, double pressure) const
 bool Data_Store::View::valid_rho() const
 {
   return d->valid_rho(id, rec_id);
+}
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieves the density experimental range for the view object
+ */
+std::pair<double,double> Data_Store::View::rho_rng() const
+{
+    return d->rho_rng(id,rec_id);
 }
 //----------------------------------------------------------------------------//
 /*!

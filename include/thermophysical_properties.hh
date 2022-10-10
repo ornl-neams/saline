@@ -56,16 +56,22 @@ class Thermophysical_Properties
     double cp_h(double enthalpy, double pressure = 101.325) const;
     double cp_kg(double temperature, double pressure = 101.325) const;
     double cp_h_kg(double enthalpy, double pressure = 101.325) const;
+    double cp_unc() const {return m_impl.cp_unc();}
+    std::pair<double,double> cp_rng() const {return m_impl.cp_rng();}
     bool valid_cp() const;
 
     // viscosity
     double mu(double temperature, double pressure = 101.325) const;
     double mu_h(double enthalpy, double pressure = 101.325) const;
+    double mu_unc() const {return m_impl.mu_unc();}
+    std::pair<double,double> mu_rng() const{return m_impl.mu_rng();}
     bool valid_mu() const;
 
     // conductivity
     double k(double temperature, double pressure = 101.325) const;
     double k_h(double enthalpy, double pressure = 101.325) const;
+    double k_unc() const {return m_impl.k_unc();}
+    std::pair<double,double> k_rng() const{return m_impl.k_rng();}
     bool valid_k() const;
 
     // density
@@ -73,6 +79,8 @@ class Thermophysical_Properties
     double rho_h(double enthalpy, double pressure = 101.325) const;
     double rho_kgm3(double temperature, double pressure = 101.325) const;
     double rho_h_kgm3(double enthalpy, double pressure = 101.325) const;
+    double rho_unc() const {return m_impl.rho_unc();}
+    std::pair<double,double> rho_rng() const{return m_impl.rho_rng();}
     bool valid_rho() const;
 
     // enthalpy
@@ -85,6 +93,10 @@ class Thermophysical_Properties
 
     double t_melt() const;
     double t_boil() const;
+
+    // The list accessible salt names
+    Vec_Name getSaltKeys() const;
+    std::vector<std::vector<double>> getSaltComps(std::string names) const;
 
     // list of species for which properties are being tracked
     const Vec_Name& species() const {return m_comp_names;}
@@ -105,7 +117,7 @@ class Thermophysical_Properties
                         int mole_percent_count);
 
     // interface for checking if salt is valid
-    bool isSaltValid(const Vec_Name& names);
+    bool isSaltValid(const Vec_Name& names) const;
     bool isSaltValid(const std::string& names, int name_count);
 
     // initialize the properties data
@@ -114,7 +126,7 @@ class Thermophysical_Properties
   private:
 
     // the most recent species used by the client (names in order of request)
-    std::vector<std::string> m_comp_names;
+    Vec_Name m_comp_names;
 
     // the data store backing this instance of material properties
     Data_Store* m_data;

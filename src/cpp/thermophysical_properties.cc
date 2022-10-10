@@ -12,6 +12,15 @@
 
 namespace saline
 {
+    //@{
+    //! Types
+    using Id       = std::size_t;
+    using Name     = std::string;
+    using Vec_Id   = std::vector<Id>;
+    using Vec_Name = std::vector<Name>;
+    using Vec_Mole = std::vector<double>;
+    //@}
+
 //---------------------------------------------------------------------------//
 // CONSTRUCTORS
 //---------------------------------------------------------------------------//
@@ -259,7 +268,7 @@ bool Thermophysical_Properties::setComposition(const std::string& names,
     auto comps = utils::split("-",names);
     if (comps.size() != mole_percent_count) return false;
 
-    std::vector<double> mp(mole_percents, mole_percents + mole_percent_count);
+    Vec_Mole mp(mole_percents, mole_percents + mole_percent_count);
     return setComposition(comps, mp);
 }
 
@@ -283,7 +292,7 @@ bool Thermophysical_Properties::initialize(Data_Store* d)
  * \brief checks that the requested salt is valid
  * \returns true, iff the salt named is included in the loaded data_store
  */
-bool Thermophysical_Properties::isSaltValid(const Vec_Name& names)
+bool Thermophysical_Properties::isSaltValid(const Vec_Name& names) const
 {
     auto sp = utils::getSortPermutation(names);
     auto sort_names = utils::applySortPermuation(names,sp);
@@ -297,6 +306,37 @@ bool Thermophysical_Properties::isSaltValid(const std::string& names, int name_c
   if(comps.size() != name_count) return false;
 
   return isSaltValid(comps);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ */
+Vec_Name Thermophysical_Properties::getSaltKeys() const
+{
+  Vec_Name keys;
+  if (m_data != nullptr && m_data->size() > 0)
+  {
+    keys = m_data->getSaltKeys();
+  }
+  return keys;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ */
+std::vector<std::vector<double>> Thermophysical_Properties::getSaltComps(std::string names) const
+{
+  std::vector<std::vector<double>> mp;
+  auto comps = utils::split("-",names);
+  if (m_data != nullptr && m_data->size() > 0)
+  {
+    if(isSaltValid(comps))
+    {
+      //This doesn't really have any meaning for synthetic data
+      mp = m_data->getSaltComps(comps);
+    }
+  }
+  return mp;
 }
 
 } // namespace saline
