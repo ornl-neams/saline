@@ -18,6 +18,15 @@
 
 namespace saline
 {
+    //@{
+    //! Types
+    using Id       = std::size_t;
+    using Name     = std::string;
+    using Vec_Id   = std::vector<Id>;
+    using Vec_Name = std::vector<Name>;
+    using Vec_Mole = std::vector<double>;
+    //@}
+
 //----------------------------------------------------------------------------//
 /*!
  * \brief constructs the Redlich-Kister data store extension
@@ -142,9 +151,9 @@ Data_Store::View R_Kister_Data_Store::setView( const Vec_Name& names, const Vec_
 /*!
  * \brief returns the names of the compound currently being investigated
  */
-std::vector<std::string> R_Kister_Data_Store::names(Id id) const
+Vec_Name R_Kister_Data_Store::names(Id id) const
 {
-    std::vector<std::string> comp_names;
+    Vec_Name comp_names;
     return comp_names;
 }
 
@@ -470,6 +479,38 @@ bool R_Kister_Data_Store::valid_cp(Id id, Id data_id) const
 }
 //----------------------------------------------------------------------------//
 /*!
+ * \brief retrieve the conductivity experimental range for the selected compound
+ */
+std::pair<double,double> R_Kister_Data_Store::rho_rng(Id id, Id data_id) const
+{
+       return {0.0,0.0};
+}
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the conductivity experimental range for the selected compound
+ */
+std::pair<double,double> R_Kister_Data_Store::k_rng(Id id, Id data_id) const
+{
+       return {0.0,0.0};
+}
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the viscosity experimental range for the selected compound
+ */
+std::pair<double,double> R_Kister_Data_Store::mu_rng(Id id, Id data_id) const
+{
+       return {0.0,0.0};
+}
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the heat capacity experimental range for the selected compound
+ */
+std::pair<double,double> R_Kister_Data_Store::cp_rng(Id id, Id data_id) const
+{
+       return {0.0,0.0};
+}
+//----------------------------------------------------------------------------//
+/*!
  * \brief Test if a salt is valid
  */
 bool R_Kister_Data_Store::valid(Id id) const
@@ -493,4 +534,18 @@ bool R_Kister_Data_Store::valid(Name& name) const
   return d.valid(d.name_to_id(name));
 }
 
+///TODO
+Vec_Name R_Kister_Data_Store::getSaltKeys() const
+{
+  //TODO
+  Vec_Name keys;
+  return keys;
+}
+
+std::vector<std::vector<double>> R_Kister_Data_Store::getSaltComps(Vec_Name names) const
+{
+  //TODO
+  std::vector<std::vector<double>> keys;
+  return keys;
+}
 } // namespace saline

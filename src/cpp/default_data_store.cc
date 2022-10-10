@@ -7,9 +7,19 @@
 #include <algorithm>
 #include <fstream>
 #include <sstream>
+#include <iomanip>
 
 namespace saline
 {
+    //@{
+    //! Types
+    using Id       = std::size_t;
+    using Name     = std::string;
+    using Vec_Id   = std::vector<Id>;
+    using Vec_Name = std::vector<Name>;
+    using Vec_Mole = std::vector<double>;
+    //@}
+
 //---------------------------------------------------------------------------//
 /*!
  * \brief constructs the default data store
@@ -120,7 +130,7 @@ void Default_Data_Store::load(std::istream& inFile)
             parse_data_token(tokens[19],d.m_mu_c);
         }
         //Applicability range
-        parse_range_token(tokens[20],d.m_rho_rng);
+        parse_range_token(tokens[20],d.m_mu_rng);
         //uncertainty
         parse_data_qualifier(tokens[21],d.m_mu_unc_qualifier);
         parse_data_token(tokens[21],d.m_mu_unc);
@@ -132,7 +142,7 @@ void Default_Data_Store::load(std::istream& inFile)
         parse_data_token(tokens[23],d.m_k_a);
         parse_data_token(tokens[24],d.m_k_b);
         //Applicability range
-        parse_range_token(tokens[25],d.m_rho_rng);
+        parse_range_token(tokens[25],d.m_k_rng);
         //uncertainty
         parse_data_qualifier(tokens[26],d.m_k_unc_qualifier);
         parse_data_token(tokens[26],d.m_k_unc);
@@ -334,6 +344,16 @@ double Default_Data_Store::cp_h(Id id, Id data_id, double enthalpy, double p) co
 
 //----------------------------------------------------------------------------//
 /*!
+ * \brief retrieve the heat capacity experimental range for the selected compound
+ */
+std::pair<double,double> Default_Data_Store::cp_rng(Id id, Id data_id) const
+{
+       const auto& d = compounds[id].data[data_id];
+       // k(t) = a + b * t
+       return d.m_cp_rng;
+}
+//----------------------------------------------------------------------------//
+/*!
  * \brief retrieve the heat capacity uncertainty for the selected compound
  */
 double Default_Data_Store::cp_unc(Id id, Id data_id) const
@@ -367,6 +387,16 @@ double Default_Data_Store::mu_h(Id id, Id data_id, double enthalpy, double p) co
     return d.mu_h(enthalpy);
 }
 
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the viscosity experimental range for the selected compound
+ */
+std::pair<double,double> Default_Data_Store::mu_rng(Id id, Id data_id) const
+{
+       const auto& d = compounds[id].data[data_id];
+       // k(t) = a + b * t
+       return d.m_mu_rng;
+}
 //----------------------------------------------------------------------------//
 /*!
  * \brief retrieve the viscosity uncertainty for the selected compound
@@ -405,6 +435,16 @@ double Default_Data_Store::k_h(Id id, Id data_id, double enthalpy, double p) con
 
 //----------------------------------------------------------------------------//
 /*!
+ * \brief retrieve the conductivity experimental range for the selected compound
+ */
+std::pair<double,double> Default_Data_Store::k_rng(Id id, Id data_id) const
+{
+       const auto& d = compounds[id].data[data_id];
+       // k(t) = a + b * t
+       return d.m_k_rng;
+}
+//----------------------------------------------------------------------------//
+/*!
  * \brief retrieve the conductivity uncertainty for the selected compound
  */
 double Default_Data_Store::k_unc(Id id, Id data_id) const
@@ -440,6 +480,16 @@ double Default_Data_Store::rho_h(Id id, Id data_id, double enthalpy, double p) c
     return d.rho_h(enthalpy);
 }
 
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the conductivity experimental range for the selected compound
+ */
+std::pair<double,double> Default_Data_Store::rho_rng(Id id, Id data_id) const
+{
+       const auto& d = compounds[id].data[data_id];
+       // k(t) = a + b * t
+       return d.m_rho_rng;
+}
 //----------------------------------------------------------------------------//
 /*!
  * \brief retrieve the density uncertainty for the selected compound
@@ -607,7 +657,7 @@ Default_Data_Store::Data& Default_Data_Store::getDataReference(std::string names
   auto symbols = utils::split("-",names);
 
   //mole fraction of each salt
-  std::vector<double> molfrac;
+  Vec_Mole molfrac;
   if( symbols.size() == 1)
   {
       //This is for pure salt and might benefit from some error checking
@@ -666,7 +716,7 @@ void Default_Data_Store::parse_range_token(std::string &token,std::pair<double,d
   double stp = 0.0;
   if (!all_of(token.begin(),token.end(),[] (char c){ return c == '-';}))
   {
-    std::vector<std::string> rng_str = utils::split("-",token);
+    Vec_Name rng_str = utils::split("-",token);
     stt = std::stod(rng_str[0]);
     if (rng_str.size() == 2)
     {
@@ -704,5 +754,37 @@ void Default_Data_Store::parse_data_qualifier(std::string &token,DataQualifier &
     default :
       break;
   }
+}
+
+Vec_Name Default_Data_Store::getSaltKeys() const
+{
+  Vec_Name keys;
+  for(auto comp:compounds)
+  {
+    std::string key = comp.names[0];
+    for(int i=1; i<comp.names.size(); ++i)
+    {
+      key.append("-");
+      key.append(comp.names[i]);
+    }
+    keys.push_back(key);
+  }
+  return keys;
+}
+
+std::vector<std::vector<double>> Default_Data_Store::getSaltComps(Vec_Name names) const
+{
+  size_t id = names_to_id(names);
+  std::vector<std::vector<double>> comps;
+  if(valid(id))
+  {
+    const auto& d = compounds[id];
+    for(int i=0; i<d.data.size(); ++i)
+    {
+      Vec_Mole mp = d.data[i].mole_percents();
+      comps.push_back(mp);
+    }
+  }
+  return comps;
 }
 } // namespace saline

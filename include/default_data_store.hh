@@ -82,6 +82,7 @@ class Default_Data_Store : public Data_Store
     double cp_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const;
     bool valid_cp(Id id, Id data_id) const;
     double cp_unc(Id id, Id data_id) const;
+    std::pair<double,double> cp_rng(Id id, Id data_id) const;
     std::string cp_ref(Id id, Id data_id) const;
 
     // viscosity
@@ -89,6 +90,7 @@ class Default_Data_Store : public Data_Store
     double mu_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const;
     bool valid_mu(Id id, Id data_id) const;
     double mu_unc(Id id, Id data_id) const;
+    std::pair<double,double> mu_rng(Id id, Id data_id) const;
     std::string mu_ref(Id id, Id data_id) const;
 
     // conductivity
@@ -96,6 +98,7 @@ class Default_Data_Store : public Data_Store
     double k_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const;
     bool valid_k(Id id, Id data_id) const;
     double k_unc(Id id, Id data_id) const;
+    std::pair<double,double> k_rng(Id id, Id data_id) const;
     std::string k_ref(Id id, Id data_id) const;
 
     // density
@@ -103,6 +106,7 @@ class Default_Data_Store : public Data_Store
     double rho_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const;
     bool valid_rho(Id id, Id data_id) const;
     double rho_unc(Id id, Id data_id) const;
+    std::pair<double,double> rho_rng(Id id, Id data_id) const;
     std::string rho_ref(Id id, Id data_id) const;
 
     // enthalpy
@@ -148,8 +152,11 @@ class Default_Data_Store : public Data_Store
     //Obtain the nearest neighboring composition
     Id nearest(Id id, const Vec_Mole& mole_percent) const;
 
-  private:
+    // The list accessible salt names
+    Vec_Name getSaltKeys() const;
+    std::vector<std::vector<double>> getSaltComps(Vec_Name names) const;
 
+  private:
 
     class Data
     {

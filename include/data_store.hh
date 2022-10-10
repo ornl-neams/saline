@@ -74,6 +74,7 @@ class Data_Store
         double cp_h(double enthalpy, double pressure = 101.325) const;
         bool valid_cp() const;
         double cp_unc() const;
+        std::pair<double,double> cp_rng() const;
         std::string cp_ref() const;
 
         // viscosity
@@ -81,6 +82,7 @@ class Data_Store
         double mu_h(double enthalpy, double pressure = 101.325) const;
         bool valid_mu() const;
         double mu_unc() const;
+        std::pair<double,double> mu_rng() const;
         std::string mu_ref() const;
 
         // conductivity
@@ -88,6 +90,7 @@ class Data_Store
         double k_h(double enthalpy, double pressure = 101.325) const;
         bool valid_k() const;
         double k_unc() const;
+        std::pair<double,double> k_rng() const;
         std::string k_ref() const;
 
         // density
@@ -95,6 +98,7 @@ class Data_Store
         double rho_h(double enthalpy, double pressure = 101.325) const;
         bool valid_rho() const;
         double rho_unc() const;
+        std::pair<double,double> rho_rng() const;
         std::string rho_ref() const;
 
         // enthalpy given temperature
@@ -130,11 +134,16 @@ class Data_Store
     // the constituents names in a given compound
     virtual Vec_Name names(Id) const = 0;
 
+    // The list accessible salt names
+    virtual Vec_Name getSaltKeys() const = 0;
+    virtual std::vector<std::vector<double>> getSaltComps(Vec_Name names) const = 0;
+
     // specific heat
     virtual double cp(Id id, Id data_id, double temperature, double pressure = 101.325) const = 0;
     virtual double cp_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const = 0;
     virtual bool valid_cp(Id id, Id data_id) const = 0;
     virtual double cp_unc(Id id, Id data_id) const = 0;
+    virtual std::pair<double,double> cp_rng(Id id, Id data_id) const = 0;
     virtual std::string cp_ref(Id id, Id data_id) const = 0;
 
     // viscosity
@@ -142,6 +151,7 @@ class Data_Store
     virtual double mu_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const = 0;
     virtual bool valid_mu(Id id, Id data_id) const = 0;
     virtual double mu_unc(Id id, Id data_id) const = 0;
+    virtual std::pair<double,double> mu_rng(Id id, Id data_id) const = 0;
     virtual std::string mu_ref(Id id, Id data_id) const = 0;
 
     // conductivity
@@ -149,6 +159,7 @@ class Data_Store
     virtual double k_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const = 0;
     virtual bool valid_k(Id id, Id data_id) const = 0;
     virtual double k_unc(Id id, Id data_id) const = 0;
+    virtual std::pair<double,double> k_rng(Id id, Id data_id) const = 0;
     virtual std::string k_ref(Id id, Id data_id) const = 0;
 
     // density
@@ -156,6 +167,7 @@ class Data_Store
     virtual double rho_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const = 0;
     virtual bool valid_rho(Id id, Id data_id) const = 0;
     virtual double rho_unc(Id id, Id data_id) const = 0;
+    virtual std::pair<double,double> rho_rng(Id id, Id data_id) const = 0;
     virtual std::string rho_ref(Id id, Id data_id) const = 0;
 
     // enthalpy

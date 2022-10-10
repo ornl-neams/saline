@@ -1,6 +1,7 @@
 %module SalinePy
 %include std_string.i
 %include std_vector.i
+%include std_pair.i
 
 %{
 #define SWIG_FILE_INIT
@@ -15,7 +16,10 @@ namespace std
 {
     %template(IntVector) vector<int>;
     %template(DoubleVector) vector<double>;
+    %template(DoublePair) pair<double,double>;
     %template(StringVector) vector<string>;
+    %template(StringVectorVector) vector<vector<string> >;
+    %template(DoubleVectorVector) vector<vector<double> >;
 }
 %include data_store.hh
 %include default_data_store.hh
