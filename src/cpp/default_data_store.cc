@@ -702,6 +702,10 @@ void Default_Data_Store::parse_data_token(std::string &token,double &val)
   if (all_of(token.begin(),token.end(),[] (char c){ return c == '-';}))
   {
     val = 0.0;
+  }
+  else if(token == "synthetic")
+  {
+    val = 0.0;
   }else{
     // sometimes data comes packaged with a less than or greater than
     if (token[0] == '<') token.erase(0,1);
