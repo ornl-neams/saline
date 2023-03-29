@@ -3,7 +3,7 @@
 
 namespace saline
 {
-static const char* tst_data_rk = R"ORNL_format(
+static const char* tst_data = R"ORNL_format(
 //Pure Salts
 //System      , id , Mol Mass , Mol Frac             , Melt(K) , Var(%) , Reference   , Boil(K) , Var(%) , Reference      , rho_a     , rho_b     , range(K)      , Var(%) , Reference     , mu1_a     , mu2_b     , mu2_a      , mu2_b      , mu2_c     , range(K)      , Var(%) , Reference    , k_a        , k_b        , range(K)     , Var(%) , Reference   , cp_a      , cp_b       , cp_c       , cp_d      , Var(%) , Reference
 LiF           , 1  , 25.9390  , 1.0                  , 1121.20 , 1.00   , Douglas1954 , 1943.00 , 0.00   , Ruff1922       , 2.371E+00 , 5.000E-04 , 1123.6-1367.5 , 1.00   , Hill1967      , 1.149E-01 , 2.699E+04 , 0.000E+00  , 0.000E+00  , 0.000E+00 , 1133-1772     , 1.00   , Abe1981      , 1.882E+00  , -3.990E-04 , 1118.5-1900  , 20.00  , Gheribi2014 , 6.489E+01 , 0.000E+00  , 0.000E+00  , 0.000E+00 , 1.50   , Douglas1954
@@ -18,7 +18,9 @@ LiF-BeF2-ThF4 , 9  , 47.9244  , 0.7011-0.2388-0.0601 , 828.30  , 0.00   , Cantor
 LiF-BeF2-ThF4 , 10 , 63.5179  , 0.7006-0.1796-0.1198 , 806.40  , 0.00   , Cantor1973  , 0.0     , 0.0    , ----           , 4.044E+00 , 8.064E-04 , 806.4-1014.4  , 1.00   , Cantor1973    , 0.000E+00 , 0.000E+00 , 0.000E+00  , 0.000E+00  , 0.000E+00 , 0.0-0.0       , 0.0    , ----         , 0.000E+00  , 0.000E+00  , 0.0-0.0      , 0.0    , ----        , 0.000E+00 , 0.000E+00  , 0.000E+00  , 0.000E+00 , 0.0    , ----
 LiF-BeF2-ThF4 , 11 , 71.4958  , 0.6998-0.1499-0.1503 , 816.60  , 0.00   , Cantor1973  , 0.0     , 0.0    , ----           , 4.441E+00 , 9.526E-04 , 816.6-1022.7  , 1.00   , Cantor1973    , 0.000E+00 , 0.000E+00 , 0.000E+00  , 0.000E+00  , 0.000E+00 , 0.0-0.0       , 0.0    , ----         , 0.000E+00  , 0.000E+00  , 0.0-0.0      , 0.0    , ----        , 0.000E+00 , 0.000E+00  , 0.000E+00  , 0.000E+00 , 0.0    , ----
 LiF-BeF2-ThF4 , 12 , 61.9697  , 0.727-0.157-0.116    , 826.20  , 0.00   , Cantor1973  , 0.0     , 0.0    , ----           , 0.0       , 0.0       , 0.0-0.0       , 0.0    , ----          , 1.094E-01 , 3.402E+04 , 0.000E+00  , 0.000E+00  , 0.000E+00 , 826-946       , 15.00  , Cantor1973   , 0.000E+00  , 0.000E+00  , 0.0-0.0      , 0.0    , ----        , 0.000E+00 , 0.000E+00  , 0.000E+00  , 0.000E+00 , 0.0    , ----
+)ORNL_format";
 
+static const char* tst_data_rk = R"ORNL_format(
 //RK parameters
 //C 1 , C 2     , A1            , B1            , A2            , B2            , A3           , B3           , T min        , T max        , Reference
 KF    , LiF     , -5.383100E-03 , -4.142700E-05 , +0.000000E+00 , +0.000000E+00 , 0.000000E+00 , 0.000000E+00 , 1.006150E+03 , 1.314150E+03 , 'Taniuchi, K.; Kanai, T. Density of Binary Molten Salts of Lithium Fluoride-Potassium Fluoride and Lithium Fluoride-Calcium Fluoride Systems. Denki Kagaku oyobi Kogyo Butsuri Kagaku 1977, 45 (6), 401-404. https://doi.org/10.5796/kogyobutsurikagaku.45.401'

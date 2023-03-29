@@ -100,7 +100,7 @@ contains
     
     ! Load the default property set 
     call rk_data%initialize()
-    call rk_data%load("tstData.csv")
+    call rk_data%load("tst_RKData","tstData.csv")
     
     ! Initialize properties instance
     call tp%initialize()
@@ -122,7 +122,8 @@ contains
       stop 1
     endif
     
-    if ( tp%rho(850.0_8, 101.0_8) /= 2.0406762757251267_8 ) then
+    if ( tp%rho(850.0_8, 101.0_8) /= 2.0602950288688766_8 ) then
+      write(*,*) tp%rho(850.0_8,101.0_8)
       print *,"Failed to equate values!"
       stop 2
     endif
@@ -167,20 +168,21 @@ contains
     write(500,*) "LiF-BeF2-ThF4 , 10 , 63.5179  , 0.7006-0.1796-0.1198 , 806.40  , 0.00   , Cantor1973  , 0.0     , 0.0    , ----           , 4.044E+00 , 8.064E-04 , 806.4-1014.4  , 1.00   , Cantor1973    , 0.000E+00 , 0.000E+00 , 0.000E+00  , 0.000E+00  , 0.000E+00 , 0.0-0.0       , 0.0    , ----         , 0.000E+00  , 0.000E+00  , 0.0-0.0      , 0.0    , ----        , 0.000E+00 , 0.000E+00  , 0.000E+00  , 0.000E+00 , 0.0    , ----"
     write(500,*) "LiF-BeF2-ThF4 , 11 , 71.4958  , 0.6998-0.1499-0.1503 , 816.60  , 0.00   , Cantor1973  , 0.0     , 0.0    , ----           , 4.441E+00 , 9.526E-04 , 816.6-1022.7  , 1.00   , Cantor1973    , 0.000E+00 , 0.000E+00 , 0.000E+00  , 0.000E+00  , 0.000E+00 , 0.0-0.0       , 0.0    , ----         , 0.000E+00  , 0.000E+00  , 0.0-0.0      , 0.0    , ----        , 0.000E+00 , 0.000E+00  , 0.000E+00  , 0.000E+00 , 0.0    , ----"
     write(500,*) "LiF-BeF2-ThF4 , 12 , 61.9697  , 0.727-0.157-0.116    , 826.20  , 0.00   , Cantor1973  , 0.0     , 0.0    , ----           , 0.0       , 0.0       , 0.0-0.0       , 0.0    , ----          , 1.094E-01 , 3.402E+04 , 0.000E+00  , 0.000E+00  , 0.000E+00 , 826-946       , 15.00  , Cantor1973   , 0.000E+00  , 0.000E+00  , 0.0-0.0      , 0.0    , ----        , 0.000E+00 , 0.000E+00  , 0.000E+00  , 0.000E+00 , 0.0    , ----"
-    write(500,*) 
-    write(500,*) "//RK parameters"
-    write(500,*) "//C 1 , C 2     , A1            , B1            , A2            , B2            , A3           , B3           , T min        , T max        , Reference"
-    write(500,*) "KF    , LiF     , -5.383100E-03 , -4.142700E-05 , +0.000000E+00 , +0.000000E+00 , 0.000000E+00 , 0.000000E+00 , 1.006150E+03 , 1.314150E+03 , 'Taniuchi, K.; Kanai, T. Density of Binary Molten Salts of Lithium Fluoride-Potassium Fluoride and Lithium Fluoride-Calcium Fluoride Systems. Denki Kagaku oyobi Kogyo Butsuri Kagaku 1977, 45 (6), 401-404. https://doi.org/10.5796/kogyobutsurikagaku.45.401'"
-    write(500,*) "KF    , NaF     , -3.747500E-01 , +2.354000E-04 , +0.000000E+00 , +0.000000E+00 , 0.000000E+00 , 0.000000E+00 , 1.050000E+03 , 1.350000E+03 , 'Porter, B., and Meaker, R. E., United States Department of the Interior, Report of Investigations 6838, 1966.'"
-    write(500,*) "LiF   , NaF     , -6.998400E-02 , +1.073900E-05 , +0.000000E+00 , +0.000000E+00 , 0.000000E+00 , 0.000000E+00 , 1.130000E+03 , 1.320000E+03 , 'Matiasovsky, K., Private communication, 1968.'"
-    write(500,*) "NaF   , BeF2    , +7.850000E-01 , -7.850000E-04 , -1.600000E+00 , +1.540000E-04 , 0.000000E+00 , 0.000000E+00 , 8.730000E+02 , 1.073000E+03 , 'Blanke, B. C., Bousquet, L. V., Jones, L. V., Murphy, E. L., & Vallee, R. E. (1958). Density of fused mixtures of sodium fluoride, beryllium fluoride, and uranium fluoride. Miamisburg, Ohio: Mound Laboratory, Monsanto Chemical Company, U.S. Atomic Energy Commission.'  "
-    write(500,*) "LiF   , BeF2    , +8.930000E-01 , -8.960000E-04 , +3.780000E-01 , -1.160000E-04 , 0.000000E+00 , 0.000000E+00 , 8.000000E+02 , 1.130000E+03 , 'Cantor, S., Ward, W. T., & Moynihan, C. T. (1969). Viscosity and Density in Molten BeF 2 – LiF Solutions. J Chem. Phys., 50(7), 2874-2879.   Cantor, S. (1970). Density of Molten Fuorides of Reactor Interest. In M. W. Rosenthal, R. B. Brigss, & P. R. Kasten, U.S.A.E.C Semiannual Progress Report ORNL-4449 (pp. 145-146). Oak Ridge, TN: Oak Ridge National Laboratory.' "
-    write(500,*) "ThF4  , KF      , -4.757300E-01 , -4.099400E-06 , +1.626800E+00 , -4.418000E-04 , 0.000000E+00 , 0.000000E+00 , 1.046000E+03 , 1.325000E+03 , 'Desyatnik, V. N.; Klimenkov, A. A.; Kurbatov, N. N.; Nechaev, A. I.; Raspopin, S. P.; Chervinskii, Y. F. Density and Kinematic Viscosity of NaF-ThF4 and KF-ThF4 Melts. Sov. At. Energy 1981, 51 (6), 807-810. https://doi.org/10.1007/BF01121687.'"
-    write(500,*) "ThF4  , LiF     , +9.640500E-01 , -8.240700E-04 , +0.000000E+00 , +0.000000E+00 , 0.000000E+00 , 0.000000E+00 , 1.016650E+03 , 1.508150E+03 , 'Hill D. G., Cantor S., Ward W. T. Molar volumes in the LiF-ThF4 system. J. Inorg. Nucl. Chem. 1967, 29, 241-243.'"
-    write(500,*) "ThF4  , NaF     , +8.059200E-01 , -9.775800E-04 , +2.479900E+00 , -1.254100E-03 , 0.000000E+00 , 0.000000E+00 , 1.003000E+03 , 1.337000E+03 , 'Desyatnik, V. N.; Klimenkov, A. A.; Kurbatov, N. N.; Nechaev, A. I.; Raspopin, S. P.; Chervinskii, Y. F. Density and Kinematic Viscosity of NaF-ThF4 and KF-ThF4 Melts. Sov. At. Energy 1981, 51 (6), 807810. https://doi.org/10.1007/BF01121687.'"
-    write(500,*) "LiF   , ZrF4    , -1.282600E+00 , -4.689000E-04 , +7.520000E-01 , +2.322500E-04 , 0.000000E+00 , 0.000000E+00 , 9.430000E+02 , 1.280000E+03 , 'Katyshev, S. F.; Artemov, V. V; Desyatnik, V. N. Density and Surface Tension of Melts of Zirconium and Hafnium Fluorides with Lithium Fluoride. Sov. At. Energy 1987, 63 (6), 929-930. https://doi.org/10.1007/BF01126108.'"
-    write(500,*) "ZrF4  , NaF     , -1.186600E+00 , +2.107500E-04 , +2.082200E-01 , -4.726400E-04 , 0.000000E+00 , 0.000000E+00 , 9.530000E+02 , 1.280000E+03 , 'Artemov, V. V.; Katyshev, S. F.; Desyatnik, V. N. Density and Surface Tension of Sodium Halide Melts with Zirconium and Hafnium Tetrafluorides. Zhurnal Fiz. Khimii 1990, 64 (4), 1113-1115.'"
     CLOSE(500)
+    OPEN(UNIT=600,FILE="tstRKData.csv")
+    write(600,*) "//RK parameters"
+    write(600,*) "//C 1 , C 2     , A1            , B1            , A2            , B2            , A3           , B3           , T min        , T max        , Reference"
+    write(600,*) "KF    , LiF     , -5.383100E-03 , -4.142700E-05 , +0.000000E+00 , +0.000000E+00 , 0.000000E+00 , 0.000000E+00 , 1.006150E+03 , 1.314150E+03 , 'Taniuchi, K.; Kanai, T. Density of Binary Molten Salts of Lithium Fluoride-Potassium Fluoride and Lithium Fluoride-Calcium Fluoride Systems. Denki Kagaku oyobi Kogyo Butsuri Kagaku 1977, 45 (6), 401-404. https://doi.org/10.5796/kogyobutsurikagaku.45.401'"
+    write(600,*) "KF    , NaF     , -3.747500E-01 , +2.354000E-04 , +0.000000E+00 , +0.000000E+00 , 0.000000E+00 , 0.000000E+00 , 1.050000E+03 , 1.350000E+03 , 'Porter, B., and Meaker, R. E., United States Department of the Interior, Report of Investigations 6838, 1966.'"
+    write(600,*) "LiF   , NaF     , -6.998400E-02 , +1.073900E-05 , +0.000000E+00 , +0.000000E+00 , 0.000000E+00 , 0.000000E+00 , 1.130000E+03 , 1.320000E+03 , 'Matiasovsky, K., Private communication, 1968.'"
+    write(600,*) "NaF   , BeF2    , +7.850000E-01 , -7.850000E-04 , -1.600000E+00 , +1.540000E-04 , 0.000000E+00 , 0.000000E+00 , 8.730000E+02 , 1.073000E+03 , 'Blanke, B. C., Bousquet, L. V., Jones, L. V., Murphy, E. L., & Vallee, R. E. (1958). Density of fused mixtures of sodium fluoride, beryllium fluoride, and uranium fluoride. Miamisburg, Ohio: Mound Laboratory, Monsanto Chemical Company, U.S. Atomic Energy Commission.'  "
+    write(600,*) "LiF   , BeF2    , +8.930000E-01 , -8.960000E-04 , +3.780000E-01 , -1.160000E-04 , 0.000000E+00 , 0.000000E+00 , 8.000000E+02 , 1.130000E+03 , 'Cantor, S., Ward, W. T., & Moynihan, C. T. (1969). Viscosity and Density in Molten BeF 2 – LiF Solutions. J Chem. Phys., 50(7), 2874-2879.   Cantor, S. (1970). Density of Molten Fuorides of Reactor Interest. In M. W. Rosenthal, R. B. Brigss, & P. R. Kasten, U.S.A.E.C Semiannual Progress Report ORNL-4449 (pp. 145-146). Oak Ridge, TN: Oak Ridge National Laboratory.' "
+    write(600,*) "ThF4  , KF      , -4.757300E-01 , -4.099400E-06 , +1.626800E+00 , -4.418000E-04 , 0.000000E+00 , 0.000000E+00 , 1.046000E+03 , 1.325000E+03 , 'Desyatnik, V. N.; Klimenkov, A. A.; Kurbatov, N. N.; Nechaev, A. I.; Raspopin, S. P.; Chervinskii, Y. F. Density and Kinematic Viscosity of NaF-ThF4 and KF-ThF4 Melts. Sov. At. Energy 1981, 51 (6), 807-810. https://doi.org/10.1007/BF01121687.'"
+    write(600,*) "ThF4  , LiF     , +9.640500E-01 , -8.240700E-04 , +0.000000E+00 , +0.000000E+00 , 0.000000E+00 , 0.000000E+00 , 1.016650E+03 , 1.508150E+03 , 'Hill D. G., Cantor S., Ward W. T. Molar volumes in the LiF-ThF4 system. J. Inorg. Nucl. Chem. 1967, 29, 241-243.'"
+    write(600,*) "ThF4  , NaF     , +8.059200E-01 , -9.775800E-04 , +2.479900E+00 , -1.254100E-03 , 0.000000E+00 , 0.000000E+00 , 1.003000E+03 , 1.337000E+03 , 'Desyatnik, V. N.; Klimenkov, A. A.; Kurbatov, N. N.; Nechaev, A. I.; Raspopin, S. P.; Chervinskii, Y. F. Density and Kinematic Viscosity of NaF-ThF4 and KF-ThF4 Melts. Sov. At. Energy 1981, 51 (6), 807810. https://doi.org/10.1007/BF01121687.'"
+    write(600,*) "LiF   , ZrF4    , -1.282600E+00 , -4.689000E-04 , +7.520000E-01 , +2.322500E-04 , 0.000000E+00 , 0.000000E+00 , 9.430000E+02 , 1.280000E+03 , 'Katyshev, S. F.; Artemov, V. V; Desyatnik, V. N. Density and Surface Tension of Melts of Zirconium and Hafnium Fluorides with Lithium Fluoride. Sov. At. Energy 1987, 63 (6), 929-930. https://doi.org/10.1007/BF01126108.'"
+    write(600,*) "ZrF4  , NaF     , -1.186600E+00 , +2.107500E-04 , +2.082200E-01 , -4.726400E-04 , 0.000000E+00 , 0.000000E+00 , 9.530000E+02 , 1.280000E+03 , 'Artemov, V. V.; Katyshev, S. F.; Desyatnik, V. N. Density and Surface Tension of Sodium Halide Melts with Zirconium and Hafnium Tetrafluorides. Zhurnal Fiz. Khimii 1990, 64 (4), 1113-1115.'"
+    CLOSE(600)
   end subroutine gen_test_data
   !
 end program tstThermophysicalProperties
