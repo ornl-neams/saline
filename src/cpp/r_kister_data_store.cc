@@ -38,23 +38,29 @@ R_Kister_Data_Store::R_Kister_Data_Store()
 /*!
  * \brief helper function to load data into data store
  */
-void R_Kister_Data_Store::load(const std::string& fPath)
+void R_Kister_Data_Store::load(const std::string& rkfPath, const std::string& dfPath)
 {
-    std::ifstream inFile(fPath.data());
-    load(inFile);
+    //Set up a default data store
+    d = Default_Data_Store();
+    std::ifstream inFile(dfPath.data());
+
+    std::ifstream rkinFile(rkfPath.data());
+    load(rkinFile,inFile);
+
 }
 //---------------------------------------------------------------------------//
 /*!
  * \brief helper function to load data Redlich-Kister parameters into data store
  */
-void R_Kister_Data_Store::load(std::istream& inFile)
+void R_Kister_Data_Store::load(std::istream& rkinFile,std::istream& inFile)
 {
-    //Set up a default data store TODO this may not always be desirable
-    d = Default_Data_Store();
+    // set up default store
     d.load(inFile);
-
     // Set up space for the mixing models
-    int num_binaries = d.size();
+    Vec_Name keys = d.getSaltKeys();
+    int num_binaries = std::count_if(keys.begin(),keys.end(),[](std::string str)
+        { return str.find("-") == str.npos;});
+
     m_rho.resize(num_binaries,std::vector<R_Kister_Data_Store::RK_Polynomial>(num_binaries));
 
     ////TODO no input for these, implemented only for downstream process
@@ -64,17 +70,17 @@ void R_Kister_Data_Store::load(std::istream& inFile)
 
     // Jaunt through lines until we find the Redlich-Kister parameters
     std::string line;
-    while( std::getline(inFile,line) )
+    while( std::getline(rkinFile,line) )
     {
         if( line.find("RK parameters") != std::string::npos ) break;
     }
     // Its possible we could have a bum input. That should break here.
 
     // this is  a comment line
-    std::getline(inFile,line);
+    std::getline(rkinFile,line);
 
     // Read the input data. TODO currently only uses density
-    while( std::getline(inFile,line))
+    while( std::getline(rkinFile,line))
     {
         auto tokens = utils::split(",",line);
         for(size_t i=0; i<tokens.size(); ++i)
@@ -125,7 +131,28 @@ void R_Kister_Data_Store::load(std::istream& inFile)
  */
 Data_Store::View R_Kister_Data_Store::setView( const Vec_Name& names, const Vec_Mole& mole_percents)
 {
+    // Clear the old end members
     end_members.clear();
+
+    // Set up a view or returning useful data
+    Data_Store::View v;
+
+    // Look for the data in the default data first
+    Vec_Name tempNames = names;
+    if(d.valid(tempNames))
+    {
+      // See if the data is close enough to what is requested
+      std::vector<std::pair<double,size_t>> test = utils::nearest_neighbor(
+          mole_percents,d.getSaltComps(names));
+      if(test[0].first < 0.01)
+      {
+        end_members.resize(1);
+        endMem_moleFracs = {1.0};
+      }
+      end_members[0] = d.setView(names,mole_percents);
+      v = end_members[0];
+    }
+
     end_members.resize(names.size());
     endMem_moleFracs = mole_percents;
 
@@ -135,9 +162,6 @@ Data_Store::View R_Kister_Data_Store::setView( const Vec_Name& names, const Vec_
       auto iname = names[i];
         if (valid(iname)) end_members[i] = (d.setView({names[i]},{1.0}));
     }
-
-    // To adapt the interfaces a "minimal" view is returned to the client
-    Data_Store::View v;
 
     if(std::all_of(end_members.begin(),end_members.end(),[]
           (Data_Store::View v){return !v.nullView();}))

@@ -276,7 +276,7 @@ TEST(default_data_store,load_testData_binary)
 // Test a compound from default data
 TEST(default_data, FLiNaK_465_115_042)
 {
-    std::istringstream in(tst_data_rk);
+    std::istringstream in(tst_data);
     Default_Data_Store d; d.load(in);
     Thermophysical_Properties tp;
     ASSERT_TRUE(tp.initialize(&d));

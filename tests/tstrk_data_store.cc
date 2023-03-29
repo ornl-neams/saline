@@ -15,7 +15,7 @@ TEST(rk_data_store,load)
 {
     // Obtain the base data
     Default_Data_Store ds;
-    std::istringstream in(tst_data_rk);
+    std::istringstream in(tst_data);
     ds.load(in);
     Thermophysical_Properties tp_dflt;
     ASSERT_TRUE(tp_dflt.initialize(&ds));
@@ -24,8 +24,9 @@ TEST(rk_data_store,load)
     // Set up the interpolation object
     std::vector<std::string> right_names = {"LiF","NaF","KF"};
     std::vector<std::string> wrong_names = {"LiF2","NaF","KF"};
+    std::istringstream ind(tst_data);
     std::istringstream in_rk(tst_data_rk);
-    R_Kister_Data_Store rk_DS; rk_DS.load(in_rk);
+    R_Kister_Data_Store rk_DS; rk_DS.load(in_rk,ind);
     Thermophysical_Properties tp_rk;
     ASSERT_TRUE(tp_rk.initialize(&rk_DS));
     ASSERT_TRUE(rk_DS.valid(right_names));
@@ -48,8 +49,9 @@ TEST(rk_data_store,load)
 TEST(rk_data_store,input_order)
 {
     // Set up the interpolation object
-    std::istringstream in(tst_data_rk);
-    R_Kister_Data_Store rk_DS; rk_DS.load(in);
+    std::istringstream in(tst_data);
+    std::istringstream inrk(tst_data_rk);
+    R_Kister_Data_Store rk_DS; rk_DS.load(inrk,in);
     Thermophysical_Properties tp_rk;
     ASSERT_TRUE(tp_rk.initialize(&rk_DS));
 

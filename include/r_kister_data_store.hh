@@ -38,8 +38,8 @@ class R_Kister_Data_Store : public Data_Store
     // >>> CONSTRUCTORS
     R_Kister_Data_Store();
 
-    void load(const std::string& fPath);
-    void load(std::istream& inFile);
+    void load(const std::string& rkfPath, const std::string& dfPath);
+    void load(std::istream& rkinFile,std::istream& inFile);
     // >>> ACCESSORS
 
     // the number of entries in the data store
