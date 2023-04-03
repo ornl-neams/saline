@@ -129,7 +129,7 @@ class Default_Data_Store : public Data_Store
     std::string boil_ref(Id id, Id data_id) const;
 
     // mole percents
-    const Vec_Mole mole_percent(Id id, Id data_id) const;
+    const Vec_Mole& mole_percent(Id id, Id data_id) const;
 
     // number of constituents for the given compound
     std::size_t constituent_count(Id id) const;

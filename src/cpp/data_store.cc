@@ -342,7 +342,7 @@ double Data_Store::View::molecularWeight() const
 /*!
  * \brief retrieves mole percent for the View
  */
-const Data_Store::Vec_Mole Data_Store::View::mole_percent() const
+const Data_Store::Vec_Mole& Data_Store::View::mole_percent() const
 {
     return d->mole_percent(id, rec_id);
 }
