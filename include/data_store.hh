@@ -121,7 +121,7 @@ class Data_Store
         double molecularWeight() const;
 
         // mole percents
-        const Vec_Mole mole_percent() const;
+        const Vec_Mole& mole_percent() const;
 
     }; // Data_Store::View
 
@@ -185,7 +185,7 @@ class Data_Store
     virtual double molecularWeight(Id id, Id data_id) const = 0;
 
     // molecular weight
-    virtual const Vec_Mole mole_percent(Id id, Id data_id) const = 0;
+    virtual const Vec_Mole& mole_percent(Id id, Id data_id) const = 0;
 
     // boiling temperature
     virtual double boil(Id id, Id data_id) const = 0;

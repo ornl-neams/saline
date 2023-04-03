@@ -1,5 +1,4 @@
 #include "default_data_store.hh"
-#include "default_data.hh"
 #include "saline_bug.hh"
 #include "utils.hh"
 
@@ -330,8 +329,6 @@ bool Default_Data_Store::valid_cp(Id id, Id data_id) const
 double Default_Data_Store::cp(Id id, Id data_id, double t, double p) const
 {
     const auto& d = compounds[id].data[data_id];
-    double t2 = t * t;
-    double t_2 = 1.0/t2;
 
     // cp(t) = a + b * T + c * T^-2 + d * T^2
     return d.cp(t);
@@ -604,7 +601,7 @@ double Default_Data_Store::molecularWeight(Id id, Id data_id) const
 /*!
  * \brief retrieves the mole percent
  */
-const Default_Data_Store::Vec_Mole Default_Data_Store::mole_percent(Id id, Id data_id) const
+const Default_Data_Store::Vec_Mole& Default_Data_Store::mole_percent(Id id, Id data_id) const
 {
     const auto& d = compounds[id].data[data_id];
     return d.mole_percents();
@@ -766,7 +763,7 @@ Vec_Name Default_Data_Store::getSaltKeys() const
   for(auto comp:compounds)
   {
     std::string key = comp.names[0];
-    for(int i=1; i<comp.names.size(); ++i)
+    for(size_t i=1; i<comp.names.size(); ++i)
     {
       key.append("-");
       key.append(comp.names[i]);
@@ -783,7 +780,7 @@ std::vector<std::vector<double>> Default_Data_Store::getSaltComps(Vec_Name names
   if(valid(id))
   {
     const auto& d = compounds[id];
-    for(int i=0; i<d.data.size(); ++i)
+    for(size_t i=0; i<d.data.size(); ++i)
     {
       Vec_Mole mp = d.data[i].mole_percents();
       comps.push_back(mp);

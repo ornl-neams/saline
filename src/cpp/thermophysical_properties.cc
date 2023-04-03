@@ -266,7 +266,9 @@ bool Thermophysical_Properties::setComposition(const std::string& names,
 {
     saline_require(mole_percent_count > 0);
     auto comps = utils::split("-",names);
-    if (comps.size() != mole_percent_count) return false;
+    // mole_percent_count can be called from Fortran. Once we are sure its greater
+    // than zero we can treat it as size_t
+    if (comps.size() != (size_t)mole_percent_count) return false;
 
     Vec_Mole mp(mole_percents, mole_percents + mole_percent_count);
     return setComposition(comps, mp);
@@ -303,7 +305,9 @@ bool Thermophysical_Properties::isSaltValid(const std::string& names, int name_c
 {
   saline_require(name_count > 0);
   auto comps = utils::split("-",names);
-  if(comps.size() != name_count) return false;
+    // name_count can be called from from Fortran. Once we are sure its greater
+    // than zero we can treat it as size_t
+  if(comps.size() != (size_t)name_count) return false;
 
   return isSaltValid(comps);
 }

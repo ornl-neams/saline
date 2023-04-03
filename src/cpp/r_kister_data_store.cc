@@ -3,7 +3,6 @@
 #include "data_store.hh"
 #include "saline_bug.hh"
 #include "utils.hh"
-#include "default_data.hh"
 
 #include <stdexcept>
 #include <algorithm>
@@ -98,9 +97,7 @@ void R_Kister_Data_Store::load(std::istream& rkinFile,std::istream& inFile)
           id_a = d.names_to_id({tokens[0]});
           id_b = d.names_to_id({tokens[1]});
           sortFactor = 1.0;
-        }
-          else
-        {
+        } else {
           id_a = d.names_to_id({tokens[1]});
           id_b = d.names_to_id({tokens[0]});
           sortFactor = -1.0;
@@ -189,7 +186,7 @@ double R_Kister_Data_Store::cp( Id id, Id data_id, double temperature, double pr
 {
     //Ideal mixing
     double cp_ideal = 0.0;
-    for( int i=0; i<end_members.size(); ++i)
+    for(size_t i=0; i<end_members.size(); ++i)
     {
         cp_ideal += end_members[i].cp(temperature) * endMem_moleFracs[i];
     }
@@ -227,7 +224,7 @@ double R_Kister_Data_Store::mu(Id id, Id data_id, double temperature, double pre
 {
     //Ideal mixing
     double mu_ideal = 0.0;
-    for( int i=0; i<end_members.size(); ++i)
+    for(size_t i=0; i<end_members.size(); ++i)
     {
         mu_ideal += end_members[i].mu(temperature) * endMem_moleFracs[i];
     }
@@ -265,7 +262,7 @@ double R_Kister_Data_Store::k(Id id, Id data_id, double temperature, double pres
 {
     //Ideal mixing
     double k_ideal = 0.0;
-    for( int i=0; i<end_members.size(); ++i)
+    for(size_t i=0; i<end_members.size(); ++i)
     {
         k_ideal += end_members[i].k(temperature) * endMem_moleFracs[i];
     }
@@ -431,7 +428,7 @@ double R_Kister_Data_Store::molecularWeight(Id id, Id data_id) const
 /*!
  * \brief retrieves the molecular weight for the provided salt
  */
-const R_Kister_Data_Store::Vec_Mole R_Kister_Data_Store::mole_percent(Id id, Id data_id) const
+const R_Kister_Data_Store::Vec_Mole& R_Kister_Data_Store::mole_percent(Id id, Id data_id) const
 {
     return endMem_moleFracs;
 }
@@ -447,7 +444,7 @@ double R_Kister_Data_Store::RK_Polynomial::getRK_solution(double x, double y, do
 
     // Construct the fit terms
     std::vector<double> l_n(a_n.size());
-    for(int i=0; i<l_n.size(); ++i)
+    for(size_t i=0; i<l_n.size(); ++i)
     {
         l_n[i] = a_n[i] + (b_n[i] * temperature);
     }
@@ -457,7 +454,7 @@ double R_Kister_Data_Store::RK_Polynomial::getRK_solution(double x, double y, do
 
     //First term is unweighted
     double summation = l_n[0];
-    for(int i=1; i<l_n.size(); ++i)
+    for(size_t i=1; i<l_n.size(); ++i)
     {
         summation += l_n[i]*std::pow(w_diff,i);
     }
@@ -546,7 +543,7 @@ bool R_Kister_Data_Store::valid(Id id) const
 
 bool R_Kister_Data_Store::valid(Vec_Name& names) const
 {
-  for (int i=0; i<names.size(); ++i)
+  for (size_t i=0; i<names.size(); ++i)
   {
     if( !d.valid(d.name_to_id(names[i]))) return false;
   }
