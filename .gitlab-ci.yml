@@ -2,7 +2,7 @@
   - if [[ -f "/data/test_gcc/gcc-8.3.0/load_dev_env.sh" ]]; then BASE_DIR="/data/gitlab-runner"; . /data/test_gcc/gcc-8.3.0/load_dev_env.sh; ENV_BASE=/data/test_gcc/gcc-8.3.0; else BASE_DIR="/localhome/gitlab-runner"; . /projects/vera/gcc-8.3.0/load_dev_env.sh; ENV_BASE=/projects/vera/gcc-8.3.0; fi
   - which gcc
   - SRC_DIR=`pwd`
-  - BLD_DIR="SRC_DIR/build/$CI_COMMIT_SHORT_SHA/"
+  - BLD_DIR="$SRC_DIR/build/$CI_COMMIT_SHORT_SHA/"
 
 .windows_before: &windows_before
     #Temporary but need conda
@@ -23,7 +23,7 @@ windows_configure:
   stage: configure
   artifacts:
     paths:
-      - $BLD_DIR
+      - build/$CI_COMMIT_SHORT_SHA/
     expire_in: 3 day
   script:
     - *windows_before
@@ -56,7 +56,7 @@ linux_gcc83_configure:
     - gcc
   artifacts:
     paths:
-      - $BLD_DIR
+      - build/$CI_COMMIT_SHORT_SHA/
     expire_in: 3 day
   stage: configure
   script:
@@ -71,8 +71,9 @@ linux_gcc83_build:
   script:
     - *gcc_83_before
     - cmake --build $BLD_DIR
-  dependencies:
-    - linux_gcc83_configure
+  needs:
+    job: linux_gcc83_configure
+    artifacts: true
 
 linux_gcc83_test:
   tags:
@@ -83,5 +84,6 @@ linux_gcc83_test:
     - *gcc_83_before
     - cd $BLD_DIR
     - ctest
-  dependencies:
-    - linux_gcc83_build
+  needs:
+    job: linux_gcc83_build
+    artifacts: true
