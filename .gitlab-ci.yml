@@ -4,40 +4,51 @@
       - build/
     expire_in: 1 day
 
-      #stages:
-      #- configure
-      #- build
+stages:
+  - configure
+  - build
       #- test
 
 windows_configure:
   tags:
     - windows
+  stage: configure
   script:
     - $SRC_DIR=$pwd.Path
-    - $BLD_DIR="/tmp/$CI_PIPELINE_ID/$BLD_NAME"
+    - $BLD_DIR="/tmp/$CI_PIPELINE_ID"
     - echo $BLD_DIR
       #- mkdir -p $BLD_DIR
       #- cmake -S .\ -B $BLD_DIR -Dsaline_ENABLE_Fortran=OFF -Dsaline_ENABLE_Python=ON -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE
 
-      #windows_build:
-      #  tags:
-      #    - windows
-      #  script:
-      #  dependencies:
-      
-linux_gcc83_testing:
+windows_build:
   tags:
-    - linux
-    - gcc
+    - windows
+  stage: build
   script:
-    - if [[ -f "/data/test_gcc/gcc-8.3.0/load_dev_env.sh" ]]; then BASE_DIR="/data/gitlab-runner"; . /data/test_gcc/gcc-8.3.0/load_dev_env.sh; ENV_BASE=/data/test_gcc/gcc-8.3.0; else BASE_DIR="/localhome/gitlab-runner"; . /projects/vera/gcc-8.3.0/load_dev_env.sh; ENV_BASE=/projects/vera/gcc-8.3.0; fi
-    - which gcc
-    - SRC_DIR=`pwd`
-    - BLD_DIR="/tmp/$CI_PIPELINE_ID/$BLD_NAME"
-    - mkdir -p $BLD_DIR
-    - cd $BLD_DIR
-    - rm -rf *
-    - echo $PATH
-    - which gcc
-    - echo "$PATH"
-    - $SRC_DIR/ci/linux_gcc83_test.sh $SRC_DIR
+    #Temporary but need conda
+    - & 'C:\Users\oxh\Miniconda3\\shell\\condabin\\conda-hook.ps1'
+    - conda activate 'C:\Users\oxh\Miniconda3'
+    - conda activate saline_env
+    - $BLD_DIR="/tmp/$CI_PIPELINE_ID/"
+    - cmake --build $BLD_DIR --target ALL_BUILD --config RELEASE
+
+  dependencies:
+    - configure_windows
+
+      
+      #linux_gcc83_testing:
+      #  tags:
+      #    - linux
+      #    - gcc
+      #  script:
+      #    - if [[ -f "/data/test_gcc/gcc-8.3.0/load_dev_env.sh" ]]; then BASE_DIR="/data/gitlab-runner"; . /data/test_gcc/gcc-8.3.0/load_dev_env.sh; ENV_BASE=/data/test_gcc/gcc-8.3.0; else BASE_DIR="/localhome/gitlab-runner"; . /projects/vera/gcc-8.3.0/load_dev_env.sh; ENV_BASE=/projects/vera/gcc-8.3.0; fi
+      #    - which gcc
+      #    - SRC_DIR=`pwd`
+      #    - BLD_DIR="/tmp/$CI_PIPELINE_ID/$BLD_NAME"
+      #    - mkdir -p $BLD_DIR
+      #    - cd $BLD_DIR
+      #    - rm -rf *
+      #    - echo $PATH
+      #    - which gcc
+      #    - echo "$PATH"
+      #    - $SRC_DIR/ci/linux_gcc83_test.sh $SRC_DIR
