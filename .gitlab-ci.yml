@@ -6,7 +6,7 @@
 
 stages:
   - configure
-    #  - build
+  - build
     #  - test
 
 windows_configure:
@@ -24,8 +24,37 @@ windows_configure:
     - echo $BLD_DIR
     - mkdir -p $BLD_DIR
     - cmake -S $SRC_DIR -B $BLD_DIR -Dsaline_ENABLE_Fortran=OFF -Dsaline_ENABLE_Python=ON -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE
-    - cmake --build $BLD_DIR --target ALL_BUILD --config RELEASE
 
+windows_build:
+  tags:
+    - windows
+  stage: build
+  script:
+    #Temporary but need conda
+    - C:\Users\oxh\Miniconda3\\shell\\condabin\\conda-hook.ps1
+    - conda activate 'C:\Users\oxh\Miniconda3'
+    - conda activate saline_env
+    - $SRC_DIR=$pwd.Path
+    - $BLD_DIR="$SRC_DIR/tmp/$CI_PIPELINE_ID"
+    - cmake --build $BLD_DIR --target ALL_BUILD --config RELEASE
+  dependencies:
+    - windows_configure
+
+windows_test:
+  tags:
+    - windows
+  stage: build
+  script:
+    #Temporary but need conda
+    - C:\Users\oxh\Miniconda3\\shell\\condabin\\conda-hook.ps1
+    - conda activate 'C:\Users\oxh\Miniconda3'
+    - conda activate saline_env
+    - $SRC_DIR=$pwd.Path
+    - $BLD_DIR="$SRC_DIR/tmp/$CI_PIPELINE_ID"
+    - cd $BLD_DIR
+    - ctest
+  dependencies:
+    - windows_build
       
       #linux_gcc83_testing:
       #  tags:
