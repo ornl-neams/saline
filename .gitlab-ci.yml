@@ -19,10 +19,11 @@ windows_configure:
     - conda activate 'C:\Users\oxh\Miniconda3'
     - conda activate saline_env
     - $SRC_DIR=$pwd.Path
-    - $BLD_DIR="/tmp/$CI_PIPELINE_ID"
+    - $BLD_DIR="$SRC_DIR/tmp/$CI_PIPELINE_ID"
+    - echo $SRC_DIR
     - echo $BLD_DIR
     - mkdir -p $BLD_DIR
-    - cmake -S .\ -B $BLD_DIR -Dsaline_ENABLE_Fortran=OFF -Dsaline_ENABLE_Python=ON -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE
+    - cmake -S $SRC_DIR -B $BLD_DIR -Dsaline_ENABLE_Fortran=OFF -Dsaline_ENABLE_Python=ON -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE
     - cmake --build $BLD_DIR --target ALL_BUILD --config RELEASE
 
       
