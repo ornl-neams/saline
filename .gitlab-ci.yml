@@ -14,6 +14,10 @@ windows_configure:
     - windows
   stage: configure
   script:
+    #Temporary but need conda
+    - C:\Users\oxh\Miniconda3\\shell\\condabin\\conda-hook.ps1
+    - conda activate 'C:\Users\oxh\Miniconda3'
+    - conda activate saline_env
     - $SRC_DIR=$pwd.Path
     - $BLD_DIR="/tmp/$CI_PIPELINE_ID"
     - echo $BLD_DIR
@@ -26,7 +30,7 @@ windows_build:
   stage: build
   script:
     #Temporary but need conda
-    - & 'C:\Users\oxh\Miniconda3\\shell\\condabin\\conda-hook.ps1'
+    - C:\Users\oxh\Miniconda3\\shell\\condabin\\conda-hook.ps1
     - conda activate 'C:\Users\oxh\Miniconda3'
     - conda activate saline_env
     - $BLD_DIR="/tmp/$CI_PIPELINE_ID/"
