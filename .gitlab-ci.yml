@@ -26,6 +26,7 @@ stages:
 windows_configure:
   tags:
     - windows
+  <<: *stage_artifacts
   stage: configure
   script:
     - *windows_before
@@ -56,6 +57,8 @@ linux_gcc83_configure:
   tags:
     - linux
     - gcc
+  <<: *stage_artifacts
+  stage: configure
   script:
     - *gcc_83_before
     - cmake -S $SRC_DIR -B $BLD_DIR -DCMAKE_BUILD_TYPE=RELEASE -Dsaline_ENABLE_Fortran=ON -DCMAKE_Fortran_FLAGS:STRING="-ffree-line-length-none" -Dsaline_ENABLE_Python=ON
@@ -64,15 +67,21 @@ linux_gcc83_build:
   tags:
     - linux
     - gcc
+  stage: build
   script:
     - *gcc_83_before
     - cmake --build $BLD_DIR
+  dependencies:
+    - linux_gcc83_configure
 
 linux_gcc83_test:
   tags:
     - linux
     - gcc
+  stage: test
   script:
     - *gcc_83_before
     - cd $BLD_DIR
     - ctest
+  dependencies:
+    - linux_gcc83_build
