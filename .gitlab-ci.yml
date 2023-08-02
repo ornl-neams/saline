@@ -17,8 +17,8 @@ windows_configure:
     - $SRC_DIR=$pwd.Path
     - $BLD_DIR="/tmp/$CI_PIPELINE_ID"
     - echo $BLD_DIR
-      #- mkdir -p $BLD_DIR
-      #- cmake -S .\ -B $BLD_DIR -Dsaline_ENABLE_Fortran=OFF -Dsaline_ENABLE_Python=ON -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE
+    - mkdir -p $BLD_DIR
+    - cmake -S .\ -B $BLD_DIR -Dsaline_ENABLE_Fortran=OFF -Dsaline_ENABLE_Python=ON -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE
 
 windows_build:
   tags:
@@ -31,7 +31,6 @@ windows_build:
     - conda activate saline_env
     - $BLD_DIR="/tmp/$CI_PIPELINE_ID/"
     - cmake --build $BLD_DIR --target ALL_BUILD --config RELEASE
-
   dependencies:
     - configure_windows
 
