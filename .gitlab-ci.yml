@@ -1,25 +1,37 @@
-stages:
-- test
-
-before_script:
-  - if [[ -f "/data/test_gcc/gcc-8.3.0/load_dev_env.sh" ]]; then BASE_DIR="/data/gitlab-runner"; . /data/test_gcc/gcc-8.3.0/load_dev_env.sh; ENV_BASE=/data/test_gcc/gcc-8.3.0; else BASE_DIR="/localhome/gitlab-runner"; . /projects/vera/gcc-8.3.0/load_dev_env.sh; ENV_BASE=/projects/vera/gcc-8.3.0; fi
-  - which gcc
-
 .stage_artifacts: &stage_artifacts
   artifacts:
     paths:
       - build/
-      - TriBITS/
-      - googletest/
-      - testframework/
     expire_in: 1 day
 
+      #stages:
+      #- configure
+      #- build
+      #- test
+
+windows_configure:
+  tags:
+    - windows
+  script:
+    - $SRC_DIR=$pwd.Path
+    - $BLD_DIR="/tmp/$CI_PIPELINE_ID/$BLD_NAME"
+    - echo $BLD_DIR
+      #- mkdir -p $BLD_DIR
+      #- cmake -S .\ -B $BLD_DIR -Dsaline_ENABLE_Fortran=OFF -Dsaline_ENABLE_Python=ON -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE
+
+      #windows_build:
+      #  tags:
+      #    - windows
+      #  script:
+      #  dependencies:
+      
 linux_gcc83_testing:
-  stage: test
   tags:
     - linux
     - gcc
   script:
+    - if [[ -f "/data/test_gcc/gcc-8.3.0/load_dev_env.sh" ]]; then BASE_DIR="/data/gitlab-runner"; . /data/test_gcc/gcc-8.3.0/load_dev_env.sh; ENV_BASE=/data/test_gcc/gcc-8.3.0; else BASE_DIR="/localhome/gitlab-runner"; . /projects/vera/gcc-8.3.0/load_dev_env.sh; ENV_BASE=/projects/vera/gcc-8.3.0; fi
+    - which gcc
     - SRC_DIR=`pwd`
     - BLD_DIR="/tmp/$CI_PIPELINE_ID/$BLD_NAME"
     - mkdir -p $BLD_DIR
