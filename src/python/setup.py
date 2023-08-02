@@ -2,9 +2,7 @@
 #files. The general framework would work for manual use but the expression would
 # need to be replaced with equivalent values.
 
-import itertools
 from setuptools import Extension, setup
-from distutils.command.build import build as build_orig
 
 incl_dirs = "$<TARGET_PROPERTY:saline-cpp,INCLUDE_DIRECTORIES>".split(";")
 ext_obj_list = "$<TARGET_OBJECTS:saline-cpp>".split(";")
