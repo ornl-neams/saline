@@ -36,7 +36,7 @@ windows_build:
     - $BLD_DIR="/tmp/$CI_PIPELINE_ID/"
     - cmake --build $BLD_DIR --target ALL_BUILD --config RELEASE
   dependencies:
-    - configure_windows
+    - windows_configure
 
       
       #linux_gcc83_testing:
