@@ -28,6 +28,7 @@ test windows:
   tags:
     - windows
   script:
+    - *windows_before
     - ls build
     - ctest --build-config RELEASE --test-dir /build
   needs:
