@@ -19,8 +19,7 @@ build windows:
     - *windows_before
     - cmake -S $SRC_DIR -B $BLD_DIR -Dsaline_ENABLE_Fortran=OFF -Dsaline_ENABLE_Python=ON -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE
     - cmake --build $BLD_DIR --target ALL_BUILD --config RELEASE
-    - cd $BLD_DIR
-    - ctest
+    - ctest --build-config RELEASE --test-dir $BLD_DIR
     
 build linux_gcc83:
   tags:
@@ -30,6 +29,5 @@ build linux_gcc83:
     - *gcc_83_before
     - cmake -S $SRC_DIR -B $BLD_DIR -DCMAKE_BUILD_TYPE=RELEASE -Dsaline_ENABLE_Fortran=ON -DCMAKE_Fortran_FLAGS:STRING="-ffree-line-length-none" -Dsaline_ENABLE_Python=OFF
     - cmake --build $BLD_DIR
-    - cd $BLD_DIR
-    - ctest
+    - ctest --test-dir $BLD_DIR
 
