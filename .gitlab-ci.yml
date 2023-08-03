@@ -4,13 +4,13 @@
 #  - SRC_DIR=`pwd`
 #  - BLD_DIR="$SRC_DIR/build"
 #
-#.windows_before: &windows_before
-#    #Temporary but need conda
-#    - C:\Users\oxh\Miniconda3\\shell\\condabin\\conda-hook.ps1
-#    - conda activate 'C:\Users\oxh\Miniconda3'
-#    - conda activate saline_env
-#    - $SRC_DIR=$pwd.Path
-#    - $BLD_DIR="$SRC_DIR/build"
+.windows_before: &windows_before
+    #Temporary but need conda
+    - C:\Users\oxh\Miniconda3\\shell\\condabin\\conda-hook.ps1
+    - conda activate 'C:\Users\oxh\Miniconda3'
+    - conda activate saline_env
+    - $SRC_DIR=$pwd.Path
+    - $BLD_DIR="$SRC_DIR/build"
 
 build_windows:
   tags:
