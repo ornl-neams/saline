@@ -2,7 +2,7 @@
   - if [[ -f "/data/test_gcc/gcc-8.3.0/load_dev_env.sh" ]]; then BASE_DIR="/data/gitlab-runner"; . /data/test_gcc/gcc-8.3.0/load_dev_env.sh; ENV_BASE=/data/test_gcc/gcc-8.3.0; else BASE_DIR="/localhome/gitlab-runner"; . /projects/vera/gcc-8.3.0/load_dev_env.sh; ENV_BASE=/projects/vera/gcc-8.3.0; fi
   - which gcc
   - SRC_DIR=`pwd`
-  - BLD_DIR="$SRC_DIR/build/$CI_COMMIT_SHORT_SHA/"
+  - BLD_DIR="$SRC_DIR/build"
 
 .windows_before: &windows_before
     #Temporary but need conda
@@ -10,7 +10,7 @@
     - conda activate 'C:\Users\oxh\Miniconda3'
     - conda activate saline_env
     - $SRC_DIR=$pwd.Path
-    - $BLD_DIR="$SRC_DIR/build/$CI_COMMIT_SHORT_SHA/"
+    - $BLD_DIR="$SRC_DIR/build"
 
 build windows:
   tags:
@@ -19,7 +19,17 @@ build windows:
     - *windows_before
     - cmake -S $SRC_DIR -B $BLD_DIR -Dsaline_ENABLE_Fortran=OFF -Dsaline_ENABLE_Python=ON -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE
     - cmake --build $BLD_DIR --target ALL_BUILD --config RELEASE
-    - ctest --build-config RELEASE --test-dir $BLD_DIR
+  artifacts:
+    paths:
+      - build/
+
+test windows:
+  tags:
+    - windows
+  script:
+    - ctest --build-config RELEASE --test-dir /build
+  needs:
+    - build:windows
     
 build linux_gcc83:
   tags:
@@ -29,5 +39,16 @@ build linux_gcc83:
     - *gcc_83_before
     - cmake -S $SRC_DIR -B $BLD_DIR -DCMAKE_BUILD_TYPE=RELEASE -Dsaline_ENABLE_Fortran=ON -DCMAKE_Fortran_FLAGS:STRING="-ffree-line-length-none" -Dsaline_ENABLE_Python=OFF
     - cmake --build $BLD_DIR
-    - ctest --test-dir $BLD_DIR
+  artifacts:
+    paths:
+      - build/
+
+test linux_gcc83:
+  tags:
+    - linux
+    - gcc
+  script:
+    - ctest --test-dir build/
+  needs:
+    - build:linux_gcc83
 
