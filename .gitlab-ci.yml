@@ -34,7 +34,7 @@ test windows:
     - echo $SRC_DIR
     - echo $BLD_DIR
     - ls build
-    - ctest --build-config RELEASE --test-dir /build
+    - ctest --build-config RELEASE --test-dir build
   needs:
     - job: build_windows
     
