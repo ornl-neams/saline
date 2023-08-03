@@ -26,7 +26,6 @@ build linux_gcc83:
   tags:
     - linux
     - gcc
-  stage: configure
   script:
     - *gcc_83_before
     - cmake -S $SRC_DIR -B $BLD_DIR -DCMAKE_BUILD_TYPE=RELEASE -Dsaline_ENABLE_Fortran=ON -DCMAKE_Fortran_FLAGS:STRING="-ffree-line-length-none" -Dsaline_ENABLE_Python=OFF
