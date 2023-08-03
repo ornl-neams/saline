@@ -41,7 +41,7 @@ build_linux_gcc83:
     - cmake --build $BLD_DIR
   artifacts:
     paths:
-      - build/
+      - "build/"
 
 test linux_gcc83:
   tags:
