@@ -12,7 +12,7 @@
     - $SRC_DIR=$pwd.Path
     - $BLD_DIR="$SRC_DIR/build"
 
-build windows:
+build_windows:
   tags:
     - windows
   script:
@@ -29,9 +29,9 @@ test windows:
   script:
     - ctest --build-config RELEASE --test-dir /build
   needs:
-    - build:windows
+    - job: build_windows
     
-build linux_gcc83:
+build_linux_gcc83:
   tags:
     - linux
     - gcc
@@ -50,5 +50,5 @@ test linux_gcc83:
   script:
     - ctest --test-dir build/
   needs:
-    - build:linux_gcc83
+    - job: build_linux_gcc83
 
