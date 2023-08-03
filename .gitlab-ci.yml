@@ -21,7 +21,7 @@ build_windows:
     - cmake --build $BLD_DIR --target ALL_BUILD --config RELEASE
   artifacts:
     paths:
-      - build/
+      - "build/"
 
 test windows:
   tags:
