@@ -12,78 +12,25 @@
     - $SRC_DIR=$pwd.Path
     - $BLD_DIR="$SRC_DIR/build/$CI_COMMIT_SHORT_SHA/"
 
-stages:
-  - configure
-  - build
-  - test
-
-windows_configure:
+build windows:
   tags:
     - windows
-  stage: configure
-  artifacts:
-    paths:
-      - build/$CI_COMMIT_SHORT_SHA/
-    expire_in: 3 day
   script:
     - *windows_before
     - cmake -S $SRC_DIR -B $BLD_DIR -Dsaline_ENABLE_Fortran=OFF -Dsaline_ENABLE_Python=ON -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE
-
-windows_build:
-  tags:
-    - windows
-  stage: build
-  script:
-    - *windows_before
     - cmake --build $BLD_DIR --target ALL_BUILD --config RELEASE
-  dependencies:
-    - windows_configure
-
-windows_test:
-  tags:
-    - windows
-  stage: test
-  script:
-    - *windows_before
     - cd $BLD_DIR
     - ctest
-  dependencies:
-    - windows_build
     
-linux_gcc83_configure:
+build linux_gcc83:
   tags:
     - linux
     - gcc
-  artifacts:
-    paths:
-      - build/$CI_COMMIT_SHORT_SHA/
-    expire_in: 3 day
   stage: configure
   script:
     - *gcc_83_before
     - cmake -S $SRC_DIR -B $BLD_DIR -DCMAKE_BUILD_TYPE=RELEASE -Dsaline_ENABLE_Fortran=ON -DCMAKE_Fortran_FLAGS:STRING="-ffree-line-length-none" -Dsaline_ENABLE_Python=OFF
-
-linux_gcc83_build:
-  tags:
-    - linux
-    - gcc
-  stage: build
-  script:
-    - *gcc_83_before
     - cmake --build $BLD_DIR
-  needs:
-    job: linux_gcc83_configure
-    artifacts: true
-
-linux_gcc83_test:
-  tags:
-    - linux
-    - gcc
-  stage: test
-  script:
-    - *gcc_83_before
     - cd $BLD_DIR
     - ctest
-  needs:
-    job: linux_gcc83_build
-    artifacts: true
+
