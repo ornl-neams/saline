@@ -22,9 +22,6 @@ build_windows:
     - echo $BLD_DIR
     - cmake -S $SRC_DIR -B $BLD_DIR -Dsaline_ENABLE_Fortran=OFF -Dsaline_ENABLE_Python=ON -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE
     - cmake --build $BLD_DIR --target ALL_BUILD --config RELEASE
-  artifacts:
-    paths:
-      - "build/"
 
 test windows:
   tags:
@@ -34,7 +31,7 @@ test windows:
     - echo $SRC_DIR
     - echo $BLD_DIR
     - ls build
-    - ctest --build-config RELEASE --test-dir build
+    - ctest --build-config RELEASE --test-dir $BLD_DIR
   needs:
     - job: build_windows
     
