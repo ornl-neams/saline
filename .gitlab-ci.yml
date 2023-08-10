@@ -26,7 +26,7 @@ build_macos:
 
 test_macos:
   tags:
-    - windows
+    - macOS
   script:
     - *nix_before
     - echo $SRC_DIR
