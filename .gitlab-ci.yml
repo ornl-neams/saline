@@ -4,6 +4,7 @@
 .nix_before: &nix_before
     - SRC_DIR=`pwd`
     - BLD_DIR="$SRC_DIR/build"
+    - conda activate saline
 
       #.windows_before: &windows_before
       #    #Temporary but need conda
