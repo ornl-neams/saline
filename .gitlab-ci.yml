@@ -4,7 +4,9 @@
 .nix_before: &nix_before
     - SRC_DIR=`pwd`
     - BLD_DIR="$SRC_DIR/build"
-    - $HOME/miniconda3/bin/conda activate saline
+    - source $HOME/miniconda3/bin/activate
+    - conda init zsh
+    - conda activate saline
 
       #.windows_before: &windows_before
       #    #Temporary but need conda
