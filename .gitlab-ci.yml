@@ -26,6 +26,10 @@ build_macos:
     - echo $BLD_DIR
     - cmake -S $SRC_DIR -B $BLD_DIR -Dsaline_ENABLE_Fortran=OFF -Dsaline_ENABLE_Python=ON
     - cmake --build $BLD_DIR
+  artifacts:
+    expire_in: 1 day
+    paths:
+      - "build/"
 
 test_macos:
   tags:
