@@ -1,5 +1,5 @@
-#.gcc_83_before: &gcc_83_before
-#  - if [[ -f "/data/test_gcc/gcc-8.3.0/load_dev_env.sh" ]]; then BASE_DIR="/data/gitlab-runner"; . /data/test_gcc/gcc-8.3.0/load_dev_env.sh; ENV_BASE=/data/test_gcc/gcc-8.3.0; else BASE_DIR="/localhome/gitlab-runner"; . /projects/vera/gcc-8.3.0/load_dev_env.sh; ENV_BASE=/projects/vera/gcc-8.3.0; fi
+.gcc_83_before: &gcc_83_before
+  - if [[ -f "/data/test_gcc/gcc-8.3.0/load_dev_env.sh" ]]; then BASE_DIR="/data/gitlab-runner"; . /data/test_gcc/gcc-8.3.0/load_dev_env.sh; ENV_BASE=/data/test_gcc/gcc-8.3.0; else BASE_DIR="/localhome/gitlab-runner"; . /projects/vera/gcc-8.3.0/load_dev_env.sh; ENV_BASE=/projects/vera/gcc-8.3.0; fi
 
 .nix_before: &nix_before
     - SRC_DIR=`pwd`
@@ -8,13 +8,13 @@
     - conda init zsh
     - conda activate saline
 
-      #.windows_before: &windows_before
-      #    #Temporary but need conda
-      #    - C:\Users\oxh\Miniconda3\\shell\\condabin\\conda-hook.ps1
-      #    - conda activate 'C:\Users\oxh\Miniconda3'
-      #    - conda activate saline_env
-      #    - $SRC_DIR=$pwd.Path
-      #    - $BLD_DIR="$SRC_DIR/build/$CI_COMMIT_SHORT_SHA"
+.windows_before: &windows_before
+    #Temporary but need conda
+    - C:\Users\oxh\Miniconda3\\shell\\condabin\\conda-hook.ps1
+    - conda activate 'C:\Users\oxh\Miniconda3'
+    - conda activate saline_env
+    - $SRC_DIR=$pwd.Path
+    - $BLD_DIR="$SRC_DIR/build/$CI_COMMIT_SHORT_SHA"
 
 build_macos:
   tags:
@@ -43,47 +43,56 @@ test_macos:
   needs:
     - job: build_macos
 
-      #build_windows:
-      #  tags:
-      #    - windows
-      #  script:
-      #    - *windows_before
-      #    - echo $CI_BUILDS_DIR
-      #    - echo $SRC_DIR
-      #    - echo $BLD_DIR
-      #    - cmake -S $SRC_DIR -B $BLD_DIR -Dsaline_ENABLE_Fortran=OFF -Dsaline_ENABLE_Python=ON -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE
-      #    - cmake --build $BLD_DIR --target ALL_BUILD --config RELEASE
-      #
-      #test_windows:
-      #  tags:
-      #    - windows
-      #  script:
-      #    - *windows_before
-      #    - echo $SRC_DIR
-      #    - echo $BLD_DIR
-      #    - ls build
-      #    - ctest --build-config RELEASE --test-dir $BLD_DIR
-      #  needs:
-      #    - job: build_windows
-    
-      #build_linux_gcc83:
-      #  tags:
-      #    - linux
-      #    - gcc
-      #  script:
-      #    - *gcc_83_before
-      #    - cmake -S $SRC_DIR -B $BLD_DIR -DCMAKE_BUILD_TYPE=RELEASE -Dsaline_ENABLE_Fortran=ON -DCMAKE_Fortran_FLAGS:STRING="-ffree-line-length-none" -Dsaline_ENABLE_Python=OFF
-      #    - cmake --build $BLD_DIR
-      #  artifacts:
-      #    paths:
-      #      - "build/"
-      #
-      #test linux_gcc83:
-      #  tags:
-      #    - linux
-      #    - gcc
-      #  script:
-      #    - ctest --test-dir build/
-      #  needs:
-      #    - job: build_linux_gcc83
-      #
+build_windows:
+  tags:
+    - windows
+  script:
+    - *windows_before
+    - echo $CI_BUILDS_DIR
+    - echo $SRC_DIR
+    - echo $BLD_DIR
+    - cmake -S $SRC_DIR -B $BLD_DIR -Dsaline_ENABLE_Fortran=OFF -Dsaline_ENABLE_Python=ON -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE
+    - cmake --build $BLD_DIR --target ALL_BUILD --config RELEASE
+  artifacts:
+    expire_in: 1 day
+    paths:
+      - "build/"
+
+test_windows:
+  tags:
+    - windows
+  script:
+    - *windows_before
+    - echo $SRC_DIR
+    - echo $BLD_DIR
+    - ls build
+    - ctest --build-config RELEASE --test-dir $BLD_DIR
+  needs:
+    - job: build_windows
+
+build_linux_gcc83:
+  tags:
+    - linux
+    - gcc
+  script:
+    #This first script is actually 100% machine dependent
+    - *gcc_83_before
+    - *nix_before
+    - cmake -S $SRC_DIR -B $BLD_DIR -DCMAKE_BUILD_TYPE=RELEASE -Dsaline_ENABLE_Fortran=ON -DCMAKE_Fortran_FLAGS:STRING="-ffree-line-length-none" -Dsaline_ENABLE_Python=OFF
+    - cmake --build $BLD_DIR
+  artifacts:
+    expire_in: 1 day
+    paths:
+      - "build/"
+
+test linux_gcc83:
+  tags:
+    - linux
+    - gcc
+  script:
+    - *gcc_83_before
+    - *nix_before
+    - ctest --test-dir build/
+  needs:
+    - job: build_linux_gcc83
+
