@@ -4,29 +4,24 @@
 .nix_before: &nix_before
     - SRC_DIR=`pwd`
     - BLD_DIR="$SRC_DIR/build/$CI_COMMIT_SHORT_SHA"
-    - source $HOME/miniconda3/bin/activate
-    - conda init zsh
-    - conda activate saline
+    - $INSTALL_DIR="$SRC_DIR/install/$CI_COMMIT_SHORT_SHA"
 
 .windows_before: &windows_before
-    #Temporary but need conda
-    - C:\Users\oxh\Miniconda3\\shell\\condabin\\conda-hook.ps1
-    - conda activate 'C:\Users\oxh\Miniconda3'
-    - conda activate saline_env
     - $SRC_DIR=$pwd.Path
     - $BLD_DIR="$SRC_DIR/build/$CI_COMMIT_SHORT_SHA"
+    - $INSTALL_DIR="$SRC_DIR/install/$CI_COMMIT_SHORT_SHA"
 
 build_macos:
   when:
     - manual
+  allow_failure: true
   tags:
     - macOS
   script:
     - *nix_before
-    - echo $CI_BUILDS_DIR
-    - echo $SRC_DIR
-    - echo $BLD_DIR
-    - cmake -S $SRC_DIR -B $BLD_DIR -Dsaline_ENABLE_Fortran=OFF -Dsaline_ENABLE_Python=ON
+    - source $HOME/miniconda3/bin/activate
+    - conda activate saline
+    - cmake -S $SRC_DIR -B $BLD_DIR -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR -Dsaline_ENABLE_Fortran=ON -Dsaline_ENABLE_Python=ON
     - cmake --build $BLD_DIR
   artifacts:
     expire_in: 1 day
@@ -36,27 +31,47 @@ build_macos:
 test_macos:
   when:
     - manual
+  allow_failure: true
   tags:
     - macOS
   script:
     - *nix_before
-    - echo $SRC_DIR
-    - echo $BLD_DIR
+    - source $HOME/miniconda3/bin/activate
+    - conda activate saline
     - ctest --test-dir $BLD_DIR
   needs:
     - job: build_macos
 
+stage_macos:
+  when:
+    - manual
+  allow_failure: true
+  tags:
+    - macos
+  script:
+    - *nix_before
+    - source $HOME/miniconda3/bin/activate
+    - conda activate saline
+    - cmake --install $BLD_DIR
+  needs:
+    - job: build_macos
+  artifacts:
+    name: macos_install
+    expire_in: 1 week
+    paths:
+      - install
+
 build_windows:
   when:
     - manual
+  allow_failure: true
   tags:
     - windows
   script:
     - *windows_before
-    - echo $CI_BUILDS_DIR
-    - echo $SRC_DIR
-    - echo $BLD_DIR
-    - cmake -S $SRC_DIR -B $BLD_DIR -Dsaline_ENABLE_Fortran=OFF -Dsaline_ENABLE_Python=ON -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE
+    - C:\Users\oxh\Miniconda3\\shell\\condabin\\conda-hook.ps1
+    - conda activate saline_env
+    - cmake -S $SRC_DIR -B $BLD_DIR -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR -Dsaline_ENABLE_Fortran=OFF -Dsaline_ENABLE_Python=ON -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE
     - cmake --build $BLD_DIR --target ALL_BUILD --config RELEASE
   artifacts:
     expire_in: 1 day
@@ -66,15 +81,34 @@ build_windows:
 test_windows:
   when:
     - manual
+  allow_failure: true
   tags:
     - windows
   script:
     - *windows_before
-    - echo $SRC_DIR
-    - echo $BLD_DIR
+    - C:\Users\oxh\Miniconda3\\shell\\condabin\\conda-hook.ps1
+    - conda activate saline_env
     - ctest --build-config RELEASE --test-dir /build/$CI_COMMIT_SHORT_SHA
   needs:
     - job: build_windows
+
+stage_windows:
+  when:
+    - manual
+  allow_failure: true
+  tags:
+    - windows
+  script:
+    - C:\Users\oxh\Miniconda3\shell\condabin\conda-hook.ps1
+    - conda activate saline_env
+    - cmake --install $BLD_DIR --config RELEASE
+  needs:
+    - job: build_windows
+  artifacts:
+    name: windows_install
+    expire_in: 1 week
+    paths:
+      - install
 
 build_linux_gcc83:
   tags:
@@ -84,7 +118,7 @@ build_linux_gcc83:
     #This first script is actually 100% machine dependent
     - *gcc_83_before
     - *nix_before
-    - cmake -S $SRC_DIR -B $BLD_DIR -DCMAKE_BUILD_TYPE=RELEASE -Dsaline_ENABLE_Fortran=ON -DCMAKE_Fortran_FLAGS:STRING="-ffree-line-length-none" -Dsaline_ENABLE_Python=OFF
+    - cmake -S $SRC_DIR -B $BLD_DIR -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR -Dsaline_ENABLE_Fortran=ON -DCMAKE_Fortran_FLAGS:STRING="-ffree-line-length-none" -Dsaline_ENABLE_Python=OFF
     - cmake --build $BLD_DIR
   artifacts:
     expire_in: 1 day
@@ -102,3 +136,20 @@ test linux_gcc83:
   needs:
     - job: build_linux_gcc83
 
+stage_linux:
+  when:
+    - manual
+  allow_failure: true
+  tags:
+    - linux
+  script:
+    - *gcc_83_before
+    - *nix_before
+    - cmake --install $BLD_DIR
+  needs:
+    - job: build_linux_gcc83
+  artifacts:
+    name: linux_install
+    expire_in: 1 week
+    paths:
+      - install

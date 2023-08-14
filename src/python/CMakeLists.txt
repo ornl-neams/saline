@@ -29,3 +29,11 @@ endif()
 #Execute the setup file to generate a wheel
 add_custom_target(SalinePy_wheel ALL "${Python_EXECUTABLE}" -m build)
 add_dependencies(SalinePy_wheel saline-cpp)
+
+# Include the dist/* files with the install
+include(GNUInstallDirs)
+install(
+  DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/dist"
+  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/saline-${saline_VERSION}/python"
+  FILES_MATCHING PATTERN "*.whl"
+  )
