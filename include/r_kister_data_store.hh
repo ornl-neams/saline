@@ -51,34 +51,34 @@ class R_Kister_Data_Store : public Data_Store
     // specific heat
     double cp(Id id, Id data_id, double temperature, double pressure = 101.325) const;
     double cp_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const;
-    double cp_unc(Id id, Id data_id) const {return .2;}
+    double cp_unc(Id /* id */, Id /* data_id */) const {return .2;}
     std::pair<double,double> cp_rng(Id id, Id data_id) const;
-    std::string cp_ref(Id id, Id data_id) const {return "----";}
+    std::string cp_ref(Id /* id */, Id /* data_id */) const {return "----";}
     bool valid_cp(Id id, Id data_id) const;
 
     // viscosity
     double mu(Id id, Id data_id, double temperature, double pressure = 101.325) const;
     double mu_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const;
     bool valid_mu(Id id, Id data_id) const;
-    double mu_unc(Id id, Id data_id) const{return .2;}
+    double mu_unc(Id /* id */, Id /* data_id */) const{return .2;}
     std::pair<double,double> mu_rng(Id id, Id data_id) const;
-    std::string mu_ref(Id id, Id data_id) const {return "----";}
+    std::string mu_ref(Id /* id */, Id /* data_id */) const {return "----";}
 
     // conductivity
     double k(Id id, Id data_id, double temperature, double pressure = 101.325) const;
     double k_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const;
     bool valid_k(Id id, Id data_id) const;
     std::pair<double,double> k_rng(Id id, Id data_id) const;
-    double k_unc(Id id, Id data_id) const{return .2;}
-    std::string k_ref(Id id, Id data_id) const {return "----";}
+    double k_unc(Id /* id */, Id /* data_id */) const{return .2;}
+    std::string k_ref(Id /* id */, Id /* data_id */) const {return "----";}
 
     // density
     double rho(Id id, Id data_id, double temperature, double pressure = 101.325) const;
     double rho_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const;
     bool valid_rho(Id id, Id data_id) const;
-    double rho_unc(Id id, Id data_id) const{return .2;}
+    double rho_unc(Id /* id */, Id /* data_id */) const{return .2;}
     std::pair<double,double> rho_rng(Id id, Id data_id) const;
-    std::string rho_ref(Id id, Id data_id) const {return "----";}
+    std::string rho_ref(Id /* id */, Id /* data_id */) const {return "----";}
 
     // enthalpy
     double h_t(Id id, Id data_id, double temperature) const;
@@ -88,16 +88,16 @@ class R_Kister_Data_Store : public Data_Store
 
     // melting temperature
     double melt(Id id, Id data_id) const;
-    double melt_unc(Id id, Id data_id) const{return 1.0;}
-    std::string melt_ref(Id id, Id data_id) const {return "----";}
+    double melt_unc(Id /* id */, Id /* data_id */) const{return 1.0;}
+    std::string melt_ref(Id /* id */, Id /* data_id */) const {return "----";}
 
     // melting temperature
     double molecularWeight(Id id, Id data_id) const;
 
     // boiling temperature
     double boil(Id id, Id data_id) const;
-    double boil_unc(Id id, Id data_id) const{return 1.0;}
-    std::string boil_ref(Id id, Id data_id) const {return "----";}
+    double boil_unc(Id /* id */, Id /* data_id */) const{return 1.0;}
+    std::string boil_ref(Id /* id */, Id /* data_id */) const {return "----";}
 
     // mole percents
     const Vec_Mole& mole_percent(Id id, Id data_id) const;

@@ -172,7 +172,7 @@ Data_Store::View R_Kister_Data_Store::setView( const Vec_Name& names, const Vec_
 /*!
  * \brief returns the names of the compound currently being investigated
  */
-Vec_Name R_Kister_Data_Store::names(Id id) const
+Vec_Name R_Kister_Data_Store::names(Id /* id */) const
 {
     Vec_Name comp_names;
     return comp_names;
@@ -182,7 +182,7 @@ Vec_Name R_Kister_Data_Store::names(Id id) const
 /*!
  * \brief retrieve the heat capacity for the selected compound based on temperature
  */
-double R_Kister_Data_Store::cp( Id id, Id data_id, double temperature, double pressure) const
+double R_Kister_Data_Store::cp( Id /* id */, Id /* data_id */, double temperature, double /* pressure */) const
 {
     //Ideal mixing
     double cp_ideal = 0.0;
@@ -209,7 +209,7 @@ double R_Kister_Data_Store::cp( Id id, Id data_id, double temperature, double pr
 /*!
  * \brief retrieve the heat capacity for the selected compound based on enthalpy
  */
-double R_Kister_Data_Store::cp_h(Id id, Id data_id, double enthalpy, double pressure) const
+double R_Kister_Data_Store::cp_h(Id /* id */, Id /* data_id */, double /* enthalpy */, double /* pressure */) const
 {
     //TODO waiting on enthalpy calculation flow
     double cp = 0.0;
@@ -220,7 +220,7 @@ double R_Kister_Data_Store::cp_h(Id id, Id data_id, double enthalpy, double pres
 /*!
  * \brief retrieve the viscosity for the selected compound based on temperature
  */
-double R_Kister_Data_Store::mu(Id id, Id data_id, double temperature, double pressure) const
+double R_Kister_Data_Store::mu(Id /* id */, Id /* data_id */, double temperature, double /* pressure */) const
 {
     //Ideal mixing
     double mu_ideal = 0.0;
@@ -247,7 +247,7 @@ double R_Kister_Data_Store::mu(Id id, Id data_id, double temperature, double pre
 /*!
  * \brief retrieve the viscosity for the selected compound based on enthalpy
  */
-double R_Kister_Data_Store::mu_h(Id id, Id data_id, double enthalpy, double pressure) const
+double R_Kister_Data_Store::mu_h(Id /* id */, Id /* data_id */, double /* enthalpy */, double /* pressure */) const
 {
     //TODO waiting on enthalpy calculation flow
     double cp = 0.0;
@@ -258,7 +258,7 @@ double R_Kister_Data_Store::mu_h(Id id, Id data_id, double enthalpy, double pres
 /*!
  * \brief retrieve the conductivity for the selected compound based on temperature
  */
-double R_Kister_Data_Store::k(Id id, Id data_id, double temperature, double pressure) const
+double R_Kister_Data_Store::k(Id /* id */, Id /* data_id */, double temperature, double /* pressure */) const
 {
     //Ideal mixing
     double k_ideal = 0.0;
@@ -285,7 +285,7 @@ double R_Kister_Data_Store::k(Id id, Id data_id, double temperature, double pres
 /*!
  * \brief retrieve the conductivity for the selected compound based on enthalpy
  */
-double R_Kister_Data_Store::k_h(Id id, Id data_id, double enthalpy, double pressure) const
+double R_Kister_Data_Store::k_h(Id /* id */, Id /* data_id */, double /* enthalpy */, double /* pressure */) const
 {
     //TODO waiting on enthalpy calculation flow
     double cp = 0.0;
@@ -296,7 +296,7 @@ double R_Kister_Data_Store::k_h(Id id, Id data_id, double enthalpy, double press
 /*!
  * \brief retrieve the density for the selected compound based on temperature
  */
-double R_Kister_Data_Store::rho(Id id, Id data_id, double temperature, double pressure) const
+double R_Kister_Data_Store::rho(Id /* id */, Id /* data_id */, double temperature, double /* pressure */) const
 {
     // Only one end member means that density is equal to its density
     if(end_members.size() == 1) return end_members[0].rho(temperature);
@@ -334,7 +334,7 @@ double R_Kister_Data_Store::rho(Id id, Id data_id, double temperature, double pr
 /*!
  * \brief retrieve the density for the selected compound based on enthalpy
  */
-double R_Kister_Data_Store::rho_h(Id id, Id data_id, double enthalpy, double pressure) const
+double R_Kister_Data_Store::rho_h(Id /* id */, Id /* data_id */, double /* enthalpy */, double /* pressure */) const
 {
     //Ideal mixing
     double h_ideal = 0.0;
@@ -349,7 +349,7 @@ double R_Kister_Data_Store::rho_h(Id id, Id data_id, double enthalpy, double pre
  * \brief retrieve the enthalpy for the selected compound based on temperature
  */
 // enthalpy
-double R_Kister_Data_Store::h_t(Id id, Id data_id, double temperature) const
+double R_Kister_Data_Store::h_t(Id /* id */, Id /* data_id */, double /* temperature */) const
 {
     //TODO waiting on enthalpy calculation flow
     double cp = 0.0;
@@ -360,7 +360,7 @@ double R_Kister_Data_Store::h_t(Id id, Id data_id, double temperature) const
 /*!
  * \brief retrieve the temperature for the selected compound based on enthalpy
  */
-double R_Kister_Data_Store::t_h(Id id, Id data_id, double enthalpy) const
+double R_Kister_Data_Store::t_h(Id /* id */, Id /* data_id */, double /* enthalpy */) const
 {
     //TODO waiting on enthalpy calculation flow
     double cp = 0.0;
@@ -371,7 +371,7 @@ double R_Kister_Data_Store::t_h(Id id, Id data_id, double enthalpy) const
 /*!
  * \brief retrieve the melting temperature of the selected compound
  */
-double R_Kister_Data_Store::melt(Id id, Id data_id) const
+double R_Kister_Data_Store::melt(Id /* id */, Id /* data_id */) const
 {
     //TODO I am not sure what we are doing here. Deferring until I have an answer
     double cp = 0.0;
@@ -382,7 +382,7 @@ double R_Kister_Data_Store::melt(Id id, Id data_id) const
 /*!
  * \brief retrieve the boiling temperature of the selected compound
  */
-double R_Kister_Data_Store::boil(Id id, Id data_id) const
+double R_Kister_Data_Store::boil(Id /* id */, Id /* data_id */) const
 {
     //TODO I am not sure what we are doing here. Deferring until I have an answer
     double cp = 0.0;
@@ -404,7 +404,7 @@ std::size_t R_Kister_Data_Store::constituent_count(Id id) const
 /*!
  * \brief returns the ID of the nearest matching compound composition
  */
-std::size_t R_Kister_Data_Store::nearest(Id id, const Vec_Mole& mole_percent) const
+std::size_t R_Kister_Data_Store::nearest(Id id, const Vec_Mole& /* mole_percent */) const
 {
     //TODO This doesn't actually have a meaning at all
     return id;
@@ -414,7 +414,7 @@ std::size_t R_Kister_Data_Store::nearest(Id id, const Vec_Mole& mole_percent) co
 /*!
  * \brief retrieves the molecular weight for the provided salt
  */
-double R_Kister_Data_Store::molecularWeight(Id id, Id data_id) const
+double R_Kister_Data_Store::molecularWeight(Id /* id */, Id /* data_id */) const
 {
     double molWt = 0.0;
     for(size_t i=0; i<end_members.size(); ++i)
@@ -428,7 +428,7 @@ double R_Kister_Data_Store::molecularWeight(Id id, Id data_id) const
 /*!
  * \brief retrieves the molecular weight for the provided salt
  */
-const R_Kister_Data_Store::Vec_Mole& R_Kister_Data_Store::mole_percent(Id id, Id data_id) const
+const R_Kister_Data_Store::Vec_Mole& R_Kister_Data_Store::mole_percent(Id /* id */, Id /* data_id */) const
 {
     return endMem_moleFracs;
 }
@@ -466,7 +466,7 @@ double R_Kister_Data_Store::RK_Polynomial::getRK_solution(double x, double y, do
 /*!
  * \brief returns whether or not the selected data is valid
  */
-bool R_Kister_Data_Store::valid_rho(Id id, Id data_id) const
+bool R_Kister_Data_Store::valid_rho(Id /* id */, Id /* data_id */) const
 {
   return (std::all_of(end_members.begin(),end_members.end(),[]
           (Data_Store::View v){return v.valid_rho();}));
@@ -475,7 +475,7 @@ bool R_Kister_Data_Store::valid_rho(Id id, Id data_id) const
 /*!
  * \brief returns whether or not the selected data is valid
  */
-bool R_Kister_Data_Store::valid_mu(Id id, Id data_id) const
+bool R_Kister_Data_Store::valid_mu(Id /* id */, Id /* data_id */) const
 {
   return (std::all_of(end_members.begin(),end_members.end(),[]
           (Data_Store::View v){return v.valid_mu();}));
@@ -484,7 +484,7 @@ bool R_Kister_Data_Store::valid_mu(Id id, Id data_id) const
 /*!
  * \brief returns whether or not the selected data is valid
  */
-bool R_Kister_Data_Store::valid_k(Id id, Id data_id) const
+bool R_Kister_Data_Store::valid_k(Id /* id */, Id /* data_id */) const
 {
   return (std::all_of(end_members.begin(),end_members.end(),[]
           (Data_Store::View v){return v.valid_k();}));
@@ -493,7 +493,7 @@ bool R_Kister_Data_Store::valid_k(Id id, Id data_id) const
 /*!
  * \brief returns whether or not the selected data is valid
  */
-bool R_Kister_Data_Store::valid_cp(Id id, Id data_id) const
+bool R_Kister_Data_Store::valid_cp(Id /* id */, Id /* data_id */) const
 {
   return (std::all_of(end_members.begin(),end_members.end(),[]
           (Data_Store::View v){return v.valid_cp();}));
@@ -502,7 +502,7 @@ bool R_Kister_Data_Store::valid_cp(Id id, Id data_id) const
 /*!
  * \brief retrieve the conductivity experimental range for the selected compound
  */
-std::pair<double,double> R_Kister_Data_Store::rho_rng(Id id, Id data_id) const
+std::pair<double,double> R_Kister_Data_Store::rho_rng(Id /* id */, Id /* data_id */) const
 {
        return {0.0,0.0};
 }
@@ -510,7 +510,7 @@ std::pair<double,double> R_Kister_Data_Store::rho_rng(Id id, Id data_id) const
 /*!
  * \brief retrieve the conductivity experimental range for the selected compound
  */
-std::pair<double,double> R_Kister_Data_Store::k_rng(Id id, Id data_id) const
+std::pair<double,double> R_Kister_Data_Store::k_rng(Id /* id */, Id /* data_id */) const
 {
        return {0.0,0.0};
 }
@@ -518,7 +518,7 @@ std::pair<double,double> R_Kister_Data_Store::k_rng(Id id, Id data_id) const
 /*!
  * \brief retrieve the viscosity experimental range for the selected compound
  */
-std::pair<double,double> R_Kister_Data_Store::mu_rng(Id id, Id data_id) const
+std::pair<double,double> R_Kister_Data_Store::mu_rng(Id /* id */, Id /* data_id */) const
 {
        return {0.0,0.0};
 }
@@ -526,7 +526,7 @@ std::pair<double,double> R_Kister_Data_Store::mu_rng(Id id, Id data_id) const
 /*!
  * \brief retrieve the heat capacity experimental range for the selected compound
  */
-std::pair<double,double> R_Kister_Data_Store::cp_rng(Id id, Id data_id) const
+std::pair<double,double> R_Kister_Data_Store::cp_rng(Id /* id */, Id /* data_id */) const
 {
        return {0.0,0.0};
 }
@@ -563,7 +563,7 @@ Vec_Name R_Kister_Data_Store::getSaltKeys() const
   return keys;
 }
 
-std::vector<std::vector<double>> R_Kister_Data_Store::getSaltComps(Vec_Name names) const
+std::vector<std::vector<double>> R_Kister_Data_Store::getSaltComps(Vec_Name /* names */) const
 {
   //TODO
   std::vector<std::vector<double>> keys;
