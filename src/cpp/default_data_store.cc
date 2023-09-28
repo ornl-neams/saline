@@ -326,14 +326,14 @@ bool Default_Data_Store::valid_cp(Id id, Id data_id) const
 /*!
  * \brief retrieve the heat capacity for the selected compound based on temperature
  */
-double Default_Data_Store::cp(Id id, Id data_id, double t, double p) const
+double Default_Data_Store::cp(Id id, Id data_id, double t, double /* p */) const
 {
     const auto& d = compounds[id].data[data_id];
 
     // cp(t) = a + b * T + c * T^-2 + d * T^2
     return d.cp(t);
 }
-double Default_Data_Store::cp_h(Id id, Id data_id, double enthalpy, double p) const
+double Default_Data_Store::cp_h(Id id, Id data_id, double enthalpy, double /* p */) const
 {
     const auto& d = compounds[id].data[data_id];
     return d.cp_h(enthalpy);
@@ -373,12 +373,12 @@ std::string Default_Data_Store::cp_ref(Id id, Id data_id) const
 /*!
  * \brief retrieve the viscosity for the selected compound based on temperature
  */
-double Default_Data_Store::mu(Id id, Id data_id, double t, double p) const
+double Default_Data_Store::mu(Id id, Id data_id, double t, double /* p */) const
 {
     const auto& d = compounds[id].data[data_id];
     return d.mu(t);
 }
-double Default_Data_Store::mu_h(Id id, Id data_id, double enthalpy, double p) const
+double Default_Data_Store::mu_h(Id id, Id data_id, double enthalpy, double /* p */) const
 {
     const auto& d = compounds[id].data[data_id];
     return d.mu_h(enthalpy);
@@ -418,13 +418,13 @@ std::string Default_Data_Store::mu_ref(Id id, Id data_id) const
 /*!
  * \brief retrieve the conductivity for the selected compound based on temperature
  */
-double Default_Data_Store::k(Id id, Id data_id, double t, double p) const
+double Default_Data_Store::k(Id id, Id data_id, double t, double /* p */) const
 {
        const auto& d = compounds[id].data[data_id];
        // k(t) = a + b * t
        return d.k(t);
 }
-double Default_Data_Store::k_h(Id id, Id data_id, double enthalpy, double p) const
+double Default_Data_Store::k_h(Id id, Id data_id, double enthalpy, double /* p */) const
 {
     const auto& d = compounds[id].data[data_id];
     return d.k_h(enthalpy);
@@ -466,12 +466,12 @@ std::string Default_Data_Store::k_ref(Id id, Id data_id) const
 /*!
  * \brief retrieve the density for the selected compound based on temperature
  */
-double Default_Data_Store::rho(Id id, Id data_id, double t, double p) const
+double Default_Data_Store::rho(Id id, Id data_id, double t, double /* p */) const
 {
     const auto& d = compounds[id].data[data_id];
     return d.rho(t);
 }
-double Default_Data_Store::rho_h(Id id, Id data_id, double enthalpy, double p) const
+double Default_Data_Store::rho_h(Id id, Id data_id, double enthalpy, double /* p */) const
 {
     const auto& d = compounds[id].data[data_id];
     return d.rho_h(enthalpy);
