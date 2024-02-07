@@ -42,8 +42,16 @@ void R_Kister_Data_Store::load(const std::string& rkfPath, const std::string& df
     //Set up a default data store
     d = Default_Data_Store();
     std::ifstream inFile(dfPath.data());
+    if(!inFile.is_open())
+    {
+        throw std::runtime_error("Falied to open input data file.");
+    }
 
     std::ifstream rkinFile(rkfPath.data());
+    if(!rkinFile.is_open())
+    {
+        throw std::runtime_error("Falied to open input RK data file.");
+    }
     load(rkinFile,inFile);
 
 }
@@ -69,13 +77,8 @@ void R_Kister_Data_Store::load(std::istream& rkinFile,std::istream& inFile)
 
     // Jaunt through lines until we find the Redlich-Kister parameters
     std::string line;
-    while( std::getline(rkinFile,line) )
-    {
-        if( line.find("RK parameters") != std::string::npos ) break;
-    }
-    // Its possible we could have a bum input. That should break here.
-
     // this is  a comment line
+    std::getline(rkinFile,line);
     std::getline(rkinFile,line);
 
     // Read the input data. TODO currently only uses density

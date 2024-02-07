@@ -27,8 +27,7 @@ LiF-BeF2-ThF4 , 11 , 71.4958  , 0.6998-0.1499-0.1503 , 816.60  , 0.00   , Cantor
 LiF-BeF2-ThF4 , 12 , 61.9697  , 0.727-0.157-0.116    , 826.20  , 0.00   , Cantor1973  , 0.0     , 0.0    , ----           , 0.0       , 0.0       , 0.0-0.0       , 0.0    , ----          , 1.094E-01 , 3.402E+04 , 0.000E+00  , 0.000E+00  , 0.000E+00 , 826-946       , 15.00  , Cantor1973   , 0.000E+00  , 0.000E+00  , 0.0-0.0      , 0.0    , ----        , 0.000E+00 , 0.000E+00  , 0.000E+00  , 0.000E+00 , 0.0    , ----
 )ORNL_format";
 
-static const char* tst_data_rk = R"ORNL_format(
-//RK parameters
+static const char* tst_data_rk = R"ORNL_format(//
 //C 1 , C 2     , A1            , B1            , A2            , B2            , A3           , B3           , T min        , T max        , Reference
 KF    , LiF     , -5.383100E-03 , -4.142700E-05 , +0.000000E+00 , +0.000000E+00 , 0.000000E+00 , 0.000000E+00 , 1.006150E+03 , 1.314150E+03 , 'Taniuchi, K.; Kanai, T. Density of Binary Molten Salts of Lithium Fluoride-Potassium Fluoride and Lithium Fluoride-Calcium Fluoride Systems. Denki Kagaku oyobi Kogyo Butsuri Kagaku 1977, 45 (6), 401-404. https://doi.org/10.5796/kogyobutsurikagaku.45.401'
 KF    , NaF     , -3.747500E-01 , +2.354000E-04 , +0.000000E+00 , +0.000000E+00 , 0.000000E+00 , 0.000000E+00 , 1.050000E+03 , 1.350000E+03 , 'Porter, B., and Meaker, R. E., United States Department of the Interior, Report of Investigations 6838, 1966.'
@@ -115,5 +114,42 @@ TEST(rk_data_store,input_order)
     ASSERT_FALSE(tp_rk.valid_k());
     ASSERT_FALSE(tp_rk.valid_cp());
     ASSERT_FALSE(tp_rk.valid_mu());
+}
 
+TEST(rk_data_store,full_load)
+{
+    // Set up the interpolation object
+    R_Kister_Data_Store rk_DS; rk_DS.load("/home/oxh/dev/mstdb-tp/Molten_Salt_Thermophysical_Properties_RK.csv","/home/oxh/dev/mstdb-tp/Molten_Salt_Thermophysical_Properties.csv");
+    Thermophysical_Properties tp_rk;
+    ASSERT_TRUE(tp_rk.initialize(&rk_DS));
+
+    std::vector<double> tks           = {1080,1130,1180,1230};
+    tp_rk.setComposition({"LiF","NaF","KF"},{0.465,0.115,0.42});
+    std::vector<double> ref(tks.size());
+    for( size_t i = 0; i < tks.size(); ++i)
+    {
+        double t_k = tks[i];
+        ref[i] = tp_rk.rho(t_k);
+    }
+
+    tp_rk.setComposition({"NaF","LiF","KF"},{0.115,0.465,0.42});
+    for( size_t i = 0; i < tks.size(); ++i)
+    {
+        double t_k = tks[i];
+        EXPECT_NEAR(tp_rk.rho(t_k),ref[i],1e-6);
+    }
+
+    tp_rk.setComposition({"KF","NaF","LiF"},{0.42,0.115,0.465});
+    for( size_t i = 0; i < tks.size(); ++i)
+    {
+        double t_k = tks[i];
+        EXPECT_NEAR(tp_rk.rho(t_k),ref[i],1e-6);
+    }
+
+    // Set an incomplete data sets to test validity functions
+    tp_rk.setComposition({"LiF","UF3","ZrF4"},{0.80,0.07,0.13});
+    ASSERT_FALSE(tp_rk.valid_rho());
+    ASSERT_FALSE(tp_rk.valid_k());
+    ASSERT_FALSE(tp_rk.valid_cp());
+    ASSERT_FALSE(tp_rk.valid_mu());
 }

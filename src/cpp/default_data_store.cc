@@ -40,7 +40,12 @@ Default_Data_Store::Default_Data_Store()
 void Default_Data_Store::load(const std::string& fPath)
 {
     std::ifstream inFile(fPath.data());
-    load(inFile);
+    if(inFile.is_open())
+    {
+        load(inFile);
+    }else{
+        throw std::runtime_error("Falied to open input file");
+    }
 }
 
 //---------------------------------------------------------------------------//
