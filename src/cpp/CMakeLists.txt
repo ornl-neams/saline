@@ -42,9 +42,8 @@ target_sources(saline-cpp
     thermophysical_properties.cc
 )
 target_include_directories(saline-cpp
-  PRIVATE
-    "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
   PUBLIC
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
     "$<BUILD_INTERFACE:${saline_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:/${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}>"
 )
