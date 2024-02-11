@@ -100,7 +100,7 @@ contains
     
     ! Load the default property set 
     call rk_data%initialize()
-    call rk_data%load("tst_RKData","tstData.csv")
+    call rk_data%load("tstRKData.csv","tstData.csv")
     
     ! Initialize properties instance
     call tp%initialize()
@@ -121,8 +121,7 @@ contains
       print *,"Failure to set composition!"
       stop 1
     endif
-    
-    if ( tp%rho(850.0_8, 101.0_8) /= 2.0602950288688766_8 ) then
+    if ( tp%rho(850.0_8, 101.0_8) /= 2.0406762757251267_8 ) then
       write(*,*) tp%rho(850.0_8,101.0_8)
       print *,"Failed to equate values!"
       stop 2

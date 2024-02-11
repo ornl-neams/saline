@@ -42,15 +42,13 @@ target_sources(saline-cpp
     thermophysical_properties.cc
 )
 target_include_directories(saline-cpp
+  PRIVATE
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
   PUBLIC
     "$<BUILD_INTERFACE:${saline_SOURCE_DIR}/include>"
-    "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
-    "$<INSTALL_INTERFACE:/include/saline-${saline_VERSION}>"
+    "$<INSTALL_INTERFACE:/${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}>"
 )
-set_target_properties(saline-cpp
-  PROPERTIES
-    POSITION_INDEPENDENT_CODE TRUE
-)
+set_target_properties(saline-cpp PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
 
 # Handling symbol visibility
 include(GenerateExportHeader)

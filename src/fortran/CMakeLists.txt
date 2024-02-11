@@ -37,18 +37,15 @@ target_sources(ForSaline
 )
 target_include_directories(ForSaline PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
-  "$<INSTALL_INTERFACE:${INSTALL_PREFIX}/include/saline-${saline_VERSION}/fortran>"
+  "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}/fortran>"
 )
-set_target_properties(ForSaline
-  PROPERTIES
-    POSITION_INDEPENDENT_CODE TRUE
-)
+set_target_properties(ForSaline PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
 target_link_libraries(ForSaline saline-cpp)
 
 # Install the Fortran module file to limit the work required of users
 include(GNUInstallDirs)
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/"
-  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/saline-${saline_VERSION}/fortran"
+  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}/fortran"
   FILES_MATCHING PATTERN "*.f90"
   PATTERN "tests" EXCLUDE
   PATTERN "cix" EXCLUDE

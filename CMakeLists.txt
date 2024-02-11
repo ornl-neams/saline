@@ -4,8 +4,11 @@
 #             Molten Salt Thermophysical Properties Interpolation              #
 ################################################################################
 cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
+
+#First pass automated version increment
+string(TIMESTAMP t %Y.%m.%d UTC)
 project(saline
-  VERSION 0.0.1
+  VERSION ${t}
   DESCRIPTION "MSTDB-TP API"
   LANGUAGES CXX
 )
@@ -18,15 +21,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_subdirectory(src)
 
 # Testing is enabled unless explicitly turned off
-if (NOT DEFINED saline_ENABLE_tests )
-  set(saline_ENABLE_tests ON)
+if (NOT DEFINED ${PROJECT_NAME}_ENABLE_tests )
+  set(${PROJECT_NAME}_ENABLE_tests ON)
 endif()
-if (saline_ENABLE_tests )
+if (${PROJECT_NAME}_ENABLE_tests )
   include(CTest)
   add_subdirectory(tests)
 endif()
 
 # Incorporate GitLab CI Traceability 
 if(DEFINED ENV{CI_PROJECT_URL})
-    message(STATUS "GitLab CI Job Info:  $ENV{CI_PROJECT_URL}/-/jobs/$ENV{CI_JOB_ID}")
+  message(STATUS "GitLab CI Job Info:  $ENV{CI_PROJECT_URL}/-/jobs/$ENV{CI_JOB_ID}")
 endif()

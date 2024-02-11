@@ -1,31 +1,119 @@
+workflow:
+  rules:
+    - if: $CI_MERGE_REQUEST_IID
+    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+
 stages:
-- test
+  - build
+  - deploy
 
-before_script:
-  - if [[ -f "/data/test_gcc/gcc-8.3.0/load_dev_env.sh" ]]; then BASE_DIR="/data/gitlab-runner"; . /data/test_gcc/gcc-8.3.0/load_dev_env.sh; ENV_BASE=/data/test_gcc/gcc-8.3.0; else BASE_DIR="/localhome/gitlab-runner"; . /projects/vera/gcc-8.3.0/load_dev_env.sh; ENV_BASE=/projects/vera/gcc-8.3.0; fi
-  - which gcc
+#Primarily concerned with setting up micromamba for the appropriate platforms
+#All the build requirements excepting some compiler magic is there
+.bash_before: &bash_before
+  - export MAMBA_ROOT_PREFIX="$CI_PROJECT_DIR/../tools/micromamba"
+  - source ./ci/setup_mamba.sh
+  - micromamba activate saline_build
 
-.stage_artifacts: &stage_artifacts
+.powershell_before: &powershell_before
+  - $env:MAMBA_ROOT_PREFIX="$CI_PROJECT_DIR/../tools/micromamba"
+  - . $CI_PROJECT_DIR/ci/setup_mamba.ps1
+  - micromamba activate saline_build
+
+build_macos:
+  stage: build
+  rules:
+    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+      when: manual
+    - when: always
+  allow_failure: true
+  tags:
+    - macOS
+  before_script:
+    - *bash_before
+  script:
+    - cmake -S $CI_PROJECT_DIR -B "$CI_PROJECT_DIR/build" -DCMAKE_BUILD_TYPE=RELEASE
+      -Dsaline_ENABLE_Fortran=ON -DCMAKE_Fortran_FLAGS:STRING="-ffree-line-length-none"
+      -Dsaline_ENABLE_Python=ON
+    - cmake --build "$CI_PROJECT_DIR/build"
+    - ctest --test-dir "$CI_PROJECT_DIR/build"
   artifacts:
+    name: mac_wheel
+    expire_in: 1 week
     paths:
-      - build/
-      - TriBITS/
-      - googletest/
-      - testframework/
-    expire_in: 1 day
+      - build/src/python/dist/*.whl
 
-linux_gcc83_testing:
-  stage: test
+build_windows:
+  stage: build
+  allow_failure: true
+  rules:
+    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+      when: manual
+    - when: always
+  tags:
+    - windows
+  before_script:
+    - *powershell_before
+  script:
+    - cmake
+      -S $CI_PROJECT_DIR
+      -B "$CI_PROJECT_DIR/build"
+      -Dsaline_ENABLE_Fortran=OFF
+      -Dsaline_ENABLE_Python=ON
+      -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE
+    - cmake --build $BLD_DIR --target ALL_BUILD --config RELEASE
+    - ctest --build-config RELEASE --test-dir $BLD_DIR
+  artifacts:
+    name: windows_wheel
+    expire_in: 1 week
+    paths:
+      - build/$CI_COMMIT_SHORT_SHA/src/python/dist/*.whl
+
+build_linux:
+  stage: build
+  rules:
+    - when: always
   tags:
     - linux
     - gcc
+    - mamba
+  before_script:
+    - *bash_before
   script:
-    - SRC_DIR=`pwd`
-    - BLD_DIR="/tmp/$CI_PIPELINE_ID/$BLD_NAME"
-    - mkdir -p $BLD_DIR
-    - cd $BLD_DIR
-    - rm -rf *
-    - echo $PATH
-    - which gcc
-    - echo "$PATH"
-    - $SRC_DIR/ci/linux_gcc83_test.sh $SRC_DIR
+    - cmake -S $CI_PROJECT_DIR -B "$CI_PROJECT_DIR/build" -DCMAKE_BUILD_TYPE=RELEASE
+      -Dsaline_ENABLE_Fortran=ON -DCMAKE_Fortran_FLAGS:STRING="-ffree-line-length-none"
+      -Dsaline_ENABLE_Python=ON
+    - cmake --build "$CI_PROJECT_DIR/build"
+    - ctest --test-dir "$CI_PROJECT_DIR/build"
+  artifacts:
+    name: linux_wheel
+    expire_in: 1 week
+    paths:
+      - build/src/python/dist/*.whl
+
+deploy_staging:
+  stage: deploy
+  tags:
+    - linux
+    - gcc
+    - mamba
+  rules:
+    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+      when: never
+    - when: manual
+  needs:
+    - build_linux
+    - build_macos
+    - build_windows
+  before_script:
+    - *bash_before
+  script:
+      #This is probably not the most ergonomic way...
+    - NIX_WHL_FILE=`find $CI_PROJECT_DIR/build -name '*linux*'`
+    - WIN_WHL_FILE=`find $CI_PROJECT_DIR/build -name '*win*'`
+    - MAC_WHL_FILE=`find $CI_PROJECT_DIR/build -name '*mac*'`
+    - TWINE_USERNAME=${CODE_DEPLOY} TWINE_PASSWORD=${CODE_DEPLOY_TOKEN} python -m twine upload --repository-url https://code.ornl.gov/api/v4/projects/NEAMS%2Fsaline/packages/pypi $NIX_WHL_FILE
+    - TWINE_USERNAME=${CODE_DEPLOY} TWINE_PASSWORD=${CODE_DEPLOY_TOKEN} python -m twine upload --repository-url https://code.ornl.gov/api/v4/projects/NEAMS%2Fsaline/packages/pypi $WIN_WHL_FILE
+    - TWINE_USERNAME=${CODE_DEPLOY} TWINE_PASSWORD=${CODE_DEPLOY_TOKEN} python -m twine upload --repository-url https://code.ornl.gov/api/v4/projects/NEAMS%2Fsaline/packages/pypi $MAC_WHL_FILE
