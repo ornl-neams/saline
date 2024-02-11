@@ -59,12 +59,16 @@ build_windows:
   script:
     - cmake
       -S $CI_PROJECT_DIR
-      -B "$CI_PROJECT_DIR/build"
+      -B build
       -Dsaline_ENABLE_Fortran=OFF
       -Dsaline_ENABLE_Python=ON
       -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE
-    - cmake --build $BLD_DIR --target ALL_BUILD --config RELEASE
-    - ctest --build-config RELEASE --test-dir $BLD_DIR
+    - cmake --build build --target ALL_BUILD --config RELEASE
+    - ctest --build-config RELEASE --test-dir build
+    - cmake --install build --prefix install
+    - cd install
+    - tar -czvf . windows_x86.tar.gz
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file windows_x86.tar.gz "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/my_package/0.0.1/windows_x86.tar.gz"'
   artifacts:
     name: windows_wheel
     expire_in: 1 week
