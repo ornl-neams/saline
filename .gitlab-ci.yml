@@ -66,8 +66,7 @@ build_windows:
     - cmake --build build --target ALL_BUILD --config RELEASE
     - ctest --build-config RELEASE --test-dir build
     - cmake --install build --prefix install
-    - cd install
-    - tar -czvf . windows_x86.tar.gz
+    - tar -czvf ./install windows_x86.tar.gz
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file windows_x86.tar.gz "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/my_package/0.0.1/windows_x86.tar.gz"'
   artifacts:
     name: windows_wheel
