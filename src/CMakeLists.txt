@@ -5,9 +5,17 @@
 ################################################################################
 message("Configuring Saline library")
 
-
-add_library(saline SHARED)
-set_target_properties(saline PROPERTIES
+add_library(${PROJECT_NAME} SHARED)
+set(public_headers
+    ${saline_SOURCE_DIR}/include/utils.hh
+    ${saline_SOURCE_DIR}/include/data_store.hh
+    ${saline_SOURCE_DIR}/include/default_data_store.hh
+    ${saline_SOURCE_DIR}/include/r_kister_data_store.hh
+    ${saline_SOURCE_DIR}/include/thermophysical_properties.hh
+    )
+set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE TRUE
+  PUBLIC_HEADER
+  "${public_headers}"
   SOVERSION
     ${saline_VERSION_MAJOR}
   VERSION
@@ -15,71 +23,57 @@ set_target_properties(saline PROPERTIES
 )
 # The Core Saline library
 add_subdirectory(cpp)
-target_sources(saline PRIVATE
+target_sources(${PROJECT_NAME} PRIVATE
   "$<TARGET_OBJECTS:saline-cpp>"
 )
 
 # The Fortran wrapper, this is linked into the main library when configured
-if (NOT DEFINED saline_ENABLE_Fortran )
-  set(saline_ENABLE_Fortran OFF)
+if (NOT DEFINED ${PROJECT_NAME}_ENABLE_Fortran )
+  set(${PROJECT_NAME}_ENABLE_Fortran OFF)
 endif()
-if( saline_ENABLE_Fortran )
+if( ${PROJECT_NAME}_ENABLE_Fortran )
   add_subdirectory(fortran)
-  target_sources(saline PRIVATE
-    "$<TARGET_OBJECTS:ForSaline>"
-)
+  target_sources(${PROJECT_NAME} PRIVATE "$<TARGET_OBJECTS:ForSaline>")
 endif()
 
 # The Python wrapper, this is currently a separate library due to python conventions
-if (NOT DEFINED saline_ENABLE_Python )
-  set(saline_ENABLE_Python OFF)
+if (NOT DEFINED ${PROJECT_NAME}_ENABLE_Python )
+  set(${PROJECT_NAME}_ENABLE_Python OFF)
 endif()
-if( saline_ENABLE_Python )
+if( ${PROJECT_NAME}_ENABLE_Python )
   add_subdirectory(python)
 endif()
 
-# Install the librarty
+# Install the library
 include(GNUInstallDirs)
-set(saline_INSTALL_CMAKEDIR
-  ${CMAKE_INSTALL_LIBDIR}/cmake/saline
-  CACHE STRING "Path to saline cmake files"
+
+install(TARGETS ${PROJECT_NAME}
+  EXPORT ${PROJECT_NAME}Targets
+  PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}
+  INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  )
+install(EXPORT ${PROJECT_NAME}Targets
+  FILE "${PROJECT_NAME}Targets.cmake"
+  NAMESPACE ${PROJECT_NAME}::
+  DESTINATION cmake
 )
 
-configure_file(
-  ${saline_SOURCE_DIR}/pkg/saline-config.cmake.in
-  ${CMAKE_CURRENT_BINARY_DIR}/saline-config.cmake @ONLY
-)
-configure_file(
-   ${saline_SOURCE_DIR}/saline-config-version.cmake.in
-   ${CMAKE_CURRENT_BINARY_DIR}/saline-config-version.cmake @ONLY
-)
-install(
-  FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/saline-config.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/saline-config-version.cmake
-  DESTINATION ${saline_INSTALL_CMAKEDIR}
-)
+include(CMakePackageConfigHelpers)
 
-install(
-  DIRECTORY ${PROJECT_SOURCE_DIR}/include/
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/saline-${saline_VERSION})
-
-install(TARGETS saline
-  EXPORT
-    saline_target
-  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    COMPONENT saline_Runtime
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    COMPONENT saline_Runtime
-    NAMELINK_COMPONENT saline_Development
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    COMPONENT saline_Development
-  INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/saline-${saline_VERSION}
-    COMPONENT saline_Development
+# generate the version file for the config file
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+    VERSION "${version}"
+    COMPATIBILITY AnyNewerVersion
 )
-install(EXPORT saline_target
-  DESTINATION ${saline_INSTALL_CMAKEDIR}
-  NAMESPACE ON::
-  FILE saline-Targets.cmake
-  COMPONENT saline_Development
+# create config file
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+    INSTALL_DESTINATION cmake
+)
+# install config files
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+    DESTINATION cmake
 )
