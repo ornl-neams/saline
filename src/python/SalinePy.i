@@ -1,3 +1,6 @@
+%begin %{
+#define Py_LIMITED_API 0x03080000
+%}
 %module SalinePy
 %include std_string.i
 %include std_vector.i

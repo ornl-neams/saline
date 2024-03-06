@@ -80,7 +80,7 @@ class Default_Data_Store : public Data_Store
     // specific heat
     double cp(Id id, Id data_id, double temperature, double pressure = 101.325) const;
     double cp_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const;
-    bool valid_cp(Id id, Id data_id) const;
+    virtual bool valid_cp(Id id, Id data_id) const;
     double cp_unc(Id id, Id data_id) const;
     std::pair<double,double> cp_rng(Id id, Id data_id) const;
     std::string cp_ref(Id id, Id data_id) const;
@@ -88,7 +88,7 @@ class Default_Data_Store : public Data_Store
     // viscosity
     double mu(Id id, Id data_id, double temperature, double pressure = 101.325) const;
     double mu_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const;
-    bool valid_mu(Id id, Id data_id) const;
+    virtual bool valid_mu(Id id, Id data_id) const;
     double mu_unc(Id id, Id data_id) const;
     std::pair<double,double> mu_rng(Id id, Id data_id) const;
     std::string mu_ref(Id id, Id data_id) const;
@@ -96,7 +96,7 @@ class Default_Data_Store : public Data_Store
     // conductivity
     double k(Id id, Id data_id, double temperature, double pressure = 101.325) const;
     double k_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const;
-    bool valid_k(Id id, Id data_id) const;
+    virtual bool valid_k(Id id, Id data_id) const;
     double k_unc(Id id, Id data_id) const;
     std::pair<double,double> k_rng(Id id, Id data_id) const;
     std::string k_ref(Id id, Id data_id) const;
@@ -104,7 +104,7 @@ class Default_Data_Store : public Data_Store
     // density
     double rho(Id id, Id data_id, double temperature, double pressure = 101.325) const;
     double rho_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const;
-    bool valid_rho(Id id, Id data_id) const;
+    virtual bool valid_rho(Id id, Id data_id) const;
     double rho_unc(Id id, Id data_id) const;
     std::pair<double,double> rho_rng(Id id, Id data_id) const;
     std::string rho_ref(Id id, Id data_id) const;

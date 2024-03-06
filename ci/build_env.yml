@@ -1,0 +1,12 @@
+name: saline_build
+channels:
+  - conda-forge
+dependencies:
+  - cmake
+  - cxx-compiler
+  - fortran-compiler
+  - python=3.8
+  - build
+  - swig
+  - setuptools
+  - twine

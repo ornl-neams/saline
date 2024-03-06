@@ -42,8 +42,16 @@ void R_Kister_Data_Store::load(const std::string& rkfPath, const std::string& df
     //Set up a default data store
     d = Default_Data_Store();
     std::ifstream inFile(dfPath.data());
+    if(!inFile.is_open())
+    {
+        throw std::runtime_error("Falied to open input data file.");
+    }
 
     std::ifstream rkinFile(rkfPath.data());
+    if(!rkinFile.is_open())
+    {
+        throw std::runtime_error("Falied to open input RK data file.");
+    }
     load(rkinFile,inFile);
 
 }
@@ -69,13 +77,8 @@ void R_Kister_Data_Store::load(std::istream& rkinFile,std::istream& inFile)
 
     // Jaunt through lines until we find the Redlich-Kister parameters
     std::string line;
-    while( std::getline(rkinFile,line) )
-    {
-        if( line.find("RK parameters") != std::string::npos ) break;
-    }
-    // Its possible we could have a bum input. That should break here.
-
     // this is  a comment line
+    std::getline(rkinFile,line);
     std::getline(rkinFile,line);
 
     // Read the input data. TODO currently only uses density
@@ -145,9 +148,10 @@ Data_Store::View R_Kister_Data_Store::setView( const Vec_Name& names, const Vec_
       {
         end_members.resize(1);
         endMem_moleFracs = {1.0};
+        end_members[0] = d.setView(names,mole_percents);
+        v = end_members[0];
+        return v;
       }
-      end_members[0] = d.setView(names,mole_percents);
-      v = end_members[0];
     }
 
     end_members.resize(names.size());
@@ -157,7 +161,7 @@ Data_Store::View R_Kister_Data_Store::setView( const Vec_Name& names, const Vec_
     for(size_t i=0; i<names.size(); ++i)
     {
       auto iname = names[i];
-        if (valid(iname)) end_members[i] = (d.setView({names[i]},{1.0}));
+        if (d.valid(iname)) end_members[i] = (d.setView({names[i]},{1.0}));
     }
 
     if(std::all_of(end_members.begin(),end_members.end(),[]

@@ -10,7 +10,7 @@ message("Configuring Saline libary tests")
 include(FetchContent)
 FetchContent_Declare(
   googletest
-  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_REPOSITORY https://code.ornl.gov/scale/code/external/googletest.git
   GIT_TAG release-1.12.1
 )
 # For Windows: Prevent overriding the parent project's compiler/linker settings
@@ -41,6 +41,13 @@ gtest_discover_tests(tstdefault_data_store DISCOVERY_MODE PRE_TEST)
 add_executable(tstrk_data_store tstrk_data_store.cc)
 target_link_libraries(tstrk_data_store saline-cpp GTest::gtest_main)
 gtest_discover_tests(tstrk_data_store DISCOVERY_MODE PRE_TEST)
+
+if( saline_ENABLE_Python )
+  find_package(Python COMPONENTS Interpreter)
+  configure_file(tstSalinePython.py ${CMAKE_CURRENT_BINARY_DIR}/tstSalinePython.py COPYONLY)
+  add_test(NAME tstSalinePython COMMAND ${Python_EXECUTABLE} -m unittest tstSalinePython.py
+    )
+endif()
 
 # Fortran wrapper tests
 if( saline_ENABLE_Fortran )
