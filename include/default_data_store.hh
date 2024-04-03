@@ -184,7 +184,7 @@ class Default_Data_Store : public Data_Store
         // density
         double rho(double t) const {return m_rho_a - m_rho_b * t;}
         double rho_h(double h) const {return rho(h_to_t(h));}
-        bool valid_rho() const {return (rho_a() != 0.0 && rho_b() != 0.0); }
+        bool valid_rho() const {return ((rho_a() != 0.0) || (rho_b() != 0.0)); }
         double rho_unc() const {return m_rho_unc;}
         std::string rho_ref() const {return m_rho_ref;}
 
@@ -198,8 +198,8 @@ class Default_Data_Store : public Data_Store
                                   std::pow(10.0,m_mu_a + (m_mu_b/t) + (m_mu_c/(t*t)));}
         double mu_h(double h) const {return mu(h_to_t(h));}
         bool valid_mu() const {return std::isnan(m_mu_c) ?
-                                  (mu_a() != 0.0 && mu_b() != 0.0) :
-                                  (mu_a() != 0.0 && mu_b() != 0.0 && m_mu_c != 0.0);}
+                                  (mu_a() != 0.0 ) :
+                                  ((mu_a() != 0.0) || (mu_b() != 0.0) || (m_mu_c != 0.0));}
         double mu_unc() const {return m_mu_unc;}
         std::string mu_ref() const {return m_mu_ref;}
 
@@ -211,7 +211,7 @@ class Default_Data_Store : public Data_Store
         // conductivity
         double k(double t) const  {return m_k_a + m_k_b * t;}
         double k_h(double h) const {return k(h_to_t(h));}
-        bool valid_k() const {return k_a() != 0.0; }
+        bool valid_k() const {return ((k_a() != 0.0) || (k_b() != 0.0)); }
         double k_unc() const {return m_k_unc;}
         std::string k_ref() const {return m_k_ref;}
 
@@ -223,7 +223,7 @@ class Default_Data_Store : public Data_Store
         double cp(double t) const {double t2 = t * t;
                                   return m_cp_a + m_cp_b * t + m_cp_c * 1/(t2) + m_cp_d * t2;}
         double cp_h(double h) const {return cp(h_to_t(h));}
-        bool valid_cp() const {return cp_a() != 0.0; }
+        bool valid_cp() const {return ((cp_a() != 0.0) || (cp_b() != 0.0) || (cp_c() != 0.0) || (cp_d() != 0.0)); }
         double cp_unc() const {return m_cp_unc;}
         std::string cp_ref() const {return m_cp_ref;}
 
