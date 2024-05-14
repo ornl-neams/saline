@@ -7,6 +7,6 @@ dependencies:
   - fortran-compiler
   - python=3.8
   - build
-  - swig
+  - swig=4.2.1
   - setuptools
   - twine
