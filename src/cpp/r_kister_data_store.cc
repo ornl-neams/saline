@@ -137,23 +137,6 @@ Data_Store::View R_Kister_Data_Store::setView( const Vec_Name& names, const Vec_
     // Set up a view or returning useful data
     Data_Store::View v;
 
-    // Look for the data in the default data first
-    Vec_Name tempNames = names;
-    if(d.valid(tempNames))
-    {
-      // See if the data is close enough to what is requested
-      std::vector<std::pair<double,size_t>> test = utils::nearest_neighbor(
-          mole_percents,d.getSaltComps(names));
-      if(test[0].first < 0.01)
-      {
-        end_members.resize(1);
-        endMem_moleFracs = {1.0};
-        end_members[0] = d.setView(names,mole_percents);
-        v = end_members[0];
-        return v;
-      }
-    }
-
     end_members.resize(names.size());
     endMem_moleFracs = mole_percents;
 
