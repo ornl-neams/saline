@@ -119,7 +119,7 @@ TEST(rk_data_store,input_order)
     ASSERT_TRUE(tp_rk.valid_mu());
     ASSERT_TRUE(tp_rk.setComposition({"KCl","NaCl"},{0.1523,0.8477}));
     ASSERT_TRUE(tp_rk.valid_rho());
-    ASSERT_FALSE(tp_rk.valid_k());
-    ASSERT_FALSE(tp_rk.valid_cp());
+    ASSERT_TRUE(tp_rk.valid_k());
+    ASSERT_TRUE(tp_rk.valid_cp());
     ASSERT_TRUE(tp_rk.valid_mu());
 }

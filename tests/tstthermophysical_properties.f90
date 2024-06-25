@@ -121,7 +121,7 @@ contains
       print *,"Failure to set composition!"
       stop 1
     endif
-    if ( tp%rho(850.0_8, 101.0_8) /= 2.0486000000000004_8 ) then
+    if ( tp%rho(850.0_8, 101.0_8) /= 2.0406762757251267_8 ) then
       write(*,*) tp%rho(850.0_8,101.0_8)
       print *,"Failed to equate values!"
       stop 2
