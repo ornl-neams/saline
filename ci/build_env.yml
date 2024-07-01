@@ -1,11 +1,9 @@
-name: saline_build
+name: saline_39
 channels:
   - conda-forge
 dependencies:
-  - cmake
-  - cxx-compiler
-  - fortran-compiler
-  - python=3.8
+  - cmake=3.23
+  - python=3.9
   - build
   - swig=4.2.1
   - setuptools

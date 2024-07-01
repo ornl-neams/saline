@@ -15,7 +15,7 @@ if ( !(Test-Path $CI_PROJECT_DIR/tools/micromamba.exe -PathType Leaf) )
 }
 
 Invoke-Expression "$CI_PROJECT_DIR\tools\micromamba.exe shell hook -s powershell" | Out-String | Invoke-Expression
-if (micromamba info | Select-String "saline_build" )
+if (micromamba info | Select-String "saline_39" )
 {
     echo "env already exists"
 }
