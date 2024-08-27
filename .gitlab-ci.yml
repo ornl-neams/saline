@@ -86,7 +86,6 @@ build_linux:
     - when: always
   tags:
     - linux
-    - warroom10
   before_script:
     - *bash_before
   script:
