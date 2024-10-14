@@ -9,7 +9,7 @@ if ! [ -f "$CI_PROJECT_DIR/tools/bin/micromamba" ]; then
     # TO be clear this is hardly adequate in general and only meets what I know
     # is going to happen
     if [ "$(uname)" == "Darwin" ]; then
-        curl -Lks https://micro.mamba.pm/api/micromamba/osx-64/latest | tar -xvj bin/micromamba
+        curl -Lks https://micro.mamba.pm/api/micromamba/osx-arm64/latest | tar -xvj bin/micromamba
     elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
         curl -Lks https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
     fi
@@ -20,7 +20,7 @@ fi
 eval "$($CI_PROJECT_DIR/tools/bin/micromamba shell hook --shell bash --root-prefix $MAMBA_ROOT_PREFIX)"
 
 # Ensure we have the environment built| grep -q base; then echo "base already exists"; fi
-if micromamba info --envs | grep -q saline_39; then
+if micromamba env list | grep -q saline_39; then
     echo "env already exists"
 else
     # Since it wasn't installed create the environment while we are here

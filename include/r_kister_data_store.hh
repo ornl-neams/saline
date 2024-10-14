@@ -38,8 +38,9 @@ class R_Kister_Data_Store : public Data_Store
     // >>> CONSTRUCTORS
     R_Kister_Data_Store();
 
-    void load(const std::string& rkfPath, const std::string& dfPath);
-    void load(std::istream& rkinFile,std::istream& inFile);
+    void load(const std::string& rkDens, const std::string& rkVisc, const std::string& dfPath);
+    void load(const std::string& rkDataPath, const std::string& dfPath);
+    void load(std::istream& rkRhoFile, std::istream& rkMuFile,std::istream& inFile);
     // >>> ACCESSORS
 
     // the number of entries in the data store
@@ -133,6 +134,7 @@ class R_Kister_Data_Store : public Data_Store
             // Coefficients polynomial
             std::vector<double> a_n;
             std::vector<double> b_n;
+            std::vector<double> c_n;
 
             // Bound of polynomial validity
             double t_min;
@@ -142,6 +144,7 @@ class R_Kister_Data_Store : public Data_Store
 
             //  >>> ACCESSORS
             double getRK_solution(double x, double y, double temperature);
+            double getRK_viscsolution(double x, double y, double temperature);
         };
 
         using rk_model = std::vector<std::vector<RK_Polynomial>>;

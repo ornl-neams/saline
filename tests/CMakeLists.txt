@@ -7,21 +7,25 @@ message("Configuring Saline libary tests")
 
 # Declare what googletest to use
 # TODO decide if this should only happen after running findGtest
-include(FetchContent)
-FetchContent_Declare(
-  googletest
-  GIT_REPOSITORY https://code-int.ornl.gov/rnsd/external/googletest.git
-  GIT_TAG release-1.12.1
-)
-# For Windows: Prevent overriding the parent project's compiler/linker settings
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-FetchContent_GetProperties(googletest)
-if( NOT googletest_POPULATED)
-  FetchContent_Populate(googletest)
-  #There are simpler ways, this way allows for excluding Gtest from the install
-  add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR} EXCLUDE_FROM_ALL)
+find_package(GTest)
+if(NOT ${GTest_FOUND})
+  message("Warning: Required pacakge GTest not found! Attempting to build from source")
+  include(FetchContent)
+  FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY https://code.ornl.gov/scale/code/external/googletest.git
+    GIT_TAG release-1.12.1
+  )
+  # For Windows: Prevent overriding the parent project's compiler/linker settings
+  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+  FetchContent_GetProperties(googletest)
+  if( NOT googletest_POPULATED)
+    FetchContent_Populate(googletest)
+    #There are simpler ways, this way allows for excluding Gtest from the install
+    add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR} EXCLUDE_FROM_ALL)
+  endif()
+  include(GoogleTest)
 endif()
-include(GoogleTest)
 
 # Project specific debug module
 add_executable(tstsaline_bug tstsaline_bug.cc)
