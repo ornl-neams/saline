@@ -13,16 +13,16 @@ stages:
 #Primarily concerned with setting up micromamba for the appropriate platforms
 #All the build requirements excepting some compiler magic is there
 .bash_before: &bash_before
-  - export PATH=/projects/gcc-8.3.0/toolset/gcc-8.3.0/bin:$PATH       
-  - export LD_LIBRARY_PATH=/projects/gcc-8.3.0/toolset/gcc-8.3.0/lib64
   - export MAMBA_ROOT_PREFIX="$CI_PROJECT_DIR/tools/micromamba"
   - source ./ci/setup_mamba.sh
   - micromamba activate saline_39
+  - pip install build
 
 .powershell_before: &powershell_before
   - $env:MAMBA_ROOT_PREFIX="$CI_PROJECT_DIR/tools/micromamba"
   - . $CI_PROJECT_DIR/ci/setup_mamba.ps1
   - micromamba activate saline_39
+  - pip install build
 
 build_macos:
   stage: build
@@ -37,9 +37,10 @@ build_macos:
     - *bash_before
   script:
     - pip install delocate
+    - echo $PATH
     - cmake -S $CI_PROJECT_DIR -B "$CI_PROJECT_DIR/build" -DCMAKE_BUILD_TYPE=RELEASE
       -Dsaline_ENABLE_Fortran=ON -DCMAKE_Fortran_FLAGS:STRING="-ffree-line-length-none"
-      -Dsaline_ENABLE_Python=ON
+      -Dsaline_ENABLE_Python=ON -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0
     - cmake --build "$CI_PROJECT_DIR/build"
     - ctest --test-dir "$CI_PROJECT_DIR/build"
     - cmake --install build --prefix install
@@ -94,12 +95,10 @@ build_linux:
     - cmake -S $CI_PROJECT_DIR -B build -DCMAKE_BUILD_TYPE=RELEASE
       -Dsaline_ENABLE_Fortran=ON -DCMAKE_Fortran_FLAGS:STRING="-ffree-line-length-none"
       -Dsaline_ENABLE_Python=ON
-      -DCMAKE_CXX_COMPILER=/projects/gcc-8.3.0/toolset/gcc-8.3.0/bin/g++
-      -DCMAKE_Fortran_COMPILER=/projects/gcc-8.3.0/toolset/gcc-8.3.0/bin/gfortran
     - cmake --build build
-    - ctest --test-dir build
+    - ctest --test-dir build --output-on-failure
     - cmake --install build --prefix install
-    - auditwheel repair -w ${CI_PROJECT_DIR}/install/wheelhouse --plat manylinux_2_24_x86_64 ${CI_PROJECT_DIR}/build/src/python/dist/SalinePy*.whl
+    - auditwheel repair -w ${CI_PROJECT_DIR}/install/wheelhouse --plat manylinux_2_34_x86_64 ${CI_PROJECT_DIR}/build/src/python/dist/SalinePy*.whl
   artifacts:
     name: linux_x86
     expire_in: 1 week

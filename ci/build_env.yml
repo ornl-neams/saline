@@ -4,7 +4,6 @@ channels:
 dependencies:
   - cmake=3.23
   - python=3.9
-  - build
   - swig=4.2.1
   - setuptools
   - twine

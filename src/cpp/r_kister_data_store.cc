@@ -37,7 +37,7 @@ R_Kister_Data_Store::R_Kister_Data_Store()
 /*!
  * \brief helper function to load data into data store
  */
-void R_Kister_Data_Store::load(const std::string& rkfPath, const std::string& dfPath)
+void R_Kister_Data_Store::load(const std::string& rkDens, const std::string& rkVisc, const std::string& dfPath)
 {
     //Set up a default data store
     d = Default_Data_Store();
@@ -47,19 +47,55 @@ void R_Kister_Data_Store::load(const std::string& rkfPath, const std::string& df
         throw std::runtime_error("Falied to open input data file.");
     }
 
-    std::ifstream rkinFile(rkfPath.data());
-    if(!rkinFile.is_open())
+    std::string rk_dens = rkDens.data();
+    std::ifstream rkRhoFile(rk_dens.data());
+    if(!rkRhoFile.is_open())
     {
-        throw std::runtime_error("Falied to open input RK data file.");
+        throw std::runtime_error("Falied to open input RK density data file.");
     }
-    load(rkinFile,inFile);
+    std::string rk_visc = rkVisc.data();
+    std::ifstream rkMuFile(rk_visc.data());
+    if(!rkMuFile.is_open())
+    {
+        throw std::runtime_error("Falied to open input RK viscosity data file.");
+    }
+    load(rkRhoFile,rkMuFile,inFile);
+
+}
+//---------------------------------------------------------------------------//
+/*!
+ * \brief helper function to load data into data store
+ */
+void R_Kister_Data_Store::load(const std::string& rkDataPath, const std::string& dfPath)
+{
+    //Set up a default data store
+    d = Default_Data_Store();
+    std::ifstream inFile(dfPath.data());
+    if(!inFile.is_open())
+    {
+        throw std::runtime_error("Falied to open input data file.");
+    }
+
+    std::string rk_dens = rkDataPath + "/Molten_Salt_Thermophysical_Properties_Dens.csv";
+    std::ifstream rkRhoFile(rk_dens.data());
+    if(!rkRhoFile.is_open())
+    {
+        throw std::runtime_error("Falied to open input RK density data file.");
+    }
+    std::string rk_visc = rkDataPath + "/Molten_Salt_Thermophysical_Properties_Visc.csv";
+    std::ifstream rkMuFile(rk_visc.data());
+    if(!rkMuFile.is_open())
+    {
+        throw std::runtime_error("Falied to open input RK viscosity data file.");
+    }
+    load(rkRhoFile,rkMuFile,inFile);
 
 }
 //---------------------------------------------------------------------------//
 /*!
  * \brief helper function to load data Redlich-Kister parameters into data store
  */
-void R_Kister_Data_Store::load(std::istream& rkinFile,std::istream& inFile)
+void R_Kister_Data_Store::load(std::istream& rkRhoFile, std::istream& rkMuFile,std::istream& inFile)
 {
     // set up default store
     d.load(inFile);
@@ -69,20 +105,19 @@ void R_Kister_Data_Store::load(std::istream& rkinFile,std::istream& inFile)
         { return str.find("-") == str.npos;});
 
     m_rho.resize(num_binaries,std::vector<R_Kister_Data_Store::RK_Polynomial>(num_binaries));
+    m_mu.resize(num_binaries,std::vector<R_Kister_Data_Store::RK_Polynomial>(num_binaries));
 
     ////TODO no input for these, implemented only for downstream process
-    m_mu.resize(num_binaries,std::vector<R_Kister_Data_Store::RK_Polynomial>(num_binaries));
     m_cp.resize(num_binaries,std::vector<R_Kister_Data_Store::RK_Polynomial>(num_binaries));
     m_k.resize(num_binaries,std::vector<R_Kister_Data_Store::RK_Polynomial>(num_binaries));
 
     // Jaunt through lines until we find the Redlich-Kister parameters
     std::string line;
     // this is  a comment line
-    std::getline(rkinFile,line);
-    std::getline(rkinFile,line);
+    std::getline(rkRhoFile,line);
 
     // Read the input data. TODO currently only uses density
-    while( std::getline(rkinFile,line))
+    while( std::getline(rkRhoFile,line))
     {
         auto tokens = utils::split(",",line);
         for(size_t i=0; i<tokens.size(); ++i)
@@ -120,6 +155,57 @@ void R_Kister_Data_Store::load(std::istream& rkinFile,std::istream& inFile)
         //T_min, T_max
         m_rho[id_a][id_b].t_min = std::stod(tokens[8]);
         m_rho[id_a][id_b].t_max = std::stod(tokens[9]);
+
+        //algorithm
+        //reference
+    }
+
+    std::getline(rkMuFile,line);
+
+    // Read the input data. TODO currently only uses density
+    while( std::getline(rkMuFile,line))
+    {
+        auto tokens = utils::split(",",line);
+        for(size_t i=0; i<tokens.size(); ++i)
+        {
+            utils::trim(tokens[i]);
+        }
+
+        //Sort components and adjust value if required
+        //L1_a, L1_b, L2_a, L2_b, L3_a, L3_b, L4_a, L4_b
+        size_t id_a;
+        size_t id_b;
+        double sortFactor;
+        if(tokens[0] < tokens[1])
+        {
+          id_a = d.names_to_id({tokens[0]});
+          id_b = d.names_to_id({tokens[1]});
+          sortFactor = 1.0;
+        } else {
+          id_a = d.names_to_id({tokens[1]});
+          id_b = d.names_to_id({tokens[0]});
+          sortFactor = -1.0;
+        }
+
+        //component a
+        m_mu[id_a][id_b].a_n.resize(4);
+        m_mu[id_a][id_b].a_n[0] = std::stod(tokens[2]);
+        m_mu[id_a][id_b].a_n[1] = sortFactor * std::stod(tokens[5]);
+        m_mu[id_a][id_b].a_n[2] = std::stod(tokens[8]);
+        //componet b
+        m_mu[id_a][id_b].b_n.resize(4);
+        m_mu[id_a][id_b].b_n[0] = std::stod(tokens[3]);
+        m_mu[id_a][id_b].b_n[1] = sortFactor * std::stod(tokens[6]);
+        m_mu[id_a][id_b].b_n[2] = std::stod(tokens[9]);
+        //componet c
+        m_mu[id_a][id_b].c_n.resize(4);
+        m_mu[id_a][id_b].c_n[0] = std::stod(tokens[4]);
+        m_mu[id_a][id_b].c_n[1] = sortFactor * std::stod(tokens[7]);
+        m_mu[id_a][id_b].c_n[2] = std::stod(tokens[10]);
+
+        //T_min, T_max
+        m_mu[id_a][id_b].t_min = std::stod(tokens[11]);
+        m_mu[id_a][id_b].t_max = std::stod(tokens[12]);
 
         //algorithm
         //reference
@@ -213,7 +299,7 @@ double R_Kister_Data_Store::mu(Id /* id */, Id /* data_id */, double temperature
     double mu_ideal = 0.0;
     for(size_t i=0; i<end_members.size(); ++i)
     {
-        mu_ideal += end_members[i].mu(temperature) * endMem_moleFracs[i];
+        mu_ideal += std::log(end_members[i].mu(temperature)) * endMem_moleFracs[i];
     }
 
     //Excess
@@ -225,10 +311,10 @@ double R_Kister_Data_Store::mu(Id /* id */, Id /* data_id */, double temperature
         {
             int i_id = end_members[i].id;
             RK_Polynomial excess_calc = m_mu[j_id][i_id];
-            mu_excess += excess_calc.getRK_solution(endMem_moleFracs[j],endMem_moleFracs[i],temperature);
+            mu_excess += excess_calc.getRK_viscsolution(endMem_moleFracs[j],endMem_moleFracs[i],temperature);
         }
     }
-    return mu_ideal + mu_excess;
+    return std::exp(mu_ideal + mu_excess);
 }
 //----------------------------------------------------------------------------//
 /*!
@@ -448,6 +534,30 @@ double R_Kister_Data_Store::RK_Polynomial::getRK_solution(double x, double y, do
 
     return (x*y)*summation;
 }
+double R_Kister_Data_Store::RK_Polynomial::getRK_viscsolution(double x, double y, double temperature)
+{
+    // Without any fit coefficients the result should be 0.0
+    if(a_n.size() < 1) return 0.0;
+
+    // Construct the fit terms
+    std::vector<double> l_n(a_n.size());
+    for(size_t i=0; i<l_n.size(); ++i)
+    {
+        l_n[i] = a_n[i] + (b_n[i] * temperature) + (c_n[i] * temperature * temperature);
+    }
+
+    // difference of weights used to control the fit
+    double w_diff = x - y;
+
+    //First term is unweighted
+    double summation = l_n[0];
+    for(size_t i=1; i<l_n.size(); ++i)
+    {
+        summation += l_n[i]*std::pow(w_diff,i);
+    }
+
+    return (x*y)*summation;
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -542,7 +652,9 @@ bool R_Kister_Data_Store::valid(Name& name) const
   return d.valid(d.name_to_id(name));
 }
 
-///TODO
+///TODO This data is inherently binary... perhaps this is a listing of only those
+///combinations. The details of the operation and what they mean could be explained
+///in the readme, and allow for the user make useful algorithms based on availability
 Vec_Name R_Kister_Data_Store::getSaltKeys() const
 {
   //TODO
@@ -550,6 +662,8 @@ Vec_Name R_Kister_Data_Store::getSaltKeys() const
   return keys;
 }
 
+///TODO similarly, this is also "binary", so values are all values [0-100] - [100-0]
+///Except the esitmation error may be more extreme in select areas
 std::vector<std::vector<double>> R_Kister_Data_Store::getSaltComps(Vec_Name /* names */) const
 {
   //TODO

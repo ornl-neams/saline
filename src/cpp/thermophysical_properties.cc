@@ -336,8 +336,10 @@ std::vector<std::vector<double>> Thermophysical_Properties::getSaltComps(std::st
   {
     if(isSaltValid(comps))
     {
+      auto sp = utils::getSortPermutation(comps);
+      auto sort_names = utils::applySortPermuation(comps,sp);
       //This doesn't really have any meaning for synthetic data
-      mp = m_data->getSaltComps(comps);
+      mp = m_data->getSaltComps(sort_names);
     }
   }
   return mp;

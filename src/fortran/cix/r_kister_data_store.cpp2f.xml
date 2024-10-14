@@ -3,7 +3,8 @@
   <include_relative name="r_kister_data_store.hh"/>
   <class name="R_Kister_Data_Store" parent="Data_Store">
     <method name="load" return_type="void">
-      <param name="rkpath" type="char*"/>
+      <param name="rkdens" type="char*"/>
+      <param name="rkvisc" type="char*"/>
       <param name="dfpath" type="char*"/>
     </method>
   </class>
