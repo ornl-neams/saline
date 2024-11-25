@@ -26,11 +26,6 @@ stages:
 
 build_macos:
   stage: build
-  rules:
-    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
-      when: manual
-    - when: always
-  allow_failure: true
   tags:
     - macOS
   before_script:
@@ -45,19 +40,15 @@ build_macos:
     - ctest --test-dir "$CI_PROJECT_DIR/build"
     - cmake --install build --prefix install
     - delocate-wheel -w ${CI_PROJECT_DIR}/install/wheelhouse ${CI_PROJECT_DIR}/build/src/python/dist/SalinePy*.whl
+    - tar -czf darwin_arm.tar.gz install
   artifacts:
-    name: darwin_x86
+    name: darwin
     expire_in: 1 week
     paths:
-      - install
+      - darwin_arm.tar.gz
 
 build_windows:
   stage: build
-  allow_failure: true
-  rules:
-    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
-      when: manual
-    - when: always
   tags:
     - windows
   before_script:
@@ -75,11 +66,12 @@ build_windows:
     - cmake --install build --prefix install
     - $WHL_FILE = (Get-Item ${CI_PROJECT_DIR}\build\src\python\dist\*.whl).FullName
     - delvewheel repair -w ${CI_PROJECT_DIR}/install/wheelhouse ${WHL_FILE}
+    - tar -czf windows_x86.tar.gz install
   artifacts:
     name: windows_x86
     expire_in: 1 week
     paths:
-      - install
+      - windows_x86.tar.gz
 
 build_linux:
   stage: build
@@ -99,39 +91,40 @@ build_linux:
     - ctest --test-dir build --output-on-failure
     - cmake --install build --prefix install
     - auditwheel repair -w ${CI_PROJECT_DIR}/install/wheelhouse --plat manylinux_2_34_x86_64 ${CI_PROJECT_DIR}/build/src/python/dist/SalinePy*.whl
+    - tar -czf linux_x86.tar.gz install
   artifacts:
     name: linux_x86
     expire_in: 1 week
     paths:
-      - install
+      - linux_x86.tar.gz
 
-        #deploy_staging:
-        #  stage: deploy
-        #  tags:
-        #    - linux
-        #    - gcc
-        #    - mamba
-        #  rules:
-        #    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
-        #      when: never
-        #    - when: manual
-        #  needs:
-        #    - build_linux
-        #    - build_macos
-        #    - build_windows
-        #  before_script:
-        #    - *bash_before
-        #  script:
-      #- tar -czvf linux_x86.tar.gz ./install
-      #- 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file darwin_x86.tar.gz  "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/my_package/0.0.1/darwin_x86.tar.gz"'
-      #- WHL_FILE=${CI_PROJECT_DIR}/build/src/python/dist/SalinePy*.whl
-      #- TWINE_USERNAME=gitlab-ci-token TWINE_PASSWORD=${CI_JOB_TOKEN} python -m twine upload --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi ${WHL_FILE}
-        #
-      #- tar -czvf windows_x86.tar.gz ./install
-      #- Invoke-RestMethod -Headers @{ "JOB-TOKEN"="$CI_JOB_TOKEN" } -InFile windows_x86.tar.gz -uri "${CI_API_V4_URL}/projects/5955/packages/generic/my_package/0.0.1/windows_x86.tar.gz" -Method put
-      #- twine upload -u gitlab-ci-token -p ${CI_JOB_TOKEN} --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi ${CI_PROJECT_DIR}\build\src\python\dist\${WHL_FILE}
-        #
-      #- tar -czvf linux_x86.tar.gz ./install
-      #- 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file linux_x86.tar.gz "${CI_API_V4_URL}/projects/5955/packages/generic/my_package/0.0.1/linux_x86.tar.gz"'
-      #- WHL_FILE=${CI_PROJECT_DIR}/build/src/python/dist/SalinePy*.whl
-      #- TWINE_USERNAME=gitlab-ci-token TWINE_PASSWORD=${CI_JOB_TOKEN} python -m twine upload --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi ${WHL_FILE}
+deploy_linux:
+  stage: deploy
+  tags:
+    - linux
+  rules:
+    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+      when: never
+    - when: manual
+  needs: [build_linux,build_windows,build_macos]
+  before_script:
+    - *bash_before
+  script:
+    # Code
+    - $CODE_SALINE_URL="https://code.ornl.gov/api/v4/projects/10738/packages"
+    # Upload the compiled artifacts
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file darwin_arm.tar.gz  "${CODE_SALINE_URL}/generic/macos/0.0.2/darwin_arm.tar.gz"'
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file windows_x86.tar.gz "${CODE_SALINE_URL}/generic/windows/0.0.2/windows_x86.tar.gz"'
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file linux_x86.tar.gz "${CODE_SALINE_URL}/generic/linux/0.0.2/linux_x86.tar.gz"'
+    # Extract just the wheels to a common location
+    - tar -xzf linux_x86.tar.gz --wildcards --no-anchored '*.whl'
+    - tar -xzf darwin_arm.tar.gz --wildcards --no-anchored '*.whl'
+    - tar -xzf windows_x86.tar.gz --wildcards --no-anchored '*.whl'
+    # Loop over files in that location and upload them 
+    - ls install/wheelhouse/*.whl
+    - |+
+      for wheel in `ls install/wheelhouse/*.whl`
+      do
+        echo $wheel
+        TWINE_USERNAME=gitlab-ci-token TWINE_PASSWORD=${CI_JOB_TOKEN} python -m twine upload --repository-url ${CODE_SALINE_URL}/pypi ${wheel}
+      done
