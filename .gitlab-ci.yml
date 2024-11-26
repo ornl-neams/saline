@@ -111,7 +111,7 @@ deploy_linux:
     - *bash_before
   script:
     # Code
-    - $CODE_SALINE_URL="https://code.ornl.gov/api/v4/projects/10738/packages"
+    - CODE_SALINE_URL="https://code.ornl.gov/api/v4/projects/10738/packages"
     # Upload the compiled artifacts
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file darwin_arm.tar.gz  "${CODE_SALINE_URL}/generic/macos/0.0.2/darwin_arm.tar.gz"'
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file windows_x86.tar.gz "${CODE_SALINE_URL}/generic/windows/0.0.2/windows_x86.tar.gz"'
