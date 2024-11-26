@@ -98,7 +98,7 @@ build_linux:
     paths:
       - linux_x86.tar.gz
 
-deploy_linux:
+deploy_code:
   stage: deploy
   tags:
     - linux
@@ -113,9 +113,9 @@ deploy_linux:
     # Code
     - CODE_SALINE_URL="https://code.ornl.gov/api/v4/projects/10738/packages"
     # Upload the compiled artifacts
-    - 'curl --user "CODE_DEPLOY:CODE_DEPLOY_TOKEN" --upload-file darwin_arm.tar.gz  "${CODE_SALINE_URL}/generic/macos/0.0.2/darwin_arm.tar.gz"'
-    - 'curl --user "CODE_DEPLOY:CODE_DEPLOY_TOKEN" --upload-file windows_x86.tar.gz "${CODE_SALINE_URL}/generic/windows/0.0.2/windows_x86.tar.gz"'
-    - 'curl --user "CODE_DEPLOY:CODE_DEPLOY_TOKEN" --upload-file linux_x86.tar.gz "${CODE_SALINE_URL}/generic/linux/0.0.2/linux_x86.tar.gz"'
+    - 'curl --user "$CODE_DEPLOY:$CODE_DEPLOY_TOKEN" --upload-file darwin_arm.tar.gz  "${CODE_SALINE_URL}/generic/macos/0.0.2/darwin_arm.tar.gz"'
+    - 'curl --user "$CODE_DEPLOY:$CODE_DEPLOY_TOKEN" --upload-file windows_x86.tar.gz "${CODE_SALINE_URL}/generic/windows/0.0.2/windows_x86.tar.gz"'
+    - 'curl --user "$CODE_DEPLOY:$CODE_DEPLOY_TOKEN" --upload-file linux_x86.tar.gz "${CODE_SALINE_URL}/generic/linux/0.0.2/linux_x86.tar.gz"'
     # Extract just the wheels to a common location
     - tar -xzf linux_x86.tar.gz --wildcards --no-anchored '*.whl'
     - tar -xzf darwin_arm.tar.gz --wildcards --no-anchored '*.whl'
@@ -126,5 +126,5 @@ deploy_linux:
       for wheel in `ls install/wheelhouse/*.whl`
       do
         echo $wheel
-        TWINE_USERNAME=CODE_DEPLOY TWINE_PASSWORD=CODE_DEPLOY_TOKEN python -m twine upload --repository-url ${CODE_SALINE_URL}/pypi ${wheel}
+        TWINE_USERNAME=$CODE_DEPLOY TWINE_PASSWORD=$CODE_DEPLOY_TOKEN python -m twine upload --repository-url ${CODE_SALINE_URL}/pypi ${wheel}
       done
