@@ -1,106 +1,168 @@
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <fstream>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "utils.hh"
+#ifdef SALINE_USE_HDF5
+#include <hdf5.h>
+#endif
 #include "saline_bug.hh"
 
-#include <algorithm>
-#include <cmath>
-
-namespace saline
-{
-namespace utils
-{
+namespace saline {
+namespace utils {
 
 //-------------------------------------------------------------------------------------------//
 // Convert celsius to kelvin
-double c2k(double celsius)
-{
-    return celsius + 273.15;
-}
+double c2k(double celsius) { return celsius + 273.15; }
 
 //-------------------------------------------------------------------------------------------//
 // split str based on the given delimiter
-std::vector<std::string> split( const std::string& delim,
-                                const std::string& str )
-{
-    std::vector<std::string> tokens;
-    size_t pos = 0;
-    std::string w( str );
-    while( ( pos = w.find( delim ) ) != std::string::npos )
-    {
-        tokens.push_back( w.substr( 0, pos ) );
-        w.erase( 0, pos + delim.length() );
-    }
-    tokens.push_back( w );  // remainder
+std::vector<std::string> split(const std::string &delim,
+                               const std::string &str) {
+  std::vector<std::string> tokens;
+  size_t pos = 0;
+  std::string w(str);
+  while ((pos = w.find(delim)) != std::string::npos) {
+    tokens.push_back(w.substr(0, pos));
+    w.erase(0, pos + delim.length());
+  }
+  tokens.push_back(w); // remainder
 
-    // if last element is empty, delete it (only if it has more than 1)
-    if( tokens.size() > 1 && tokens[tokens.size() - 1].length() == 0 )
-    {
-        tokens.resize( tokens.size() - 1 );
-    }
+  // if last element is empty, delete it (only if it has more than 1)
+  if (tokens.size() > 1 && tokens[tokens.size() - 1].length() == 0) {
+    tokens.resize(tokens.size() - 1);
+  }
 
-    return tokens;
-}  // split
+  return tokens;
+} // split
 
 //-------------------------------------------------------------------------------------------//
 // Calculate the euclidean distance between vectors a and b
-double euclidean_distance(const std::vector<double>& a, const std::vector<double>& b)
-{
-    saline_insist(a.size() == b.size(), "vector size must be equal!");
-    saline_insist(!a.empty(), "vector must not be empty");
+double euclidean_distance(const std::vector<double> &a,
+                          const std::vector<double> &b) {
+  saline_insist(a.size() == b.size(), "vector size must be equal!");
+  saline_insist(!a.empty(), "vector must not be empty");
 
-    double sum = 0;
-    for( size_t i = 0; i < a.size(); ++i)
-    {
-        double diff = b[i] - a[i];
-        sum += diff * diff;
-    }
-    return std::sqrt(sum);
+  double sum = 0;
+  for (size_t i = 0; i < a.size(); ++i) {
+    double diff = b[i] - a[i];
+    sum += diff * diff;
+  }
+  return std::sqrt(sum);
 } // euclidean_distance
 
 //-------------------------------------------------------------------------------------------//
 // Calculate the nearest neighbor index set
 std::vector<std::pair<double, size_t>>
-                        nearest_neighbor(const std::vector<double>& a,
-                        const std::vector<std::vector<double>>& neighbors)
-{
-    std::vector<std::pair<double, size_t>> nearest;
+nearest_neighbor(const std::vector<double> &a,
+                 const std::vector<std::vector<double>> &neighbors) {
+  std::vector<std::pair<double, size_t>> nearest;
 
-    // Compute distance to neighbors
-    for(size_t i = 0; i < neighbors.size(); ++i)
-    {
-        const auto& neighbor = neighbors[i];
-        double distance = euclidean_distance(a, neighbor);
-        nearest.push_back({distance, i});
-    }
+  // Compute distance to neighbors
+  for (size_t i = 0; i < neighbors.size(); ++i) {
+    const auto &neighbor = neighbors[i];
+    double distance = euclidean_distance(a, neighbor);
+    nearest.push_back({distance, i});
+  }
 
-    // Order on shortest distance (default pair ordering on first member)
-    std::sort(nearest.begin(), nearest.end());
+  // Order on shortest distance (default pair ordering on first member)
+  std::sort(nearest.begin(), nearest.end());
 
-    return nearest;
+  return nearest;
 } // nearest_neighbor
 
 //-------------------------------------------------------------------------------------------//
 // trim from start (in place)
-void ltrim(std::string &s)
-{
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
-        return !std::isspace(ch); }));
+void ltrim(std::string &s) {
+  s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
+            return !std::isspace(ch);
+          }));
 }
 
 //-------------------------------------------------------------------------------------------//
 // trim from end (in place)
-void rtrim(std::string &s)
-{
-    s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
-        return !std::isspace(ch); }).base(), s.end());
+void rtrim(std::string &s) {
+  s.erase(std::find_if(s.rbegin(), s.rend(),
+                       [](unsigned char ch) { return !std::isspace(ch); })
+              .base(),
+          s.end());
 }
 
 //-------------------------------------------------------------------------------------------//
 // trim from both ends (in place)
-void trim(std::string &s)
-{
-    ltrim(s);
-    rtrim(s);
+void trim(std::string &s) {
+  ltrim(s);
+  rtrim(s);
 }
 
-} // end namespace util
+//---------------------------------------------------------------------------//
+/*!
+ * \brief helper function to test if a provided file is hdf5
+ */
+bool is_hdf5_file(const std::string &filename) {
+  std::ifstream file(filename, std::ios::binary);
+  if (!file)
+    return false;
+
+  std::array<unsigned char, 8> signature{};
+  file.read(reinterpret_cast<char *>(signature.data()), signature.size());
+
+  const std::array<unsigned char, 8> hdf5_signature = {0x89, 'H',  'D',  'F',
+                                                       0x0D, 0x0A, 0x1A, 0x0A};
+
+  return signature == hdf5_signature;
+}
+
+#ifdef SALINE_USE_HDF5
+herr_t readh5Vec(hid_t file, std::string path, std::vector<double> &data) {
+  herr_t herr = std::numeric_limits<herr_t>::max();
+  if (H5Lexists(file, path.c_str(), H5P_DEFAULT)) {
+    hid_t dataset_id = H5Dopen(file, path.c_str(), H5P_DEFAULT);
+    hid_t dspace_id = H5Dget_space(dataset_id);
+    hsize_t n_nodes = H5Sget_simple_extent_npoints(dspace_id);
+    data.resize(n_nodes);
+    herr = H5Dread(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT,
+                   &data[0]);
+    H5Sclose(dspace_id);
+    H5Dclose(dataset_id);
+  }
+  return herr;
+}
+herr_t read_h5_scalar(hid_t file, hid_t dtype, std::string path, void *data) {
+  hid_t dataset_id = H5Dopen(file, path.c_str(), H5P_DEFAULT);
+  hid_t dspace_id = H5Dget_space(dataset_id);
+  herr_t herr = H5Dread(dataset_id, dtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, data);
+  H5Sclose(dspace_id);
+  H5Dclose(dataset_id);
+  return herr;
+}
+herr_t readh5Scalar(hid_t file, std::string path, double &data) {
+  herr_t herr = std::numeric_limits<herr_t>::max();
+  if (H5Lexists(file, path.c_str(), H5P_DEFAULT)) {
+    herr = read_h5_scalar(file, H5T_NATIVE_DOUBLE, path, &data);
+  }
+  return herr;
+}
+herr_t readh5Scalar(hid_t file, std::string path, std::string &data) {
+  herr_t herr = std::numeric_limits<herr_t>::max();
+  if (H5Lexists(file, path.c_str(), H5P_DEFAULT)) {
+    hid_t dataset_id = H5Dopen(file, path.c_str(), H5P_DEFAULT);
+    hid_t dtype_id = H5Dget_type(dataset_id);
+
+    char *buf;
+    herr_t herr =
+        H5Dread(dataset_id, dtype_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, &buf);
+    data.assign(buf);
+
+    H5Dclose(dataset_id);
+  }
+  return herr;
+}
+#endif
+
+} // namespace utils
 } // end namespace saline

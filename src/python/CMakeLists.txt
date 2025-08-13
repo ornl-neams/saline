@@ -11,10 +11,10 @@ find_package(SWIG REQUIRED)
 
 #Create some requisite files
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/MANIFEST.in DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/README.md DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/setup.cfg DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-file(COPY ${saline_SOURCE_DIR}/LICENSE DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/SalinePy.i DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/README.md   DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/setup.cfg   DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY ${saline_SOURCE_DIR}/LICENSE            DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/SalinePy.i  DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 # Run swig manually vice using setuptools for better control of options
 add_custom_command(
@@ -44,7 +44,7 @@ else()
 endif()
 
 #Execute the setup file to generate a wheel
-add_custom_target(SalinePy_wheel ALL "${Python_EXECUTABLE}" -m build)
+add_custom_target(SalinePy_wheel "${Python_EXECUTABLE}" -m build)
 add_dependencies(SalinePy_wheel SalinePy)
 add_custom_command(TARGET SalinePy_wheel POST_BUILD
   COMMAND

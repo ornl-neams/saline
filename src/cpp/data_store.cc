@@ -1,9 +1,9 @@
+#include <algorithm>
+#include <cctype>
+
 #include "data_store.hh"
 #include "saline_bug.hh"
 #include "utils.hh"
-
-#include <algorithm>
-#include <cctype>
 
 namespace saline
 {

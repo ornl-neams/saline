@@ -49,6 +49,41 @@ static const char* tst_visc_rk = R"ORNL_format(//
 NaCl , MgCl2 , -0.1719  , -0.0007552 , 2.30E-07  , -3.753   , 0.004986  , -1.52E-06 ,  0 ,  0 ,  0 , 973   , 1203.2 , """Bondarenko 1965 [20]"""
 )ORNL_format";
 
+TEST(rk_data_store,load_json)
+{
+    static constexpr double mGas_const = 8.314462618;
+    static const char* scrap = R"test_data(
+    { "MSTDBTP": {
+          "S1": {
+              "1": {
+                  "boil": { "reference": "ref1", "uncertainty": 0.0, "uncertainty_notes": "None", "value": 1000.0, "value_notes": "None" },
+                  "cp": { "range": [ 0.0, 0.0 ], "reference": "ref1", "uncertainty": 0.015, "uncertainty_notes": "None", "values": [ 65.0, 0.0, 0.0, 0.0 ] },
+                  "k": { "range": [ 500.0, 1000.0 ], "reference": "ref1", "uncertainty": 0.2, "uncertainty_notes": "None", "values": [ 1.8, -0.00039 ] },
+                  "melt": { "reference": "ref1", "uncertainty": 0.01, "uncertainty_notes": "None", "value": 500.0, "value_notes": "None" },
+                  "mu": { "range": [ 500.0, 1000.0 ], "reference": "ref1", "uncertainty": 0.01, "uncertainty_notes": "None", "values": [ 0.5, 2405.4471008988544 ] },
+                  "rho": { "range": [ 500.0, 1000.0 ], "reference": "ref1", "uncertainty": 0.01, "uncertainty_notes": "None", "values": [ 1.0, 0.002, 0.01 ] }
+              }
+          },
+          "S1-S2": {
+              "0.36-0.64": {
+                  "boil": { "reference": "ref2", "uncertainty": 0.0, "uncertainty_notes": "None", "value": 1000.0, "value_notes": "None" },
+                  "cp": { "range": [ 0.0, 0.0 ], "reference": "ref2", "uncertainty": 0.001, "uncertainty_notes": "None", "values": [ 68.0, 0.0, 0.0, 0.0 ] },
+                  "k": { "range": [ 600.0, 900.0 ], "reference": "ref2", "uncertainty": 0.2, "uncertainty_notes": "None", "values": [ 1.2, -0.00028 ] },
+                  "melt": { "reference": "ref2", "uncertainty": 0.005, "uncertainty_notes": "None", "value": 500.0, "value_notes": "None" },
+                  "mu": { "range": [ 800.0, 1000.0 ], "reference": "ref2", "uncertainty": 0.01, "uncertainty_notes": "None", "values": [ 1.25, 2405.4471008988544 ] },
+                  "rho": { "range": [ 500.0, 750.0 ], "reference": "ref2", "uncertainty": 0.002, "uncertainty_notes": "None", "values": [ 2.0, -0.002, 0.002 ] }
+              }
+    }}})test_data";
+
+    R_Kister_Data_Store d;
+    std::istringstream in(scrap);
+    nlohmann::json json_in = nlohmann::json::parse(in);
+    d.from_json(json_in);
+    nlohmann::json j;
+    d.to_json(j);
+    std::cout << j.dump(1) << std::endl;
+}
+
 TEST(rk_data_store,load)
 {
     // Obtain the base data

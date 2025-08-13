@@ -7,3 +7,4 @@ dependencies:
   - swig=4.2.1
   - setuptools
   - twine
+  - hdf5
