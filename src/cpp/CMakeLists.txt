@@ -35,11 +35,11 @@ message("Configuring Saline c++ component")
 add_library(saline-cpp OBJECT)
 target_sources(saline-cpp
   PRIVATE
-    utils.cc
-    data_store.cc
-    default_data_store.cc
-    r_kister_data_store.cc
-    thermophysical_properties.cc
+      "${CMAKE_CURRENT_SOURCE_DIR}/utils.cc"
+      "${CMAKE_CURRENT_SOURCE_DIR}/data_store.cc"
+      "${CMAKE_CURRENT_SOURCE_DIR}/default_data_store.cc"
+      "${CMAKE_CURRENT_SOURCE_DIR}/r_kister_data_store.cc"
+      "${CMAKE_CURRENT_SOURCE_DIR}/thermophysical_properties.cc"
 )
 target_include_directories(saline-cpp
   PUBLIC
@@ -47,7 +47,19 @@ target_include_directories(saline-cpp
     "$<BUILD_INTERFACE:${saline_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:/${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}>"
 )
+target_link_libraries(saline-cpp PRIVATE nlohmann_json::nlohmann_json)
 set_target_properties(saline-cpp PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
+
+if( ${PROJECT_NAME}_ENABLE_hdf5 )
+    find_package(HDF5 REQUIRED COMPONENTS C)
+    target_compile_definitions(saline-cpp PRIVATE SALINE_USE_HDF5)
+    target_include_directories(saline-cpp
+    PRIVATE
+        "$<BUILD_INTERFACE:${HDF5_INCLUDE_DIRS}>"
+        "$<INSTALL_INTERFACE:${HDF5_INCLUDE_DIRS}>"
+    )
+    target_link_libraries(saline-cpp PRIVATE ${HDF5_LIBRARIES})
+endif()
 
 # Handling symbol visibility
 include(GenerateExportHeader)

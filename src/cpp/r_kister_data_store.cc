@@ -1,13 +1,14 @@
-#include "r_kister_data_store.hh"
-#include "default_data_store.hh"
-#include "data_store.hh"
-#include "saline_bug.hh"
-#include "utils.hh"
-
 #include <stdexcept>
 #include <algorithm>
 #include <fstream>
 #include <sstream>
+#include <string>
+#include <vector>
+
+#include "r_kister_data_store.hh"
+#include "default_data_store.hh"
+#include "data_store.hh"
+#include "utils.hh"
 
 //TODO all the enthalpy functions. They rely on setting up enthalpy tables. This
 //is done for all the end members, but its not clear that carries much meaning
@@ -33,6 +34,43 @@ namespace saline
 R_Kister_Data_Store::R_Kister_Data_Store()
 {
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * \brief helper function to load data into data store
+ */
+void R_Kister_Data_Store::load(const std::string& fPath)
+{
+    std::ifstream inFile(fPath,std::ios::binary);
+    if (!inFile) {
+        std::cerr << "Failed to open file: " << fPath << " !\n";
+        return;
+    }
+    if( utils::is_hdf5_file(fPath) )
+    {
+#ifdef SALINE_USE_HDF5
+        // Open the HDF5 file
+        hid_t file = H5Fopen(fPath.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
+        from_h5(file);
+        // Close the file
+        H5Fclose(file);
+#else
+        throw std::runtime_error("Saline is not configured to use HDF5!");
+#endif
+    }
+    else
+    {
+        nlohmann::json json_in;
+        try {
+            inFile >> json_in;
+        } catch (const nlohmann::json::parse_error& e) {
+            std::cerr << "JSON parse error: " << e.what() << '\n';
+            return;
+        }
+        from_json(json_in);
+    }
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * \brief helper function to load data into data store
@@ -101,15 +139,12 @@ void R_Kister_Data_Store::load(std::istream& rkRhoFile, std::istream& rkMuFile,s
     d.load(inFile);
     // Set up space for the mixing models
     Vec_Name keys = d.getSaltKeys();
-    int num_binaries = std::count_if(keys.begin(),keys.end(),[](std::string str)
-        { return str.find("-") == str.npos;});
 
-    m_rho.resize(num_binaries,std::vector<R_Kister_Data_Store::RK_Polynomial>(num_binaries));
-    m_mu.resize(num_binaries,std::vector<R_Kister_Data_Store::RK_Polynomial>(num_binaries));
-
+    m_rho.resize(d.size(),std::vector<R_Kister_Data_Store::RK_Polynomial>(d.size()));
+    m_mu.resize(d.size(),std::vector<R_Kister_Data_Store::RK_Polynomial>(d.size()));
     ////TODO no input for these, implemented only for downstream process
-    m_cp.resize(num_binaries,std::vector<R_Kister_Data_Store::RK_Polynomial>(num_binaries));
-    m_k.resize(num_binaries,std::vector<R_Kister_Data_Store::RK_Polynomial>(num_binaries));
+    m_cp.resize(d.size(),std::vector<R_Kister_Data_Store::RK_Polynomial>(d.size()));
+    m_k.resize(d.size(),std::vector<R_Kister_Data_Store::RK_Polynomial>(d.size()));
 
     // Jaunt through lines until we find the Redlich-Kister parameters
     std::string line;
@@ -158,6 +193,12 @@ void R_Kister_Data_Store::load(std::istream& rkRhoFile, std::istream& rkMuFile,s
 
         //algorithm
         //reference
+        std::string ref;
+        for(size_t i=10; i<tokens.size(); ++i)
+        {
+          ref += tokens[i];
+        }
+        m_rho[id_a][id_b].reference = ref;
     }
 
     std::getline(rkMuFile,line);
@@ -209,6 +250,7 @@ void R_Kister_Data_Store::load(std::istream& rkRhoFile, std::istream& rkMuFile,s
 
         //algorithm
         //reference
+        m_mu[id_a][id_b].reference = tokens[13];
     }
 }
 //----------------------------------------------------------------------------//
@@ -652,6 +694,83 @@ bool R_Kister_Data_Store::valid(Name& name) const
   return d.valid(d.name_to_id(name));
 }
 
+void R_Kister_Data_Store::from_json(nlohmann::json json_in)
+{
+  d.from_json(json_in);
+  Vec_Name keys = d.getSaltKeys();
+  m_rho.resize(d.size(),std::vector<R_Kister_Data_Store::RK_Polynomial>(d.size()));
+  m_mu.resize(d.size(),std::vector<R_Kister_Data_Store::RK_Polynomial>(d.size()));
+
+  ////TODO no input for these, implemented only for downstream process
+  m_cp.resize(d.size(),std::vector<R_Kister_Data_Store::RK_Polynomial>(d.size()));
+  m_k.resize(d.size(),std::vector<R_Kister_Data_Store::RK_Polynomial>(d.size()));
+  if (json_in["MSTDBTP"].contains("estimates"))
+  {
+      for (auto& [saltname, node] : json_in["MSTDBTP"]["estimates"]["RK"]["Density"].items())
+      {
+        Vec_Name names = utils::split("-",saltname);
+        size_t j = d.name_to_id(names[0]);
+        size_t i = d.name_to_id(names[1]);
+        parse_poly_node(m_rho[j][i],node);
+      }
+      for (auto& [saltname, node] : json_in["MSTDBTP"]["estimates"]["RK"]["Viscosity"].items())
+      {
+        Vec_Name names = utils::split("-",saltname);
+        size_t j = d.name_to_id(names[0]);
+        size_t i = d.name_to_id(names[1]);
+        parse_poly_node(m_mu[j][i],node);
+      }
+  }
+}
+
+void R_Kister_Data_Store::parse_poly_node(RK_Polynomial& poly, nlohmann::json j)
+{
+  if(j.contains("A")) j.at("A").get_to(poly.a_n);
+  if(j.contains("B")) j.at("B").get_to(poly.b_n);
+  if(j.contains("C")) j.at("C").get_to(poly.c_n);
+  if(j.contains("t_min")) j.at("t_min").get_to(poly.t_min);
+  if(j.contains("t_max")) j.at("t_max").get_to(poly.t_max);
+  if(j.contains("reference")) j.at("reference").get_to(poly.reference);
+}
+
+void R_Kister_Data_Store::to_json(nlohmann::json& j) const
+{
+  nlohmann::json dat;
+  d.to_json(j);
+  j["MSTDBTP"]["estimates"]["RK"]["Density"] = rk_to_json(m_rho);
+  j["MSTDBTP"]["estimates"]["RK"]["Viscosity"] = rk_to_json(m_mu);
+}
+
+nlohmann::json R_Kister_Data_Store::rk_to_json(std::vector<std::vector<RK_Polynomial>> m) const
+{
+  nlohmann::json dat;
+  for(int j=0; j<d.size(); ++j)
+  {
+    for(int i=0; i<d.size(); ++i)
+    {
+      if(!m[j][i].a_n.empty())
+      {
+        Vec_Name outerName = d.names(j);
+        if(!outerName[0].empty())
+        {
+          Vec_Name innerName = d.names(i);
+          if(!innerName[0].empty())
+          {
+            std::string salt = outerName[0] + std::string("-") + innerName[0];
+            if(!m[j][i].a_n.empty()) dat[salt]["A"] = m[j][i].a_n;
+            if(!m[j][i].b_n.empty()) dat[salt]["B"] = m[j][i].b_n;
+            if(!m[j][i].c_n.empty()) dat[salt]["C"] = m[j][i].c_n;
+            if(!m[j][i].t_min == 0.0) dat[salt]["t_min"] = m[j][i].t_min;
+            if(!m[j][i].t_max == 0.0) dat[salt]["t_max"] = m[j][i].t_max;
+            if(!m[j][i].reference.empty()) dat[salt]["reference"] = m[j][i].reference;
+          }
+        }
+      }
+    }
+  }
+  return dat;
+}
+
 ///TODO This data is inherently binary... perhaps this is a listing of only those
 ///combinations. The details of the operation and what they mean could be explained
 ///in the readme, and allow for the user make useful algorithms based on availability
@@ -670,4 +789,75 @@ std::vector<std::vector<double>> R_Kister_Data_Store::getSaltComps(Vec_Name /* n
   std::vector<std::vector<double>> keys;
   return keys;
 }
+#ifdef SALINE_USE_HDF5
+void R_Kister_Data_Store::from_h5(hid_t file)
+{
+    //if (file < 0) {
+    //    std::cout << "Failed to open file: " << dataPath << std::endl;
+    //} else {
+    //    std::cout << "Opened file: " << dataPath << std::endl;
+    //}
+    d.from_h5(file);
+    m_rho.resize(d.size(),std::vector<R_Kister_Data_Store::RK_Polynomial>(d.size()));
+    m_mu.resize(d.size(),std::vector<R_Kister_Data_Store::RK_Polynomial>(d.size()));
+    ////TODO no input for these, implemented only for downstream process
+    m_cp.resize(d.size(),std::vector<R_Kister_Data_Store::RK_Polynomial>(d.size()));
+    m_k.resize(d.size(),std::vector<R_Kister_Data_Store::RK_Polynomial>(d.size()));
+
+    // Start recursion from the base MSTDBTP group
+    //std::cout << "Scanning HDF5 structure from " <<  dataPath << "...\n/MSTDBTP" << std::endl;
+    std::string group_mstdbtp =  "/MSTDBTP/estimates/RK/Density";
+    hid_t mstdbtp_group = H5Gopen(file, group_mstdbtp.c_str(), H5P_DEFAULT);
+    // No top level MSTDBTP group
+    if (mstdbtp_group < 0) {
+        std::cout << "Failed to find group: " << group_mstdbtp << std::endl;
+        return;
+    }
+
+    H5G_info_t group_info;
+    H5Gget_info(mstdbtp_group, &group_info);
+
+    // Iterate through the salt objects
+    // TODO it would be nice to do this //compounds.reserve(group_info.nlinks);
+    for (hsize_t i = 0; i < group_info.nlinks; i++)
+    {
+        //Track down salt names
+        char salt_name[256];
+        H5Lget_name_by_idx(mstdbtp_group, ".", H5_INDEX_NAME, H5_ITER_NATIVE, i, salt_name, sizeof(salt_name), H5P_DEFAULT);
+        H5G_info_t salt_info;
+        std::string salt_path = group_mstdbtp + "/";
+        salt_path += salt_name;
+        hid_t salt_group = H5Gopen(file, salt_path.c_str(), H5P_DEFAULT);
+        Vec_Name names = utils::split("-",salt_name);
+        size_t j = d.name_to_id(names[0]);
+        size_t k = d.name_to_id(names[1]);
+        if (H5Lexists(file, (salt_path+"/A").c_str(), H5P_DEFAULT))
+        {
+            utils::readh5Vec(file,salt_path+"/A",m_rho[j][k].a_n);
+        }
+        if (H5Lexists(file, (salt_path+"/B").c_str(), H5P_DEFAULT))
+        {
+            utils::readh5Vec(file,salt_path+"/B",m_rho[j][k].b_n);
+        }
+        if (H5Lexists(file, (salt_path+"/C").c_str(), H5P_DEFAULT))
+        {
+            utils::readh5Vec(file,salt_path+"/C",m_rho[j][k].c_n);
+        }
+        if (H5Lexists(file, (salt_path+"/t_max").c_str(), H5P_DEFAULT))
+        {
+            utils::readh5Scalar(file,salt_path+"/t_max",m_rho[j][k].t_min);
+        }
+        if (H5Lexists(file, (salt_path+"/t_min").c_str(), H5P_DEFAULT))
+        {
+            utils::readh5Scalar(file,salt_path+"/t_min",m_rho[j][k].t_min);
+        }
+        if (H5Lexists(file, (salt_path+"/reference").c_str(), H5P_DEFAULT))
+        {
+            utils::readh5Scalar(file,salt_path+"/reference",m_rho[j][k].reference);
+        }
+        H5Gclose(salt_group);
+    }
+    H5Gclose(mstdbtp_group);
+}
+#endif
 } // namespace saline

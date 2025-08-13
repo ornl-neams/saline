@@ -40,7 +40,13 @@ target_include_directories(ForSaline PUBLIC
   "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}/fortran>"
 )
 set_target_properties(ForSaline PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
-target_link_libraries(ForSaline saline-cpp)
+target_link_libraries(ForSaline PRIVATE saline-cpp nlohmann_json::nlohmann_json)
+if( ${PROJECT_NAME}_ENABLE_hdf5 )
+    find_package(HDF5 REQUIRED COMPONENTS C)
+    target_compile_definitions(ForSaline PRIVATE SALINE_USE_HDF5)
+    target_include_directories(ForSaline PRIVATE "$<BUILD_INTERFACE:${HDF5_INCLUDE_DIRS}>" "$<INSTALL_INTERFACE:${HDF5_INCLUDE_DIRS}>")
+    target_link_libraries(ForSaline PRIVATE ${HDF5_LIBRARIES})
+endif()
 
 # Install the Fortran module file to limit the work required of users
 include(GNUInstallDirs)

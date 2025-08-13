@@ -22,10 +22,15 @@ set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE TRUE
     ${saline_VERSION}
 )
 # The Core Saline library
+if( ${PROJECT_NAME}_ENABLE_hdf5 )
+    find_package(HDF5 REQUIRED COMPONENTS C)
+    target_link_libraries(saline PRIVATE ${HDF5_LIBRARIES})
+endif()
 add_subdirectory(cpp)
 target_sources(${PROJECT_NAME} PRIVATE
   "$<TARGET_OBJECTS:saline-cpp>"
 )
+target_link_libraries(saline PRIVATE nlohmann_json::nlohmann_json)
 
 # The Fortran wrapper, this is linked into the main library when configured
 if (NOT DEFINED ${PROJECT_NAME}_ENABLE_Fortran )

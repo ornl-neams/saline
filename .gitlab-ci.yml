@@ -10,36 +10,25 @@ stages:
   - build
   - deploy
 
-#Primarily concerned with setting up micromamba for the appropriate platforms
-#All the build requirements excepting some compiler magic is there
-.bash_before: &bash_before
-  - export MAMBA_ROOT_PREFIX="$CI_PROJECT_DIR/tools/micromamba"
-  - source ./ci/setup_mamba.sh
-  - micromamba activate saline_39
-  - pip install build
-
-.powershell_before: &powershell_before
-  - $env:MAMBA_ROOT_PREFIX="$CI_PROJECT_DIR/tools/micromamba"
-  - . $CI_PROJECT_DIR/ci/setup_mamba.ps1
-  - micromamba activate saline_39
-  - pip install build
-
 build_macos:
   stage: build
+  variables:
+    GIT_SUBMODULE_STRATEGY: normal
   tags:
     - macOS
-  before_script:
-    - *bash_before
   script:
+    - source $HOME/spack/share/spack/setup-env.sh
+    - spack env activate saline
     - pip install delocate
-    - echo $PATH
     - cmake -S $CI_PROJECT_DIR -B "$CI_PROJECT_DIR/build" -DCMAKE_BUILD_TYPE=RELEASE
       -Dsaline_ENABLE_Fortran=ON -DCMAKE_Fortran_FLAGS:STRING="-ffree-line-length-none"
-      -Dsaline_ENABLE_Python=ON -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0
+      -Dsaline_ENABLE_Python=ON -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 -Dsaline_ENABLE_hdf5=ON
+      -DPython_EXECUTABLE=`which python`
     - cmake --build "$CI_PROJECT_DIR/build"
+    - cmake --build "$CI_PROJECT_DIR/build" --target SalinePy_wheel
     - ctest --test-dir "$CI_PROJECT_DIR/build"
     - cmake --install build --prefix install
-    - delocate-wheel -w ${CI_PROJECT_DIR}/install/wheelhouse ${CI_PROJECT_DIR}/build/src/python/dist/SalinePy*.whl
+    - delocate-wheel -w ${CI_PROJECT_DIR}/install/wheelhouse ${CI_PROJECT_DIR}/build/src/python/dist/salinepy*.whl
     - tar -czf darwin_arm.tar.gz install
   artifacts:
     name: darwin
@@ -49,15 +38,16 @@ build_macos:
 
 build_windows:
   stage: build
+  variables:
+    GIT_SUBMODULE_STRATEGY: normal
   tags:
     - windows
-  before_script:
-    - *powershell_before
   script:
-    - pip install delvewheel
-    - cmake
-      -S $CI_PROJECT_DIR
-      -B build
+    - $env:MAMBA_ROOT_PREFIX="$CI_PROJECT_DIR/tools/micromamba"
+    - . $CI_PROJECT_DIR/ci/setup_mamba.ps1
+    - micromamba activate saline_39
+    - pip install build delvewheel
+    - cmake -S $CI_PROJECT_DIR -B build
       -Dsaline_ENABLE_Fortran=OFF
       -Dsaline_ENABLE_Python=ON
       -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE
@@ -75,22 +65,21 @@ build_windows:
 
 build_linux:
   stage: build
+  variables:
+    GIT_SUBMODULE_STRATEGY: normal
   rules:
     - when: always
   tags:
-    - linux
-  before_script:
-    - *bash_before
+    - docker
   script:
-    - pip install auditwheel
-    - pip install patchelf
     - cmake -S $CI_PROJECT_DIR -B build -DCMAKE_BUILD_TYPE=RELEASE
       -Dsaline_ENABLE_Fortran=ON -DCMAKE_Fortran_FLAGS:STRING="-ffree-line-length-none"
-      -Dsaline_ENABLE_Python=ON
-    - cmake --build build
+      -Dsaline_ENABLE_Python=ON -Dsaline_ENABLE_hdf5=ON
+    - cmake --build "$CI_PROJECT_DIR/build"
+    - cmake --build "$CI_PROJECT_DIR/build" --target SalinePy_wheel
     - ctest --test-dir build --output-on-failure
     - cmake --install build --prefix install
-    - auditwheel repair -w ${CI_PROJECT_DIR}/install/wheelhouse --plat manylinux_2_34_x86_64 ${CI_PROJECT_DIR}/build/src/python/dist/SalinePy*.whl
+    - auditwheel repair -w ${CI_PROJECT_DIR}/install/wheelhouse --plat manylinux_2_28_x86_64 ${CI_PROJECT_DIR}/build/src/python/dist/salinepy*.whl
     - tar -czf linux_x86.tar.gz install
   artifacts:
     name: linux_x86
@@ -100,15 +89,14 @@ build_linux:
 
 deploy_code:
   stage: deploy
+  image: saline_deploy:latest
   tags:
-    - linux
+    - docker
   rules:
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
       when: never
     - when: manual
   needs: [build_linux,build_windows,build_macos]
-  before_script:
-    - *bash_before
   script:
     # Code
     - CODE_SALINE_URL="https://code.ornl.gov/api/v4/projects/10738/packages"
@@ -120,7 +108,7 @@ deploy_code:
     - tar -xzf linux_x86.tar.gz --wildcards --no-anchored '*.whl'
     - tar -xzf darwin_arm.tar.gz --wildcards --no-anchored '*.whl'
     - tar -xzf windows_x86.tar.gz --wildcards --no-anchored '*.whl'
-    # Loop over files in that location and upload them 
+    # Loop over files in that location and upload them
     - ls install/wheelhouse/*.whl
     - |+
       for wheel in `ls install/wheelhouse/*.whl`

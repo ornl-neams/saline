@@ -13,14 +13,18 @@ project(saline
 )
 
 # Supported standards
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17) #c++20 is not fully supported on likely compilers
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+#
+option(${PROJECT_NAME}_USE_EXTERNAL_JSON "Use an external JSON library" OFF)
+add_subdirectory(thirdparty)
 
 # Configure the library
 add_subdirectory(src)
 
 # Testing is enabled unless explicitly turned off
-if (NOT DEFINED ${PROJECT_NAME}_ENABLE_tests )
+if( NOT DEFINED ${PROJECT_NAME}_ENABLE_tests )
   set(${PROJECT_NAME}_ENABLE_tests ON)
 endif()
 if (${PROJECT_NAME}_ENABLE_tests )
@@ -29,6 +33,6 @@ if (${PROJECT_NAME}_ENABLE_tests )
 endif()
 
 # Incorporate GitLab CI Traceability 
-if(DEFINED ENV{CI_PROJECT_URL})
+if( DEFINED ENV{CI_PROJECT_URL} )
   message(STATUS "GitLab CI Job Info:  $ENV{CI_PROJECT_URL}/-/jobs/$ENV{CI_JOB_ID}")
 endif()
