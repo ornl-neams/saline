@@ -101,6 +101,14 @@ class Data_Store
         std::pair<double,double> rho_rng() const;
         std::string rho_ref() const;
 
+        // Surface Tension
+        double surfaceTension(double temperature, double pressure = 101.325) const;
+        double surfaceTension_h(double enthalpy, double pressure = 101.325) const;
+        bool valid_surfaceTension() const;
+        double surfaceTension_unc() const;
+        std::pair<double,double> surfaceTension_rng() const;
+        std::string surfaceTension_ref() const;
+
         // enthalpy given temperature
         double h_t(double t) const;
 
@@ -169,6 +177,14 @@ class Data_Store
     virtual double rho_unc(Id id, Id data_id) const = 0;
     virtual std::pair<double,double> rho_rng(Id id, Id data_id) const = 0;
     virtual std::string rho_ref(Id id, Id data_id) const = 0;
+
+    // density
+    virtual double surfaceTension(Id id, Id data_id, double temperature, double pressure = 101.325) const = 0;
+    virtual double surfaceTension_h(Id id, Id data_id, double enthalpy, double pressure = 101.325) const = 0;
+    virtual bool valid_surfaceTension(Id id, Id data_id) const = 0;
+    virtual double surfaceTension_unc(Id id, Id data_id) const = 0;
+    virtual std::pair<double,double> surfaceTension_rng(Id id, Id data_id) const = 0;
+    virtual std::string surfaceTension_ref(Id id, Id data_id) const = 0;
 
     // enthalpy
     virtual double h_t(Id id, Id data_id, double temperature) const = 0;

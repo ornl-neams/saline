@@ -263,6 +263,58 @@ std::string Data_Store::View::rho_ref() const
 
 //----------------------------------------------------------------------------//
 /*!
+ * \brief retrieves the density for the View object based on temperature
+ */
+// density
+double Data_Store::View::surfaceTension(double temperature, double pressure) const
+{
+    return d->surfaceTension(id, rec_id, temperature, pressure);
+}
+
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieves the density for the View object based on enthalpy
+ */
+double Data_Store::View::surfaceTension_h(double enthalpy, double pressure) const
+{
+    return d->surfaceTension_h(id, rec_id, enthalpy, pressure);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * \brief Retrieves the validity of the view data
+ */
+bool Data_Store::View::valid_surfaceTension() const
+{
+  return d->valid_surfaceTension(id, rec_id);
+}
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieves the density experimental range for the view object
+ */
+std::pair<double,double> Data_Store::View::surfaceTension_rng() const
+{
+    return d->surfaceTension_rng(id,rec_id);
+}
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieves the density uncertainty for the view object
+ */
+double Data_Store::View::surfaceTension_unc() const
+{
+    return d->surfaceTension_unc(id,rec_id);
+}
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieves the density reference for the view object
+ */
+std::string Data_Store::View::surfaceTension_ref() const
+{
+    return d->surfaceTension_ref(id,rec_id);
+}
+
+//----------------------------------------------------------------------------//
+/*!
  * \brief retrieves the enthalpy based on the temperature for the View object
  */
 double Data_Store::View::h_t(double temperature) const

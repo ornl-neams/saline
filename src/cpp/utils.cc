@@ -99,7 +99,6 @@ void trim(std::string &s) {
   rtrim(s);
 }
 
-//---------------------------------------------------------------------------//
 /*!
  * \brief helper function to test if a provided file is hdf5
  */
@@ -115,6 +114,42 @@ bool is_hdf5_file(const std::string &filename) {
                                                        0x0D, 0x0A, 0x1A, 0x0A};
 
   return signature == hdf5_signature;
+}
+
+/*!
+ * \brief helper function to test if a provided file is json
+ */
+bool sniff_json(std::ifstream &in) {
+  if (!in.good())
+    return false;
+
+  // Save position
+  auto pos = in.tellg();
+
+  // Skip BOM if present
+  unsigned char bom[3] = {0};
+  in.read(reinterpret_cast<char *>(bom), 3);
+  if (!(bom[0] == 0xEF && bom[1] == 0xBB && bom[2] == 0xBF)) {
+    // No BOM → rewind to pos
+    in.clear();
+    in.seekg(pos, std::ios::beg);
+  }
+
+  // Skip whitespace
+  char c;
+  while (in.get(c)) {
+    if (!std::isspace(static_cast<unsigned char>(c))) {
+      // Found first non-WS
+      in.clear();
+      in.seekg(pos, std::ios::beg); // restore original pos
+      return (c == '{' || c == '[');
+    }
+  }
+
+  // Only whitespace / empty file
+  in.clear();
+  in.seekg(pos, std::ios::beg);
+  return false;
 }
 
 #ifdef SALINE_USE_HDF5

@@ -98,6 +98,18 @@ public:
   std::pair<double, double> rho_rng(Id id, Id data_id) const;
   std::string rho_ref(Id /* id */, Id /* data_id */) const { return "----"; }
 
+  // surface tension
+  double surfaceTension(Id id, Id data_id, double temperature,
+                        double pressure = 101.325) const;
+  double surfaceTension_h(Id id, Id data_id, double enthalpy,
+                          double pressure = 101.325) const;
+  virtual bool valid_surfaceTension(Id id, Id data_id) const;
+  double surfaceTension_unc(Id /* id */, Id /* data_id */) const { return .2; }
+  std::pair<double, double> surfaceTension_rng(Id id, Id data_id) const;
+  std::string surfaceTension_ref(Id /* id */, Id /* data_id */) const {
+    return "----";
+  }
+
   // enthalpy
   double h_t(Id id, Id data_id, double temperature) const;
 

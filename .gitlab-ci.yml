@@ -51,7 +51,8 @@ build_windows:
       -Dsaline_ENABLE_Fortran=OFF
       -Dsaline_ENABLE_Python=ON
       -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE
-    - cmake --build build --target ALL_BUILD --config RELEASE
+    - cmake --build "$CI_PROJECT_DIR/build" --target ALL_BUILD --config RELEASE
+    - cmake --build "$CI_PROJECT_DIR/build" --target SalinePy_wheel --config RELEASE
     - ctest --build-config RELEASE --test-dir build
     - cmake --install build --prefix install
     - $WHL_FILE = (Get-Item ${CI_PROJECT_DIR}\build\src\python\dist\*.whl).FullName

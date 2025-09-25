@@ -147,6 +147,42 @@ double Thermophysical_Properties::rho_h_kgm3(double enthalpy, double pressure) c
 
 //---------------------------------------------------------------------------//
 /*!
+ * \brief surface tension given temperature and pressure
+ */
+double Thermophysical_Properties::surfaceTension(double temperature, double pressure) const
+{
+    return m_impl.surfaceTension(temperature, pressure);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * \brief surface tension given enthalpy and pressure
+ */
+double Thermophysical_Properties::surfaceTension_h(double enthalpy, double pressure) const
+{
+    return m_impl.surfaceTension_h(enthalpy, pressure);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * \brief
+ */
+double Thermophysical_Properties::surfaceTension_kgm3(double temperature, double pressure) const
+{
+    return m_impl.surfaceTension(temperature, pressure) * 1000.0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * \brief 
+ */
+double Thermophysical_Properties::surfaceTension_h_kgm3(double enthalpy, double pressure) const
+{
+    return m_impl.surfaceTension_h(enthalpy, pressure) * 1000.0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * \brief enthalpy in J/mol given temperature
  */
 double Thermophysical_Properties::h_t(double temperature) const
@@ -224,6 +260,15 @@ bool Thermophysical_Properties::valid_cp() const
 bool Thermophysical_Properties::valid_rho() const
 {
   return m_impl.valid_rho();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ *  \brief returns whether there is valid data for the property
+ */
+bool Thermophysical_Properties::valid_surfaceTension() const
+{
+  return m_impl.valid_surfaceTension();
 }
 
 //---------------------------------------------------------------------------//
