@@ -83,6 +83,15 @@ class Thermophysical_Properties
     std::pair<double,double> rho_rng() const{return m_impl.rho_rng();}
     bool valid_rho() const;
 
+    // Surface Tension
+    double surfaceTension(double temperature, double pressure = 101.325) const;
+    double surfaceTension_h(double enthalpy, double pressure = 101.325) const;
+    double surfaceTension_kgm3(double temperature, double pressure = 101.325) const;
+    double surfaceTension_h_kgm3(double enthalpy, double pressure = 101.325) const;
+    double surfaceTension_unc() const {return m_impl.surfaceTension_unc();}
+    std::pair<double,double> surfaceTension_rng() const{return m_impl.surfaceTension_rng();}
+    bool valid_surfaceTension() const;
+
     // enthalpy
     double h_t(double temperature) const;
     double h_t_kg(double temperature) const;

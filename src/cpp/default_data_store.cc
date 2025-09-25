@@ -169,6 +169,18 @@ void Default_Data_Store::from_h5(hid_t file) {
         d.m_mu_rng = std::make_pair(range[0], range[1]);
         ierr = utils::readh5Scalar(file, path + "/mu/reference", d.m_mu_ref);
       }
+      if (H5Lexists(file, (path + "/sigma").c_str(), H5P_DEFAULT)) {
+        ierr = utils::readh5Vec(file, path + "/sigma/values", data);
+        d.m_st_a = data[0];
+        d.m_st_b = data[1];
+        utils::readh5Scalar(file, path + "/sigma/pct_uncertainty", d.m_st_unc);
+        d.m_st_unc /= 100.0;
+        utils::readh5Scalar(file, path + "/sigma/uncertainty_notes", note);
+        d.m_st_unc_qualifier = parseNote(note);
+        ierr = utils::readh5Vec(file, path + "/sigma/range", range);
+        d.m_st_rng = std::make_pair(range[0], range[1]);
+        ierr = utils::readh5Scalar(file, path + "/sigma/reference", d.m_st_ref);
+      }
     }
     H5Gclose(salt_group);
   }
@@ -184,7 +196,7 @@ void Default_Data_Store::from_h5(hid_t file) {
  * \brief helper function to load data into data store
  */
 void Default_Data_Store::load(const std::string &fPath) {
-  std::ifstream inFile(fPath.data());
+  std::ifstream inFile(fPath.data(), std::ios::binary);
   if (utils::is_hdf5_file(fPath)) {
 #ifdef SALINE_USE_HDF5
     hid_t file = H5Fopen(fPath.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
@@ -192,8 +204,14 @@ void Default_Data_Store::load(const std::string &fPath) {
 #else
     throw std::runtime_error("Saline is not configured to use HDF5!");
 #endif
-  } else if (nlohmann::json::accept(inFile)) {
-    nlohmann::json json_in = nlohmann::json::parse(inFile);
+  } else if (utils::sniff_json(inFile)) {
+    nlohmann::json json_in;
+    try {
+        inFile >> json_in;
+    } catch (const nlohmann::json::parse_error& e) {
+        std::cerr << "JSON parse error: " << e.what() << '\n';
+        return;
+    }
     from_json(json_in);
   } else if (inFile.is_open()) {
     load(inFile);
@@ -322,6 +340,18 @@ void Default_Data_Store::load(std::istream &inFile) {
     d.m_cp_unc /= 100.0;
     // reference
     d.m_cp_ref = tokens[33];
+
+    // surface tension A and B as parameters for A - BT
+    parse_data_token(tokens[34], d.m_st_a);
+    parse_data_token(tokens[35], d.m_st_b);
+    // Applicability range
+    parse_range_token(tokens[36], d.m_st_rng);
+    // uncertainty
+    parse_data_qualifier(tokens[37], d.m_st_unc_qualifier);
+    parse_data_token(tokens[37], d.m_st_unc);
+    d.m_st_unc /= 100.0;
+    // reference
+    d.m_st_ref = tokens[38];
   }
 
   setup_enthalpy_tables();
@@ -442,6 +472,13 @@ auto Default_Data_Store::nearest(Id id, const Vec_Mole &mole_percent) const
   return i_min;
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * \brief returns whether or not the selected data is valid
+ */
+bool Default_Data_Store::valid_surfaceTension(Id id, Id data_id) const {
+  return compounds[id].data[data_id].valid_surfaceTension();
+}
 //---------------------------------------------------------------------------//
 /*!
  * \brief returns whether or not the selected data is valid
@@ -646,6 +683,48 @@ std::string Default_Data_Store::rho_ref(Id id, Id data_id) const {
   const auto &d = compounds[id].data[data_id];
   return d.rho_ref();
 }
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the surface tension for the selected compound based on temperature
+ */
+double Default_Data_Store::surfaceTension(Id id, Id data_id, double t,
+                                          double /* p */) const {
+  const auto &d = compounds[id].data[data_id];
+  return d.surfaceTension(t);
+}
+double Default_Data_Store::surfaceTension_h(Id id, Id data_id, double enthalpy,
+                                            double /* p */) const {
+  const auto &d = compounds[id].data[data_id];
+  return d.surfaceTension_h(enthalpy);
+}
+
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the surface tension experimental range for the selected compound
+ */
+std::pair<double, double>
+Default_Data_Store::surfaceTension_rng(Id id, Id data_id) const {
+  const auto &d = compounds[id].data[data_id];
+  // k(t) = a + b * t
+  return d.m_st_rng;
+}
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the surface tension uncertainty for the selected compound
+ */
+double Default_Data_Store::surfaceTension_unc(Id id, Id data_id) const {
+  const auto &d = compounds[id].data[data_id];
+  return d.surfaceTension_unc();
+}
+
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the surface tension reference for the selected compound
+ */
+std::string Default_Data_Store::surfaceTension_ref(Id id, Id data_id) const {
+  const auto &d = compounds[id].data[data_id];
+  return d.surfaceTension_ref();
+}
 
 //----------------------------------------------------------------------------//
 /*!
@@ -827,6 +906,17 @@ void Default_Data_Store::from_json(nlohmann::json json_in) {
             props["cp"].at("range").get_to(d.m_cp_rng);
             props["cp"].at("reference").get_to(d.m_cp_ref);
           }
+          if (props.contains("sigma")) {
+            props["sigma"].at("values").get_to(data);
+            d.m_st_a = data[0];
+            d.m_st_b = data[1];
+            props["sigma"].at("pct_uncertainty").get_to(d.m_st_unc);
+            d.m_st_unc /= 100.0;
+            props["sigma"].at("uncertainty_notes").get_to(note);
+            d.m_st_unc_qualifier = parseNote(note);
+            props["sigma"].at("range").get_to(d.m_st_rng);
+            props["sigma"].at("reference").get_to(d.m_st_ref);
+          }
         } else {
           std::cout << saltname << " is not a usable dataset at " << compname
                     << "!" << std::endl;
@@ -969,6 +1059,17 @@ void Default_Data_Store::to_json(nlohmann::json &j,
         {"reference", d.m_cp_ref},
     };
   }
+  if (d.valid_surfaceTension()) {
+    j["sigma"] = {
+        {"values", {d.m_st_a, d.m_st_b}},
+        {"range", d.m_st_rng},
+        {"pct_uncertainty", d.m_st_unc * 100.00},
+        {"uncertainty_notes",
+         (d.m_st_unc_qualifier == DataQualifier::NONSPECIFIC) ? "Uncharacterized"
+                                                             : "None"},
+        {"reference", d.m_st_ref},
+    };
+  }
 }
 
 //---------------------------------------------------------------------------//
@@ -976,7 +1077,6 @@ void Default_Data_Store::to_json(nlohmann::json &j,
  * \brief obtain the data store id for the given single component compound
  */
 Default_Data_Store::Id Default_Data_Store::name_to_id(Name &name) const {
-  std::cout << name << std::endl;
   return names_to_id({name});
 }
 

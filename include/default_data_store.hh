@@ -118,6 +118,16 @@ public:
   std::pair<double, double> rho_rng(Id id, Id data_id) const;
   std::string rho_ref(Id id, Id data_id) const;
 
+  // surface tension
+  double surfaceTension(Id id, Id data_id, double temperature,
+                        double pressure = 101.325) const;
+  double surfaceTension_h(Id id, Id data_id, double enthalpy,
+                          double pressure = 101.325) const;
+  virtual bool valid_surfaceTension(Id id, Id data_id) const;
+  double surfaceTension_unc(Id id, Id data_id) const;
+  std::pair<double, double> surfaceTension_rng(Id id, Id data_id) const;
+  std::string surfaceTension_ref(Id id, Id data_id) const;
+
   // enthalpy
   double h_t(Id id, Id data_id, double temperature) const;
 
@@ -192,6 +202,16 @@ private:
 
     // molecular weight
     double molecularWeight() const { return m_mole_weight; }
+
+    // surface tension
+    double surfaceTension(double t) const { return m_st_a - (m_st_b * t); }
+    double surfaceTension_h(double h) const { return surfaceTension(h_to_t(h)); }
+    bool valid_surfaceTension() const { return st_a() != 0.0; }
+    double surfaceTension_unc() const { return m_st_unc; }
+    std::string surfaceTension_ref() const { return m_st_ref; }
+
+    double st_a() const {return m_st_a; }
+    double st_b() const {return m_st_b; }
 
     // density
     double rho(double t) const { return m_rho_a - m_rho_b * t; }
@@ -319,6 +339,14 @@ private:
     DataQualifier m_cp_unc_qualifier;
     std::pair<double, double> m_cp_rng;
     std::string m_cp_ref;
+
+    // surface tension
+    double m_st_a = 0.0;
+    double m_st_b = 0.0;
+    double m_st_unc = 0.0;
+    DataQualifier m_st_unc_qualifier;
+    std::pair<double, double> m_st_rng;
+    std::string m_st_ref;
 
     // enthalpy to temperature table
     std::vector<double> m_h;

@@ -89,6 +89,9 @@ void applySortPermuation_inPlace(std::vector<T> &vec,
     }
   }
 }
+
+// quickly and cheaply indicate the file is liekly json
+bool sniff_json(std::ifstream &in);
 } // namespace utils
 } // end namespace saline
 #endif

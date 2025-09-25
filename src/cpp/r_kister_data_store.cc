@@ -444,6 +444,14 @@ double R_Kister_Data_Store::rho(Id /* id */, Id /* data_id */, double temperatur
     }
     return rho_ideal + rho_excess;
 }
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the surface tension for the selected compound based on temperature
+ */
+double R_Kister_Data_Store::surfaceTension(Id /* id */, Id /* data_id */, double temperature, double /* pressure */) const
+{
+  return -1.0;
+}
 
 //----------------------------------------------------------------------------//
 /*!
@@ -457,6 +465,14 @@ double R_Kister_Data_Store::rho_h(Id /* id */, Id /* data_id */, double /* entha
     //Excess
     double h_excess = 0.0;
     return h_ideal + h_excess;
+}
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the surface tension for the selected compound based on enthalpy
+ */
+double R_Kister_Data_Store::surfaceTension_h(Id /* id */, Id /* data_id */, double /* enthalpy */, double /* pressure */) const
+{
+  return -1.0;
 }
 
 //----------------------------------------------------------------------------//
@@ -614,6 +630,15 @@ bool R_Kister_Data_Store::valid_rho(Id /* id */, Id /* data_id */) const
 /*!
  * \brief returns whether or not the selected data is valid
  */
+bool R_Kister_Data_Store::valid_surfaceTension(Id /* id */, Id /* data_id */) const
+{
+  return (std::all_of(end_members.begin(),end_members.end(),[]
+          (Data_Store::View v){return v.valid_surfaceTension();}));
+}
+//---------------------------------------------------------------------------//
+/*!
+ * \brief returns whether or not the selected data is valid
+ */
 bool R_Kister_Data_Store::valid_mu(Id /* id */, Id /* data_id */) const
 {
   return (std::all_of(end_members.begin(),end_members.end(),[]
@@ -642,6 +667,14 @@ bool R_Kister_Data_Store::valid_cp(Id /* id */, Id /* data_id */) const
  * \brief retrieve the conductivity experimental range for the selected compound
  */
 std::pair<double,double> R_Kister_Data_Store::rho_rng(Id /* id */, Id /* data_id */) const
+{
+       return {0.0,0.0};
+}
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the surface tension experimental range for the selected compound
+ */
+std::pair<double,double> R_Kister_Data_Store::surfaceTension_rng(Id /* id */, Id /* data_id */) const
 {
        return {0.0,0.0};
 }
