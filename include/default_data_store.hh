@@ -17,7 +17,6 @@
 #include <string>
 #include <vector>
 
-#include <nlohmann/json.hpp>
 #ifdef SALINE_USE_HDF5
 #include <hdf5.h>
 #endif
@@ -154,12 +153,9 @@ public:
   std::size_t constituent_count(Id id) const;
 
   void load(const std::string &fPath);
-  [[deprecated("Use from_json(std::istream& inFile) instead.")]]
+  void from_json(std::istream &inFile);
+  [[deprecated("Use load(std::string &fPath) instead with a file path instead.")]]
   void load(std::istream &inFile);
-  void from_json(nlohmann::json);
-#ifdef SALINE_USE_HDF5
-  void from_h5(hid_t file);
-#endif
 
   View setView(const Vec_Name &names, const Vec_Mole &mole_percents);
 
@@ -180,7 +176,7 @@ public:
   // The list accessible salt names
   Vec_Name getSaltKeys() const;
   std::vector<std::vector<double>> getSaltComps(Vec_Name names) const;
-  void to_json(nlohmann::json &j) const;
+  std::string to_json() const;
 
 private:
   class Data {
@@ -205,13 +201,15 @@ private:
 
     // surface tension
     double surfaceTension(double t) const { return m_st_a - (m_st_b * t); }
-    double surfaceTension_h(double h) const { return surfaceTension(h_to_t(h)); }
+    double surfaceTension_h(double h) const {
+      return surfaceTension(h_to_t(h));
+    }
     bool valid_surfaceTension() const { return st_a() != 0.0; }
     double surfaceTension_unc() const { return m_st_unc; }
     std::string surfaceTension_ref() const { return m_st_ref; }
 
-    double st_a() const {return m_st_a; }
-    double st_b() const {return m_st_b; }
+    double st_a() const { return m_st_a; }
+    double st_b() const { return m_st_b; }
 
     // density
     double rho(double t) const { return m_rho_a - m_rho_b * t; }
@@ -294,6 +292,7 @@ private:
     double m_melt_unc = 0.0;
     DataQualifier m_melt_unc_qualifier;
     std::string m_melt_ref;
+    std::string m_melt_doi;
 
     // Molecular Weight
     double m_mole_weight;
@@ -304,6 +303,7 @@ private:
     double m_boil_unc = 0.0;
     DataQualifier m_boil_unc_qualifier;
     std::string m_boil_ref;
+    std::string m_boil_doi;
 
     // density
     double m_rho_a = 0.0;
@@ -312,6 +312,7 @@ private:
     DataQualifier m_rho_unc_qualifier;
     std::pair<double, double> m_rho_rng;
     std::string m_rho_ref;
+    std::string m_rho_doi;
 
     // viscosity
     double m_mu_a = 0.0;
@@ -321,6 +322,7 @@ private:
     DataQualifier m_mu_unc_qualifier;
     std::pair<double, double> m_mu_rng;
     std::string m_mu_ref;
+    std::string m_mu_doi;
 
     // conductivity
     double m_k_a = 0.0;
@@ -329,6 +331,7 @@ private:
     DataQualifier m_k_unc_qualifier;
     std::pair<double, double> m_k_rng;
     std::string m_k_ref;
+    std::string m_k_doi;
 
     // specific heat
     double m_cp_a = 0.0;
@@ -339,6 +342,7 @@ private:
     DataQualifier m_cp_unc_qualifier;
     std::pair<double, double> m_cp_rng;
     std::string m_cp_ref;
+    std::string m_cp_doi;
 
     // surface tension
     double m_st_a = 0.0;
@@ -347,6 +351,7 @@ private:
     DataQualifier m_st_unc_qualifier;
     std::pair<double, double> m_st_rng;
     std::string m_st_ref;
+    std::string m_st_doi;
 
     // enthalpy to temperature table
     std::vector<double> m_h;
@@ -358,7 +363,7 @@ private:
     double m_e;
   };
 
-  void to_json(nlohmann::json &j, Data &d) const;
+  std::string to_json(Data &d) const;
   using Vec_Data = std::vector<Data>;
   struct Compound {
     Vec_Name names;
@@ -375,6 +380,9 @@ private:
   std::vector<Compound> compounds;
 
   // >>> ACCESSORS
+#ifdef SALINE_USE_HDF5
+  void from_h5(hid_t file);
+#endif
 
   // calculate the enthalpy interpolation tables as a function of temperature
   void setup_enthalpy_tables();
