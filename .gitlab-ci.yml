@@ -12,23 +12,25 @@ stages:
 
 build_macos:
   stage: build
+  rules:
+    - when: manual
   variables:
     GIT_SUBMODULE_STRATEGY: normal
   tags:
     - macOS
   script:
-    - source $HOME/spack/share/spack/setup-env.sh
-    - spack env activate saline
-    - pip install delocate
+    - ls "$CI_PROJECT_DIR/.."
+    - cat "$CI_PROJECT_DIR/../saline_venv/bin/activate"
+    - source "$CI_PROJECT_DIR/../saline_venv/bin/activate"
     - cmake -S $CI_PROJECT_DIR -B "$CI_PROJECT_DIR/build" -DCMAKE_BUILD_TYPE=RELEASE
       -Dsaline_ENABLE_Fortran=ON -DCMAKE_Fortran_FLAGS:STRING="-ffree-line-length-none"
-      -Dsaline_ENABLE_Python=ON -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 -Dsaline_ENABLE_hdf5=ON
-      -DPython_EXECUTABLE=`which python`
+      -Dsaline_ENABLE_Python=ON -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0
+      -DPython_EXECUTABLE="/opt/homebrew/bin/python3.9" -DCMAKE_POLICY_VERSION_MINIMUM=3.5
     - cmake --build "$CI_PROJECT_DIR/build"
     - cmake --build "$CI_PROJECT_DIR/build" --target SalinePy_wheel
     - ctest --test-dir "$CI_PROJECT_DIR/build"
     - cmake --install build --prefix install
-    - delocate-wheel -w ${CI_PROJECT_DIR}/install/wheelhouse ${CI_PROJECT_DIR}/build/src/python/dist/salinepy*.whl
+    - /Users/gitlab-runner/Library/Python/3.9/bin/delocate-wheel -w ${CI_PROJECT_DIR}/install/wheelhouse ${CI_PROJECT_DIR}/build/src/python/dist/salinepy*.whl
     - tar -czf darwin_arm.tar.gz install
   artifacts:
     name: darwin
@@ -73,9 +75,14 @@ build_linux:
   tags:
     - docker
   script:
-    - cmake -S $CI_PROJECT_DIR -B build -DCMAKE_BUILD_TYPE=RELEASE
-      -Dsaline_ENABLE_Fortran=ON -DCMAKE_Fortran_FLAGS:STRING="-ffree-line-length-none"
-      -Dsaline_ENABLE_Python=ON -Dsaline_ENABLE_hdf5=ON
+    - cmake
+      -S $CI_PROJECT_DIR
+      -B build
+      -D CMAKE_BUILD_TYPE=RELEASE
+      -D saline_ENABLE_Fortran=ON
+      -D CMAKE_Fortran_FLAGS:STRING="-ffree-line-length-none"
+      -D saline_ENABLE_Python=ON
+      -D saline_ENABLE_hdf5=ON
     - cmake --build "$CI_PROJECT_DIR/build"
     - cmake --build "$CI_PROJECT_DIR/build" --target SalinePy_wheel
     - ctest --test-dir build --output-on-failure

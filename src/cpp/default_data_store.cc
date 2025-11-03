@@ -96,8 +96,7 @@ void Default_Data_Store::from_h5(hid_t file) {
         utils::readh5Scalar(file, path + "/melt/value_notes", note);
         d.m_melt_qualifier = parseNote(note);
         note == "";
-        utils::readh5Scalar(file, path + "/melt/pct_uncertainty", d.m_melt_unc);
-        d.m_melt_unc /= 100.0;
+        utils::readh5Scalar(file, path + "/melt/abs_uncertainty", d.m_melt_unc);
         utils::readh5Scalar(file, path + "/melt/uncertainty_notes", note);
         d.m_melt_unc_qualifier = parseNote(note);
         ierr =
@@ -108,78 +107,93 @@ void Default_Data_Store::from_h5(hid_t file) {
         utils::readh5Scalar(file, path + "/boil/value_notes", note);
         d.m_boil_qualifier = parseNote(note);
         note == "";
-        utils::readh5Scalar(file, path + "/boil/pct_uncertainty", d.m_boil_unc);
-        d.m_boil_unc /= 100.0;
+        utils::readh5Scalar(file, path + "/boil/abs_uncertainty", d.m_boil_unc);
         utils::readh5Scalar(file, path + "/boil/uncertainty_notes", note);
         d.m_boil_unc_qualifier = parseNote(note);
         ierr =
             utils::readh5Scalar(file, path + "/boil/reference", d.m_boil_ref);
       }
-      if (H5Lexists(file, (path + "/rho").c_str(), H5P_DEFAULT)) {
-        ierr = utils::readh5Vec(file, path + "/rho/values", data);
+      if (H5Lexists(file, (path + "/density").c_str(), H5P_DEFAULT)) {
+        ierr = utils::readh5Vec(file, path + "/density/values", data);
         d.m_rho_a = data[0];
         d.m_rho_b = data[1];
-        utils::readh5Scalar(file, path + "/rho/pct_uncertainty", d.m_rho_unc);
+        utils::readh5Scalar(file, path + "/density/pct_uncertainty",
+                            d.m_rho_unc);
         d.m_rho_unc /= 100.0;
-        utils::readh5Scalar(file, path + "/rho/uncertainty_notes", note);
+        utils::readh5Scalar(file, path + "/density/uncertainty_notes", note);
         d.m_rho_unc_qualifier = parseNote(note);
-        ierr = utils::readh5Vec(file, path + "/rho/range", range);
+        ierr = utils::readh5Vec(file, path + "/density/range", range);
         d.m_rho_rng = std::make_pair(range[0], range[1]);
-        ierr = utils::readh5Scalar(file, path + "/rho/reference", d.m_rho_ref);
+        ierr =
+            utils::readh5Scalar(file, path + "/density/reference", d.m_rho_ref);
       }
-      if (H5Lexists(file, (path + "/cp").c_str(), H5P_DEFAULT)) {
-        ierr = utils::readh5Vec(file, path + "/cp/values", data);
+      if (H5Lexists(file, (path + "/heat_capacity").c_str(), H5P_DEFAULT)) {
+        ierr = utils::readh5Vec(file, path + "/heat_capacity/values", data);
         d.m_cp_a = data[0];
         d.m_cp_b = data[1];
         d.m_cp_c = data[2];
         d.m_cp_d = data[3];
-        utils::readh5Scalar(file, path + "/cp/pct_uncertainty", d.m_cp_unc);
+        utils::readh5Scalar(file, path + "/heat_capacity/pct_uncertainty",
+                            d.m_cp_unc);
         d.m_cp_unc /= 100.0;
-        utils::readh5Scalar(file, path + "/cp/uncertainty_notes", note);
+        utils::readh5Scalar(file, path + "/heat_capacity/uncertainty_notes",
+                            note);
         d.m_cp_unc_qualifier = parseNote(note);
-        ierr = utils::readh5Vec(file, path + "/cp/range", range);
+        ierr = utils::readh5Vec(file, path + "/heat_capacity/range", range);
         d.m_cp_rng = std::make_pair(range[0], range[1]);
-        ierr = utils::readh5Scalar(file, path + "/cp/reference", d.m_cp_ref);
+        ierr = utils::readh5Scalar(file, path + "/heat_capacity/reference",
+                                   d.m_cp_ref);
       }
-      if (H5Lexists(file, (path + "/k").c_str(), H5P_DEFAULT)) {
-        ierr = utils::readh5Vec(file, path + "/k/values", data);
+      if (H5Lexists(file, (path + "/thermal_conductivity").c_str(),
+                    H5P_DEFAULT)) {
+        ierr =
+            utils::readh5Vec(file, path + "/thermal_conductivity/values", data);
         d.m_k_a = data[0];
         d.m_k_b = data[1];
-        utils::readh5Scalar(file, path + "/k/pct_uncertainty", d.m_k_unc);
+        utils::readh5Scalar(
+            file, path + "/thermal_conductivity/pct_uncertainty", d.m_k_unc);
         d.m_k_unc /= 100.0;
-        utils::readh5Scalar(file, path + "/k/uncertainty_notes", note);
+        utils::readh5Scalar(
+            file, path + "/thermal_conductivity/uncertainty_notes", note);
         d.m_k_unc_qualifier = parseNote(note);
-        ierr = utils::readh5Vec(file, path + "/k/range", range);
+        ierr =
+            utils::readh5Vec(file, path + "/thermal_conductivity/range", range);
         d.m_k_rng = std::make_pair(range[0], range[1]);
-        ierr = utils::readh5Scalar(file, path + "/k/reference", d.m_k_ref);
+        ierr = utils::readh5Scalar(
+            file, path + "/thermal_conductivity/reference", d.m_k_ref);
       }
-      if (H5Lexists(file, (path + "/mu").c_str(), H5P_DEFAULT)) {
-        ierr = utils::readh5Vec(file, path + "/mu/values", data);
+      if (H5Lexists(file, (path + "/viscosity").c_str(), H5P_DEFAULT)) {
+        ierr = utils::readh5Vec(file, path + "/viscosity/values", data);
         d.m_mu_a = data[0];
         d.m_mu_b = data[1];
         if (data.size() == 3)
           d.m_mu_c = data[2];
         else
           d.m_mu_b /= mGas_const;
-        utils::readh5Scalar(file, path + "/mu/pct_uncertainty", d.m_mu_unc);
+        utils::readh5Scalar(file, path + "/viscosity/pct_uncertainty",
+                            d.m_mu_unc);
         d.m_mu_unc /= 100.0;
-        utils::readh5Scalar(file, path + "/mu/uncertainty_notes", note);
+        utils::readh5Scalar(file, path + "/viscosity/uncertainty_notes", note);
         d.m_mu_unc_qualifier = parseNote(note);
-        ierr = utils::readh5Vec(file, path + "/mu/range", range);
+        ierr = utils::readh5Vec(file, path + "/viscosity/range", range);
         d.m_mu_rng = std::make_pair(range[0], range[1]);
-        ierr = utils::readh5Scalar(file, path + "/mu/reference", d.m_mu_ref);
+        ierr = utils::readh5Scalar(file, path + "/viscosity/reference",
+                                   d.m_mu_ref);
       }
-      if (H5Lexists(file, (path + "/sigma").c_str(), H5P_DEFAULT)) {
-        ierr = utils::readh5Vec(file, path + "/sigma/values", data);
+      if (H5Lexists(file, (path + "/surface_tension").c_str(), H5P_DEFAULT)) {
+        ierr = utils::readh5Vec(file, path + "/surface_tension/values", data);
         d.m_st_a = data[0];
         d.m_st_b = data[1];
-        utils::readh5Scalar(file, path + "/sigma/pct_uncertainty", d.m_st_unc);
+        utils::readh5Scalar(file, path + "/surface_tension/pct_uncertainty",
+                            d.m_st_unc);
         d.m_st_unc /= 100.0;
-        utils::readh5Scalar(file, path + "/sigma/uncertainty_notes", note);
+        utils::readh5Scalar(file, path + "/surface_tension/uncertainty_notes",
+                            note);
         d.m_st_unc_qualifier = parseNote(note);
-        ierr = utils::readh5Vec(file, path + "/sigma/range", range);
+        ierr = utils::readh5Vec(file, path + "/surface_tension/range", range);
         d.m_st_rng = std::make_pair(range[0], range[1]);
-        ierr = utils::readh5Scalar(file, path + "/sigma/reference", d.m_st_ref);
+        ierr = utils::readh5Scalar(file, path + "/surface_tension/reference",
+                                   d.m_st_ref);
       }
     }
     H5Gclose(salt_group);
@@ -205,18 +219,11 @@ void Default_Data_Store::load(const std::string &fPath) {
     throw std::runtime_error("Saline is not configured to use HDF5!");
 #endif
   } else if (utils::sniff_json(inFile)) {
-    nlohmann::json json_in;
-    try {
-        inFile >> json_in;
-    } catch (const nlohmann::json::parse_error& e) {
-        std::cerr << "JSON parse error: " << e.what() << '\n';
-        return;
-    }
-    from_json(json_in);
+    from_json(inFile);
   } else if (inFile.is_open()) {
     load(inFile);
     // Make something that dumps supported file types
-    std::cout << "Loading a csv is deprecated, use json instead!" << std::endl;
+    std::cout << "salineWarn: Loading a csv is deprecated, use json instead!" << std::endl;
   } else {
     throw std::runtime_error("Falied to open input file: " + fPath);
   }
@@ -255,103 +262,101 @@ void Default_Data_Store::load(std::istream &inFile) {
     }
 
     // Get the Data instance to fill in
-    Default_Data_Store::Data &d = getDataReference(tokens[0], tokens[3]);
+    Default_Data_Store::Data &d = getDataReference(tokens[0], tokens[2]);
 
     // Molecular Weight
-    parse_data_token(tokens[2], d.m_mole_weight);
+    parse_data_token(tokens[1], d.m_mole_weight);
 
     // Melt
-    parse_data_qualifier(tokens[4], d.m_melt_qualifier);
-    parse_data_token(tokens[4], d.m_melt);
+    parse_data_qualifier(tokens[3], d.m_melt_qualifier);
+    parse_data_token(tokens[3], d.m_melt);
     // Melt uncertainty
-    parse_data_qualifier(tokens[5], d.m_melt_unc_qualifier);
-    parse_data_token(tokens[5], d.m_melt_unc);
-    d.m_melt_unc /= 100.0;
+    parse_data_qualifier(tokens[4], d.m_melt_unc_qualifier);
+    parse_data_token(tokens[4], d.m_melt_unc);
     // Melt Reference
-    d.m_melt_ref = tokens[6];
+    d.m_melt_ref = tokens[5];
 
     // Boil
-    parse_data_qualifier(tokens[7], d.m_boil_qualifier);
-    parse_data_token(tokens[7], d.m_boil);
+    parse_data_qualifier(tokens[6], d.m_boil_qualifier);
+    parse_data_token(tokens[6], d.m_boil);
     // Boil Uncertainty
-    parse_data_qualifier(tokens[8], d.m_boil_unc_qualifier);
-    parse_data_token(tokens[8], d.m_boil_unc);
-    d.m_boil_unc /= 100.0;
+    parse_data_qualifier(tokens[7], d.m_boil_unc_qualifier);
+    parse_data_token(tokens[7], d.m_boil_unc);
     // Boil Reference
-    d.m_boil_ref = tokens[9];
+    d.m_boil_ref = tokens[8];
 
     // Density A and B as parameters for A - BT
-    parse_data_token(tokens[10], d.m_rho_a);
-    parse_data_token(tokens[11], d.m_rho_b);
+    parse_data_token(tokens[9], d.m_rho_a);
+    parse_data_token(tokens[10], d.m_rho_b);
 
     // Applicability range
-    parse_range_token(tokens[12], d.m_rho_rng);
+    parse_range_token(tokens[11], d.m_rho_rng);
     // uncertainty in percent
-    parse_data_qualifier(tokens[13], d.m_rho_unc_qualifier);
-    parse_data_token(tokens[13], d.m_rho_unc);
+    parse_data_qualifier(tokens[12], d.m_rho_unc_qualifier);
+    parse_data_token(tokens[12], d.m_rho_unc);
     d.m_rho_unc /= 100.0;
     // reference
-    d.m_rho_ref = tokens[14];
+    d.m_rho_ref = tokens[13];
 
     // Viscosity A and B as parameters A*exp(B/(RT)) ... OR
-    parse_data_token(tokens[15], d.m_mu_a);
-    parse_data_token(tokens[16], d.m_mu_b);
+    parse_data_token(tokens[14], d.m_mu_a);
+    parse_data_token(tokens[15], d.m_mu_b);
     d.m_mu_b /= mGas_const;
     d.m_mu_c = std::numeric_limits<double>::quiet_NaN();
     // Test if we received inputs for two parameter viscosity model
     if (d.m_mu_a == 0.0) {
       // Since both a and b are zero try the other model
       // A, B, C for 10^(A + B/T + C/T**2)
-      parse_data_token(tokens[17], d.m_mu_a);
-      parse_data_token(tokens[18], d.m_mu_b);
-      parse_data_token(tokens[19], d.m_mu_c);
+      parse_data_token(tokens[16], d.m_mu_a);
+      parse_data_token(tokens[17], d.m_mu_b);
+      parse_data_token(tokens[18], d.m_mu_c);
     }
     // Applicability range
-    parse_range_token(tokens[20], d.m_mu_rng);
+    parse_range_token(tokens[19], d.m_mu_rng);
     // uncertainty
-    parse_data_qualifier(tokens[21], d.m_mu_unc_qualifier);
-    parse_data_token(tokens[21], d.m_mu_unc);
+    parse_data_qualifier(tokens[20], d.m_mu_unc_qualifier);
+    parse_data_token(tokens[20], d.m_mu_unc);
     d.m_mu_unc /= 100.0;
     // reference
-    d.m_mu_ref = tokens[22];
+    d.m_mu_ref = tokens[21];
 
     // Thermal conductivity A and B as parameters for A + BT
-    parse_data_token(tokens[23], d.m_k_a);
-    parse_data_token(tokens[24], d.m_k_b);
+    parse_data_token(tokens[22], d.m_k_a);
+    parse_data_token(tokens[23], d.m_k_b);
     // Applicability range
-    parse_range_token(tokens[25], d.m_k_rng);
+    parse_range_token(tokens[24], d.m_k_rng);
     // uncertainty
-    parse_data_qualifier(tokens[26], d.m_k_unc_qualifier);
-    parse_data_token(tokens[26], d.m_k_unc);
+    parse_data_qualifier(tokens[25], d.m_k_unc_qualifier);
+    parse_data_token(tokens[25], d.m_k_unc);
     d.m_k_unc /= 100.0;
     // reference
-    d.m_k_ref = tokens[27];
+    d.m_k_ref = tokens[26];
 
     // heat capacity A, B, C, D for A + B*T(K) + C*T-2(K) + D*T2(K)
-    parse_data_token(tokens[28], d.m_cp_a);
-    parse_data_token(tokens[29], d.m_cp_b);
-    parse_data_token(tokens[30], d.m_cp_c);
-    parse_data_token(tokens[31], d.m_cp_d);
+    parse_data_token(tokens[27], d.m_cp_a);
+    parse_data_token(tokens[28], d.m_cp_b);
+    parse_data_token(tokens[29], d.m_cp_c);
+    parse_data_token(tokens[30], d.m_cp_d);
     // Applicability range --  Not included in data
 
     // uncertainty
-    parse_data_qualifier(tokens[32], d.m_cp_unc_qualifier);
-    parse_data_token(tokens[32], d.m_cp_unc);
+    parse_data_qualifier(tokens[31], d.m_cp_unc_qualifier);
+    parse_data_token(tokens[31], d.m_cp_unc);
     d.m_cp_unc /= 100.0;
     // reference
-    d.m_cp_ref = tokens[33];
+    d.m_cp_ref = tokens[32];
 
     // surface tension A and B as parameters for A - BT
-    parse_data_token(tokens[34], d.m_st_a);
-    parse_data_token(tokens[35], d.m_st_b);
+    parse_data_token(tokens[33], d.m_st_a);
+    parse_data_token(tokens[34], d.m_st_b);
     // Applicability range
-    parse_range_token(tokens[36], d.m_st_rng);
+    parse_range_token(tokens[35], d.m_st_rng);
     // uncertainty
-    parse_data_qualifier(tokens[37], d.m_st_unc_qualifier);
-    parse_data_token(tokens[37], d.m_st_unc);
+    parse_data_qualifier(tokens[36], d.m_st_unc_qualifier);
+    parse_data_token(tokens[36], d.m_st_unc);
     d.m_st_unc /= 100.0;
     // reference
-    d.m_st_ref = tokens[38];
+    d.m_st_ref = tokens[37];
   }
 
   setup_enthalpy_tables();
@@ -685,7 +690,8 @@ std::string Default_Data_Store::rho_ref(Id id, Id data_id) const {
 }
 //----------------------------------------------------------------------------//
 /*!
- * \brief retrieve the surface tension for the selected compound based on temperature
+ * \brief retrieve the surface tension for the selected compound based on
+ * temperature
  */
 double Default_Data_Store::surfaceTension(Id id, Id data_id, double t,
                                           double /* p */) const {
@@ -700,7 +706,8 @@ double Default_Data_Store::surfaceTension_h(Id id, Id data_id, double enthalpy,
 
 //----------------------------------------------------------------------------//
 /*!
- * \brief retrieve the surface tension experimental range for the selected compound
+ * \brief retrieve the surface tension experimental range for the selected
+ * compound
  */
 std::pair<double, double>
 Default_Data_Store::surfaceTension_rng(Id id, Id data_id) const {
@@ -823,7 +830,15 @@ Default_Data_Store::mole_percent(Id id, Id data_id) const {
 /*!
  *
  */
-void Default_Data_Store::from_json(nlohmann::json json_in) {
+void Default_Data_Store::from_json(std::istream &inFile) {
+    nlohmann::json json_in;
+    try {
+      inFile >> json_in;
+    } catch (const nlohmann::json::parse_error &e) {
+      std::cerr << "JSON parse error: " << e.what() << '\n';
+      return;
+    }
+
   for (auto &[saltname, node] : json_in["MSTDBTP"]["evaluated"].items()) {
     if (node.is_object()) {
       // compositions
@@ -832,41 +847,45 @@ void Default_Data_Store::from_json(nlohmann::json json_in) {
           Default_Data_Store::Data &d = getDataReference(saltname, compname);
           std::string note;
           std::vector<double> data;
+          if (props.contains("molecularWeight")) {
+	    props["molecularWeight"].get_to(d.m_mole_weight);
+	  }
           if (props.contains("melt")) {
             props["melt"].at("value").get_to(d.m_melt);
-            props["melt"].at("pct_uncertainty").get_to(d.m_melt_unc);
-            d.m_melt_unc /= 100.0;
+            props["melt"].at("abs_uncertainty").get_to(d.m_melt_unc);
             props["melt"].at("reference").get_to(d.m_melt_ref);
             props["melt"].at("value_notes").get_to(note);
             d.m_melt_qualifier = parseNote(note);
-            note == "";
+            note = "";
             props["melt"].at("uncertainty_notes").get_to(note);
             d.m_melt_unc_qualifier = parseNote(note);
+	    d.m_melt_doi = props["melt"].value("DOI","");
           }
           if (props.contains("boil")) {
             props["boil"].at("value").get_to(d.m_boil);
             props["boil"].at("value_notes").get_to(note);
             d.m_boil_qualifier = parseNote(note);
-            note == "";
-            props["boil"].at("pct_uncertainty").get_to(d.m_boil_unc);
-            d.m_boil_unc /= 100.0;
+            note = "";
+            props["boil"].at("abs_uncertainty").get_to(d.m_boil_unc);
             props["boil"].at("uncertainty_notes").get_to(note);
             d.m_boil_unc_qualifier = parseNote(note);
             props["boil"].at("reference").get_to(d.m_boil_ref);
+	    d.m_boil_doi = props["boil"].value("DOI","");
           }
-          if (props.contains("rho")) {
-            props["rho"].at("values").get_to(data);
+          if (props.contains("density")) {
+            props["density"].at("values").get_to(data);
             d.m_rho_a = data[0];
             d.m_rho_b = data[1];
-            props["rho"].at("pct_uncertainty").get_to(d.m_rho_unc);
+            props["density"].at("pct_uncertainty").get_to(d.m_rho_unc);
             d.m_rho_unc /= 100.0;
-            props["rho"].at("uncertainty_notes").get_to(note);
+            props["density"].at("uncertainty_notes").get_to(note);
             d.m_rho_unc_qualifier = parseNote(note);
-            props["rho"].at("range").get_to(d.m_rho_rng);
-            props["rho"].at("reference").get_to(d.m_rho_ref);
+            props["density"].at("range").get_to(d.m_rho_rng);
+            props["density"].at("reference").get_to(d.m_rho_ref);
+	    d.m_rho_doi = props["density"].value("DOI","");
           }
-          if (props.contains("mu")) {
-            props["mu"].at("values").get_to(data);
+          if (props.contains("viscosity")) {
+            props["viscosity"].at("values").get_to(data);
             if (data.size() == 3) {
               d.m_mu_a = data[0];
               d.m_mu_b = data[1];
@@ -875,47 +894,53 @@ void Default_Data_Store::from_json(nlohmann::json json_in) {
               d.m_mu_a = data[0];
               d.m_mu_b = data[1] / mGas_const;
             }
-            props["mu"].at("pct_uncertainty").get_to(d.m_mu_unc);
+            props["viscosity"].at("pct_uncertainty").get_to(d.m_mu_unc);
             d.m_mu_unc /= 100.0;
-            props["mu"].at("uncertainty_notes").get_to(note);
+            props["viscosity"].at("uncertainty_notes").get_to(note);
             d.m_mu_unc_qualifier = parseNote(note);
-            props["mu"].at("range").get_to(d.m_mu_rng);
-            props["mu"].at("reference").get_to(d.m_mu_ref);
+            props["viscosity"].at("range").get_to(d.m_mu_rng);
+            props["viscosity"].at("reference").get_to(d.m_mu_ref);
+	    d.m_mu_doi = props["viscosity"].value("DOI","");
           }
-          if (props.contains("k")) {
-            props["k"].at("values").get_to(data);
+          if (props.contains("thermal_conductivity")) {
+            props["thermal_conductivity"].at("values").get_to(data);
             d.m_k_a = data[0];
             d.m_k_b = data[1];
-            props["k"].at("pct_uncertainty").get_to(d.m_k_unc);
+            props["thermal_conductivity"]
+                .at("pct_uncertainty")
+                .get_to(d.m_k_unc);
             d.m_k_unc /= 100.0;
-            props["k"].at("uncertainty_notes").get_to(note);
+            props["thermal_conductivity"].at("uncertainty_notes").get_to(note);
             d.m_k_unc_qualifier = parseNote(note);
-            props["k"].at("range").get_to(d.m_k_rng);
-            props["k"].at("reference").get_to(d.m_k_ref);
+            props["thermal_conductivity"].at("range").get_to(d.m_k_rng);
+            props["thermal_conductivity"].at("reference").get_to(d.m_k_ref);
+	    d.m_k_doi = props["thermal_conductivity"].value("DOI","");
           }
-          if (props.contains("cp")) {
-            props["cp"].at("values").get_to(data);
+          if (props.contains("heat_capacity")) {
+            props["heat_capacity"].at("values").get_to(data);
             d.m_cp_a = data[0];
             d.m_cp_b = data[1];
             d.m_cp_c = data[2];
             d.m_cp_d = data[3];
-            props["cp"].at("pct_uncertainty").get_to(d.m_cp_unc);
+            props["heat_capacity"].at("pct_uncertainty").get_to(d.m_cp_unc);
             d.m_cp_unc /= 100.0;
-            props["cp"].at("uncertainty_notes").get_to(note);
+            props["heat_capacity"].at("uncertainty_notes").get_to(note);
             d.m_cp_unc_qualifier = parseNote(note);
-            props["cp"].at("range").get_to(d.m_cp_rng);
-            props["cp"].at("reference").get_to(d.m_cp_ref);
+            props["heat_capacity"].at("range").get_to(d.m_cp_rng);
+            props["heat_capacity"].at("reference").get_to(d.m_cp_ref);
+	    d.m_cp_doi = props["heat_capacity"].value("DOI","");
           }
-          if (props.contains("sigma")) {
-            props["sigma"].at("values").get_to(data);
+          if (props.contains("surface_tension")) {
+            props["surface_tension"].at("values").get_to(data);
             d.m_st_a = data[0];
             d.m_st_b = data[1];
-            props["sigma"].at("pct_uncertainty").get_to(d.m_st_unc);
+            props["surface_tension"].at("pct_uncertainty").get_to(d.m_st_unc);
             d.m_st_unc /= 100.0;
-            props["sigma"].at("uncertainty_notes").get_to(note);
+            props["surface_tension"].at("uncertainty_notes").get_to(note);
             d.m_st_unc_qualifier = parseNote(note);
-            props["sigma"].at("range").get_to(d.m_st_rng);
-            props["sigma"].at("reference").get_to(d.m_st_ref);
+            props["surface_tension"].at("range").get_to(d.m_st_rng);
+            props["surface_tension"].at("reference").get_to(d.m_st_ref);
+	    d.m_st_doi = props["surface_tension"].value("DOI","");
           }
         } else {
           std::cout << saltname << " is not a usable dataset at " << compname
@@ -933,7 +958,8 @@ void Default_Data_Store::from_json(nlohmann::json json_in) {
 /*!
  * \brief export the data store to json
  */
-void Default_Data_Store::to_json(nlohmann::json &j) const {
+std::string Default_Data_Store::to_json() const {
+  nlohmann::json j;
   for (auto comp : compounds) {
     std::string key = comp.names[0];
     for (size_t i = 1; i < comp.names.size(); ++i) {
@@ -951,19 +977,19 @@ void Default_Data_Store::to_json(nlohmann::json &j) const {
         // Now add the last element with no delimiter
         oss << dat.m_mole_percents.back();
       }
-      nlohmann::json dat_j;
-      to_json(dat_j, dat);
-      j["MSTDBTP"]["evaluated"][key][oss.str()] = dat_j;
+      to_json(dat);
+      j["MSTDBTP"]["evaluated"][key][oss.str()] = nlohmann::json::parse(to_json(dat));
     }
   }
+  return j.dump();
 }
 
 //----------------------------------------------------------------------------//
 /*!
  * \brief export data store Data object to json
  */
-void Default_Data_Store::to_json(nlohmann::json &j,
-                                 Default_Data_Store::Data &d) const {
+std::string Default_Data_Store::to_json( Default_Data_Store::Data &d) const {
+  nlohmann::json j;
   std::string m_melt_qualifier_str = "None";
   switch (d.m_melt_qualifier) {
   case DataQualifier::PRESSURIZED:
@@ -986,12 +1012,13 @@ void Default_Data_Store::to_json(nlohmann::json &j,
     j["melt"] = {
         {"value", d.m_melt},
         {"value_notes", m_melt_qualifier_str},
-        {"pct_uncertainty", d.m_melt_unc * 100.00},
+        {"abs_uncertainty", d.m_melt_unc},
         {"uncertainty_notes",
          (d.m_melt_unc_qualifier == DataQualifier::NONSPECIFIC)
              ? "Uncharacterized"
              : "None"},
         {"reference", d.m_melt_ref},
+        {"DOI", d.m_melt_doi},
     };
   }
   if (d.m_boil != 0.0) {
@@ -1000,16 +1027,17 @@ void Default_Data_Store::to_json(nlohmann::json &j,
         {"value_notes", (d.m_boil_qualifier == DataQualifier::SUBLIMATES)
                             ? "Sublimates"
                             : "None"},
-        {"pct_uncertainty", d.m_boil_unc * 100.00},
+        {"abs_uncertainty", d.m_boil_unc},
         {"uncertainty_notes",
          (d.m_boil_unc_qualifier == DataQualifier::NONSPECIFIC)
              ? "Uncharacterized"
              : "None"},
         {"reference", d.m_boil_ref},
+        {"DOI", d.m_boil_doi},
     };
   }
   if (d.valid_rho()) {
-    j["rho"] = {
+    j["density"] = {
         {"values", {d.m_rho_a, d.m_rho_b}},
         {"range", d.m_rho_rng},
         {"pct_uncertainty", d.m_rho_unc * 100.00},
@@ -1018,10 +1046,11 @@ void Default_Data_Store::to_json(nlohmann::json &j,
              ? "Uncharacterized"
              : "None"},
         {"reference", d.m_rho_ref},
+        {"DOI", d.m_rho_doi},
     };
   }
   if (d.valid_mu()) {
-    j["mu"] = {
+    j["viscosity"] = {
         {"range", d.m_mu_rng},
         {"pct_uncertainty", d.m_mu_unc * 100.00},
         {"uncertainty_notes",
@@ -1029,15 +1058,16 @@ void Default_Data_Store::to_json(nlohmann::json &j,
              ? "Uncharacterized"
              : "None"},
         {"reference", d.m_mu_ref},
+        {"DOI", d.m_mu_doi},
     };
     if (!std::isnan(d.m_mu_c)) {
-      j["mu"]["values"] = {d.m_mu_a, d.m_mu_b, d.m_mu_c};
+      j["viscosity"]["values"] = {d.m_mu_a, d.m_mu_b, d.m_mu_c};
     } else {
-      j["mu"]["values"] = {d.m_mu_a, d.m_mu_b * mGas_const};
+      j["viscosity"]["values"] = {d.m_mu_a, d.m_mu_b * mGas_const};
     }
   }
   if (d.valid_k()) {
-    j["k"] = {
+    j["thermal_conductivity"] = {
         {"values", {d.m_k_a, d.m_k_b}},
         {"range", d.m_k_rng},
         {"pct_uncertainty", d.m_k_unc * 100.00},
@@ -1045,10 +1075,11 @@ void Default_Data_Store::to_json(nlohmann::json &j,
          (d.m_k_unc_qualifier == DataQualifier::NONSPECIFIC) ? "Uncharacterized"
                                                              : "None"},
         {"reference", d.m_k_ref},
+        {"DOI", d.m_k_doi},
     };
   }
   if (d.valid_cp()) {
-    j["cp"] = {
+    j["heat_capacity"] = {
         {"values", {d.m_cp_a, d.m_cp_b, d.m_cp_c, d.m_cp_d}},
         {"range", d.m_cp_rng},
         {"pct_uncertainty", d.m_cp_unc * 100.00},
@@ -1057,19 +1088,23 @@ void Default_Data_Store::to_json(nlohmann::json &j,
              ? "Uncharacterized"
              : "None"},
         {"reference", d.m_cp_ref},
+        {"DOI", d.m_cp_doi},
     };
   }
   if (d.valid_surfaceTension()) {
-    j["sigma"] = {
+    j["surface_tension"] = {
         {"values", {d.m_st_a, d.m_st_b}},
         {"range", d.m_st_rng},
         {"pct_uncertainty", d.m_st_unc * 100.00},
         {"uncertainty_notes",
-         (d.m_st_unc_qualifier == DataQualifier::NONSPECIFIC) ? "Uncharacterized"
-                                                             : "None"},
+         (d.m_st_unc_qualifier == DataQualifier::NONSPECIFIC)
+             ? "Uncharacterized"
+             : "None"},
         {"reference", d.m_st_ref},
+        {"DOI", d.m_st_doi},
     };
   }
+	return j.dump();
 }
 
 //---------------------------------------------------------------------------//

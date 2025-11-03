@@ -20,24 +20,63 @@ namespace utils {
 double c2k(double celsius) { return celsius + 273.15; }
 
 //-------------------------------------------------------------------------------------------//
-// split str based on the given delimiter
-std::vector<std::string> split(const std::string &delim,
-                               const std::string &str) {
-  std::vector<std::string> tokens;
-  size_t pos = 0;
-  std::string w(str);
-  while ((pos = w.find(delim)) != std::string::npos) {
-    tokens.push_back(w.substr(0, pos));
-    w.erase(0, pos + delim.length());
-  }
-  tokens.push_back(w); // remainder
+// Split a single logical CSV record `s` into fields using `delim`.
+// Behavior:
+//  - Commas (or whatever `delim` is) only split when NOT inside quotes.
+//  - Inside quotes, "" becomes a literal ".
+//  - Empty fields are preserved.
+//  - Works with multi-character delimiters too (when outside quotes).
+//  - Does NOT trim spaces and does NOT validate malformed CSV.
+std::vector<std::string> split(const std::string &delim, const std::string &s) {
+  std::vector<std::string> out;
+  std::string cur;
 
-  // if last element is empty, delete it (only if it has more than 1)
-  if (tokens.size() > 1 && tokens[tokens.size() - 1].length() == 0) {
-    tokens.resize(tokens.size() - 1);
+  if (delim.empty()) {
+    // Degenerate case: no delimiter -> whole string is one field.
+    out.push_back(s);
+    return out;
   }
 
-  return tokens;
+  const char quote = '"';
+  const std::size_t n = s.size();
+  const std::size_t dlen = delim.size();
+
+  bool in_quotes = false;
+
+  for (std::size_t i = 0; i < n; ++i) {
+    char c = s[i];
+
+    if (c == quote) {
+      if (in_quotes) {
+        // If next is also a quote, it's an escaped quote -> emit one and skip
+        // next
+        if (i + 1 < n && s[i + 1] == quote) {
+          cur.push_back(quote);
+          ++i; // skip the second quote
+        } else {
+          in_quotes = false; // closing quote
+        }
+      } else {
+        in_quotes = true; // opening quote
+      }
+      continue;
+    }
+
+    // Only treat delimiter as a split when we're NOT inside quotes
+    if (!in_quotes && dlen <= n - i && s.compare(i, dlen, delim) == 0) {
+      out.emplace_back(std::move(cur));
+      cur.clear();
+      i += dlen - 1; // -1 because loop will ++i
+      continue;
+    }
+
+    cur.push_back(c);
+  }
+
+  if (!cur.empty()){
+    out.emplace_back(std::move(cur));
+  }
+  return out;
 } // split
 
 //-------------------------------------------------------------------------------------------//

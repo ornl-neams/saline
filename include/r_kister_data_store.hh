@@ -36,12 +36,9 @@ public:
 
   // >>> CONSTRUCTORS
   R_Kister_Data_Store();
+  void from_json(std::istream &inFile);
   void load(const std::string &fPath);
 
-  void from_json(nlohmann::json json_in);
-#ifdef SALINE_USE_HDF5
-  void from_h5(hid_t file);
-#endif
   [[deprecated("Use load(const std::string& fPath) to load a json instead.")]]
   void load(const std::string &rkDens, const std::string &rkVisc,
             const std::string &dfPath);
@@ -149,7 +146,7 @@ public:
   Vec_Name getSaltKeys() const;
   std::vector<std::vector<double>> getSaltComps(Vec_Name names) const;
 
-  void to_json(nlohmann::json &j) const;
+  std::string to_json() const;
 
 private:
   // Data_Store providing the base information
@@ -182,10 +179,12 @@ private:
   rk_model m_mu;
   rk_model m_cp;
   rk_model m_k;
-  nlohmann::json rk_to_json(rk_model m) const;
-  void parse_poly_node(RK_Polynomial &poly, nlohmann::json j);
 
+  std::string rk_to_json(rk_model m) const;
   // >>> ACCESSORS
+#ifdef SALINE_USE_HDF5
+  void from_h5(hid_t file);
+#endif
 
   // calculate the enthalpy interpolation tables as a function of temperature
   void setup_enthalpy_tables();
