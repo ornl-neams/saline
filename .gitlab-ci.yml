@@ -97,7 +97,7 @@ build_linux:
 
 deploy_code:
   stage: deploy
-  image: saline_deploy:latest
+  image: savannah.ornl.gov/mstdb/saline_deploy:latest
   tags:
     - docker
   rules:
