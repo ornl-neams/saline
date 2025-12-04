@@ -33,18 +33,12 @@ target_sources(${PROJECT_NAME} PRIVATE
 target_link_libraries(saline PRIVATE nlohmann_json::nlohmann_json)
 
 # The Fortran wrapper, this is linked into the main library when configured
-if (NOT DEFINED ${PROJECT_NAME}_ENABLE_Fortran )
-  set(${PROJECT_NAME}_ENABLE_Fortran OFF)
-endif()
 if( ${PROJECT_NAME}_ENABLE_Fortran )
   add_subdirectory(fortran)
   target_sources(${PROJECT_NAME} PRIVATE "$<TARGET_OBJECTS:ForSaline>")
 endif()
 
 # The Python wrapper, this is currently a separate library due to python conventions
-if (NOT DEFINED ${PROJECT_NAME}_ENABLE_Python )
-  set(${PROJECT_NAME}_ENABLE_Python OFF)
-endif()
 if( ${PROJECT_NAME}_ENABLE_Python )
   add_subdirectory(python)
 endif()

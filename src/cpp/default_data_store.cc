@@ -4,9 +4,9 @@
 #include <sstream>
 #include <stdexcept>
 
-#include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 #ifdef SALINE_USE_HDF5
-#include <hdf5.h>
+#include "hdf5.h"
 #endif
 
 #include "default_data_store.hh"
@@ -223,7 +223,8 @@ void Default_Data_Store::load(const std::string &fPath) {
   } else if (inFile.is_open()) {
     load(inFile);
     // Make something that dumps supported file types
-    std::cout << "salineWarn: Loading a csv is deprecated, use json instead!" << std::endl;
+    std::cout << "salineWarn: Loading a csv is deprecated, use json instead!"
+              << std::endl;
   } else {
     throw std::runtime_error("Falied to open input file: " + fPath);
   }
@@ -831,13 +832,13 @@ Default_Data_Store::mole_percent(Id id, Id data_id) const {
  *
  */
 void Default_Data_Store::from_json(std::istream &inFile) {
-    nlohmann::json json_in;
-    try {
-      inFile >> json_in;
-    } catch (const nlohmann::json::parse_error &e) {
-      std::cerr << "JSON parse error: " << e.what() << '\n';
-      return;
-    }
+  nlohmann::json json_in;
+  try {
+    inFile >> json_in;
+  } catch (const nlohmann::json::parse_error &e) {
+    std::cerr << "JSON parse error: " << e.what() << '\n';
+    return;
+  }
 
   for (auto &[saltname, node] : json_in["MSTDBTP"]["evaluated"].items()) {
     if (node.is_object()) {
@@ -848,8 +849,8 @@ void Default_Data_Store::from_json(std::istream &inFile) {
           std::string note;
           std::vector<double> data;
           if (props.contains("molecularWeight")) {
-	    props["molecularWeight"].get_to(d.m_mole_weight);
-	  }
+            props["molecularWeight"].get_to(d.m_mole_weight);
+          }
           if (props.contains("melt")) {
             props["melt"].at("value").get_to(d.m_melt);
             props["melt"].at("abs_uncertainty").get_to(d.m_melt_unc);
@@ -859,7 +860,7 @@ void Default_Data_Store::from_json(std::istream &inFile) {
             note = "";
             props["melt"].at("uncertainty_notes").get_to(note);
             d.m_melt_unc_qualifier = parseNote(note);
-	    d.m_melt_doi = props["melt"].value("DOI","");
+            d.m_melt_doi = props["melt"].value("DOI", "");
           }
           if (props.contains("boil")) {
             props["boil"].at("value").get_to(d.m_boil);
@@ -870,7 +871,7 @@ void Default_Data_Store::from_json(std::istream &inFile) {
             props["boil"].at("uncertainty_notes").get_to(note);
             d.m_boil_unc_qualifier = parseNote(note);
             props["boil"].at("reference").get_to(d.m_boil_ref);
-	    d.m_boil_doi = props["boil"].value("DOI","");
+            d.m_boil_doi = props["boil"].value("DOI", "");
           }
           if (props.contains("density")) {
             props["density"].at("values").get_to(data);
@@ -882,7 +883,7 @@ void Default_Data_Store::from_json(std::istream &inFile) {
             d.m_rho_unc_qualifier = parseNote(note);
             props["density"].at("range").get_to(d.m_rho_rng);
             props["density"].at("reference").get_to(d.m_rho_ref);
-	    d.m_rho_doi = props["density"].value("DOI","");
+            d.m_rho_doi = props["density"].value("DOI", "");
           }
           if (props.contains("viscosity")) {
             props["viscosity"].at("values").get_to(data);
@@ -900,7 +901,7 @@ void Default_Data_Store::from_json(std::istream &inFile) {
             d.m_mu_unc_qualifier = parseNote(note);
             props["viscosity"].at("range").get_to(d.m_mu_rng);
             props["viscosity"].at("reference").get_to(d.m_mu_ref);
-	    d.m_mu_doi = props["viscosity"].value("DOI","");
+            d.m_mu_doi = props["viscosity"].value("DOI", "");
           }
           if (props.contains("thermal_conductivity")) {
             props["thermal_conductivity"].at("values").get_to(data);
@@ -914,7 +915,7 @@ void Default_Data_Store::from_json(std::istream &inFile) {
             d.m_k_unc_qualifier = parseNote(note);
             props["thermal_conductivity"].at("range").get_to(d.m_k_rng);
             props["thermal_conductivity"].at("reference").get_to(d.m_k_ref);
-	    d.m_k_doi = props["thermal_conductivity"].value("DOI","");
+            d.m_k_doi = props["thermal_conductivity"].value("DOI", "");
           }
           if (props.contains("heat_capacity")) {
             props["heat_capacity"].at("values").get_to(data);
@@ -928,7 +929,7 @@ void Default_Data_Store::from_json(std::istream &inFile) {
             d.m_cp_unc_qualifier = parseNote(note);
             props["heat_capacity"].at("range").get_to(d.m_cp_rng);
             props["heat_capacity"].at("reference").get_to(d.m_cp_ref);
-	    d.m_cp_doi = props["heat_capacity"].value("DOI","");
+            d.m_cp_doi = props["heat_capacity"].value("DOI", "");
           }
           if (props.contains("surface_tension")) {
             props["surface_tension"].at("values").get_to(data);
@@ -940,7 +941,7 @@ void Default_Data_Store::from_json(std::istream &inFile) {
             d.m_st_unc_qualifier = parseNote(note);
             props["surface_tension"].at("range").get_to(d.m_st_rng);
             props["surface_tension"].at("reference").get_to(d.m_st_ref);
-	    d.m_st_doi = props["surface_tension"].value("DOI","");
+            d.m_st_doi = props["surface_tension"].value("DOI", "");
           }
         } else {
           std::cout << saltname << " is not a usable dataset at " << compname
@@ -978,7 +979,8 @@ std::string Default_Data_Store::to_json() const {
         oss << dat.m_mole_percents.back();
       }
       to_json(dat);
-      j["MSTDBTP"]["evaluated"][key][oss.str()] = nlohmann::json::parse(to_json(dat));
+      j["MSTDBTP"]["evaluated"][key][oss.str()] =
+          nlohmann::json::parse(to_json(dat));
     }
   }
   return j.dump();
@@ -988,7 +990,7 @@ std::string Default_Data_Store::to_json() const {
 /*!
  * \brief export data store Data object to json
  */
-std::string Default_Data_Store::to_json( Default_Data_Store::Data &d) const {
+std::string Default_Data_Store::to_json(Default_Data_Store::Data &d) const {
   nlohmann::json j;
   std::string m_melt_qualifier_str = "None";
   switch (d.m_melt_qualifier) {
@@ -1104,7 +1106,7 @@ std::string Default_Data_Store::to_json( Default_Data_Store::Data &d) const {
         {"DOI", d.m_st_doi},
     };
   }
-	return j.dump();
+  return j.dump();
 }
 
 //---------------------------------------------------------------------------//
