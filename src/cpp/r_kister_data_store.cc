@@ -1,10 +1,14 @@
 #include <algorithm>
 #include <fstream>
-#include <nlohmann/json.hpp>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
+
+#include "nlohmann/json.hpp"
+#ifdef SALINE_USE_HDF5
+#include <hdf5.h>
+#endif
 
 #include "data_store.hh"
 #include "default_data_store.hh"

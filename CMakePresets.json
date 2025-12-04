@@ -1,0 +1,404 @@
+{
+  "version": 8,
+  "cmakeMinimumRequired": { "major": 3, "minor": 24, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "base",
+      "displayName": "Base",
+      "description": "Base configuration, inherited by all other presets",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      },
+      "warnings": {
+        "dev": true,
+        "deprecated": true
+      }
+    },
+    {
+      "name": "debug",
+      "displayName": "Debug",
+      "description": "Debug build (Ninja)",
+      "hidden": true,
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "release",
+      "displayName": "Release",
+      "description": "Release build (Ninja)",
+      "hidden": true,
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "relwithdebinfo",
+      "displayName": "RelWithDebInfo",
+      "description": "Optimized build with debug info (Ninja)",
+      "hidden": true,
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
+    },
+    {
+      "name": "macos-clang-debug",
+      "displayName": "macOS Clang Debug (arm64)",
+      "inherits": "debug",
+      "toolchainFile": "toolchains/macos-clang-arm64.cmake"
+    },
+    {
+      "name": "macos-clang-release",
+      "displayName": "macOS Clang Release (arm64)",
+      "inherits": "release",
+      "toolchainFile": "toolchains/macos-clang-arm64.cmake"
+    },
+    {
+      "name": "macos-clang-relwithdebinfo",
+      "displayName": "macOS Clang RelWithDebInfo (arm64)",
+      "inherits": "relwithdebinfo",
+      "toolchainFile": "toolchains/macos-clang-arm64.cmake"
+    },
+    {
+      "name": "linux-gcc-debug",
+      "displayName": "linux gcc Debug (arm64)",
+      "inherits": "debug",
+      "toolchainFile": "toolchains/linux-gcc-arm64.cmake"
+    },
+    {
+      "name": "linux-gcc-release",
+      "displayName": "linux gcc Release (arm64)",
+      "inherits": "release",
+      "toolchainFile": "toolchains/linux-gcc-arm64.cmake"
+    },
+    {
+      "name": "linux-gcc-relwithdebinfo",
+      "displayName": "linux gcc RelWithDebInfo (arm64)",
+      "inherits": "relwithdebinfo",
+      "toolchainFile": "toolchains/linux-gcc-arm64.cmake"
+    },
+    {
+      "name": "win-ifort-debug",
+      "displayName": "Windows MSVC + ifort (Debug)",
+      "inherits": "debug",
+      "toolchainFile": "toolchains/windows-msvc-ifort.cmake",
+      "cacheVariables": {
+	"CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS" : "TRUE"
+      }
+    },
+    {
+      "name": "win-ifort-release",
+      "displayName": "Windows MSVC + ifort (Release)",
+      "inherits": "release",
+      "toolchainFile": "toolchains/windows-msvc-ifort.cmake",
+      "cacheVariables": {
+	"CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS" : "TRUE"
+      }
+    },
+    {
+      "name": "win-ifort-relwithdebinfo",
+      "displayName": "Windows MSVC + ifort (RelWithDebInfo)",
+      "inherits": "relwithdebinfo",
+      "toolchainFile": "toolchains/windows-msvc-ifort.cmake",
+      "cacheVariables": {
+	"CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS" : "TRUE"
+      }
+    },
+    {
+      "name": "win-debug",
+      "inherits": "win-ifort-debug"
+    },
+    {
+      "name": "win-release",
+      "inherits": "win-ifort-release"
+    },
+    {
+      "name": "win-relwithdebinfo",
+      "inherits": "win-ifort-relwithdebinfo"
+    },
+    {
+      "name": "vs2022-debug",
+      "displayName": "VS 2022 Debug",
+      "description": "Debug build using Visual Studio 2022 (multi-config)",
+      "inherits": "base",
+      "generator": "Visual Studio 17 2022",
+      "binaryDir": "${sourceDir}/build/vs2022",
+      "cacheVariables": {
+        "CMAKE_CONFIGURATION_TYPES": "Debug;Release;RelWithDebInfo"
+      }
+    },
+    {
+      "name": "xcode-debug",
+      "displayName": "Xcode Debug",
+      "description": "Debug build using Xcode (multi-config)",
+      "inherits": "base",
+      "generator": "Xcode",
+      "binaryDir": "${sourceDir}/build/xcode",
+      "cacheVariables": {
+        "CMAKE_CONFIGURATION_TYPES": "Debug;Release;RelWithDebInfo"
+      }
+    }
+  ],
+
+  "buildPresets": [
+    {
+      "name": "macos-clang-debug",
+      "displayName": "Build Debug",
+      "configurePreset": "macos-clang-debug",
+      "configuration": "Debug",
+      "targets" : ["all","SalinePy_wheel" ]
+    },
+    {
+      "name": "macos-clang-release",
+      "displayName": "Build Release",
+      "configurePreset": "macos-clang-release",
+      "configuration": "Release",
+      "targets" : ["all","SalinePy_wheel" ]
+    },
+    {
+      "name": "macos-clang-relwithdebinfo",
+      "displayName": "Build RelWithDebInfo",
+      "configurePreset": "macos-clang-relwithdebinfo",
+      "configuration": "RelWithDebInfo",
+      "targets" : ["all","SalinePy_wheel" ]
+    },
+    {
+      "name": "macos-debug",
+      "inherits" : "macos-clang-debug"
+    },
+    {
+      "name": "macos-release",
+      "inherits" : "macos-clang-release"
+    },
+    {
+      "name": "macos-relwithdebinfo",
+      "inherits" : "macos-clang-relwithdebinfo"
+    },
+    {
+      "name": "linux-gcc-debug",
+      "displayName": "Build Debug",
+      "configurePreset": "linux-gcc-debug",
+      "configuration": "Debug",
+      "targets" : ["all","SalinePy_wheel" ]
+    },
+    {
+      "name": "linux-gcc-release",
+      "displayName": "Build Release",
+      "configurePreset": "linux-gcc-release",
+      "configuration": "Release",
+      "targets" : ["all","SalinePy_wheel" ]
+    },
+    {
+      "name": "linux-gcc-relwithdebinfo",
+      "displayName": "Build RelWithDebInfo",
+      "configurePreset": "linux-gcc-relwithdebinfo",
+      "configuration": "RelWithDebInfo",
+      "targets" : ["all","SalinePy_wheel" ]
+    },
+    {
+      "name": "linux-debug",
+      "inherits" : "linux-gcc-debug"
+    },
+    {
+      "name": "linux-release",
+      "inherits" : "linux-gcc-release"
+    },
+    {
+      "name": "linux-relwithdebinfo",
+      "inherits" : "linux-gcc-relwithdebinfo"
+    },
+    {
+      "name": "win-ifort-debug",
+      "displayName": "Build Windows MSVC + ifort Debug",
+      "configurePreset": "win-ifort-debug",
+      "configuration": "Debug",
+      "targets" : ["all","SalinePy_wheel" ]
+    },
+    {
+      "name": "win-ifort-release",
+      "displayName": "Build Windows MSVC + ifort Release",
+      "configurePreset": "win-ifort-release",
+      "configuration": "Release",
+      "targets" : ["all","SalinePy_wheel" ]
+    },
+    {
+      "name": "win-ifort-relwithdebinfo",
+      "displayName": "Build Windows MSVC + ifort RelWithDebInfo",
+      "configurePreset": "win-ifort-relwithdebinfo",
+      "configuration": "RelWithDebInfo",
+      "targets" : ["all","SalinePy_wheel" ]
+    },
+    {
+      "name": "win-debug",
+      "inherits" : "win-ifort-debug"
+    },
+    {
+      "name": "win-release",
+      "inherits" : "win-ifort-release"
+    },
+    {
+      "name": "win-relwithdebinfo",
+      "inherits" : "win-ifort-relwithdebinfo"
+    },
+    {
+      "name": "vs2022-debug",
+      "displayName": "Build VS 2022 Debug",
+      "configurePreset": "vs2022-debug",
+      "configuration": "Debug",
+      "targets" : ["all","SalinePy_wheel" ]
+    },
+    {
+      "name": "vs2022-release",
+      "displayName": "Build VS 2022 Release",
+      "configurePreset": "vs2022-debug",
+      "configuration": "Release",
+      "targets" : ["all","SalinePy_wheel" ]
+    },
+    {
+      "name": "xcode-debug",
+      "displayName": "Build Xcode Debug",
+      "configurePreset": "xcode-debug",
+      "configuration": "Debug",
+      "targets" : ["all","SalinePy_wheel" ]
+    },
+    {
+      "name": "xcode-release",
+      "displayName": "Build Xcode Release",
+      "configurePreset": "xcode-debug",
+      "configuration": "Release",
+      "targets" : ["all","SalinePy_wheel" ]
+    }
+  ],
+
+  "testPresets": [
+    {
+      "name": "macos-clang-debug",
+      "displayName": "Build Debug",
+      "configurePreset": "macos-clang-debug",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "macos-clang-release",
+      "displayName": "Build Release",
+      "configurePreset": "macos-clang-release",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "macos-clang-relwithdebinfo",
+      "displayName": "Build RelWithDebInfo",
+      "configurePreset": "macos-clang-relwithdebinfo",
+      "configuration": "RelWithDebInfo",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "macos-debug",
+      "inherits" : "macos-clang-debug"
+    },
+    {
+      "name": "macos-release",
+      "inherits" : "macos-clang-release"
+    },
+    {
+      "name": "macos-relwithdebinfo",
+      "inherits" : "macos-clang-relwithdebinfo"
+    },
+    {
+      "name": "linux-gcc-debug",
+      "displayName": "Build Debug",
+      "configurePreset": "linux-gcc-debug",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "linux-gcc-release",
+      "displayName": "Build Release",
+      "configurePreset": "linux-gcc-release",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "linux-gcc-relwithdebinfo",
+      "displayName": "Build RelWithDebInfo",
+      "configurePreset": "linux-gcc-relwithdebinfo",
+      "configuration": "RelWithDebInfo",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "linux-debug",
+      "inherits" : "linux-gcc-debug"
+    },
+    {
+      "name": "linux-release",
+      "inherits" : "linux-gcc-release"
+    },
+    {
+      "name": "linux-relwithdebinfo",
+      "inherits" : "linux-gcc-relwithdebinfo"
+    },
+    {
+      "name": "win-ifort-debug",
+      "displayName": "Build Windows MSVC + ifort Debug",
+      "configurePreset": "win-ifort-debug",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "win-ifort-release",
+      "displayName": "Build Windows MSVC + ifort Release",
+      "configurePreset": "win-ifort-release",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "win-ifort-relwithdebinfo",
+      "displayName": "Build Windows MSVC + ifort RelWithDebInfo",
+      "configurePreset": "win-ifort-relwithdebinfo",
+      "configuration": "RelWithDebInfo",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "vs2022-debug",
+      "displayName": "CTest VS 2022 Debug",
+      "configurePreset": "vs2022-debug",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "xcode-debug",
+      "displayName": "CTest Xcode Debug",
+      "configurePreset": "xcode-debug",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}

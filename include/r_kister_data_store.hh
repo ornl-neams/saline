@@ -15,9 +15,6 @@
 #include <string>
 #include <vector>
 
-#ifdef SALINE_USE_HDF5
-#include <hdf5.h>
-#endif
 #include "data_store.hh"
 #include "default_data_store.hh"
 
