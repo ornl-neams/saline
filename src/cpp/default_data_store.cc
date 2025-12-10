@@ -221,7 +221,10 @@ void Default_Data_Store::load(const std::string &fPath) {
   } else if (utils::sniff_json(inFile)) {
     from_json(inFile);
   } else if (inFile.is_open()) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     load(inFile);
+#pragma GCC diagnostic pop
     // Make something that dumps supported file types
     std::cout << "salineWarn: Loading a csv is deprecated, use json instead!"
               << std::endl;
