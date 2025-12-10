@@ -87,7 +87,10 @@ void R_Kister_Data_Store::load(const std::string &rkDens,
   if (!rkMuFile.is_open()) {
     throw std::runtime_error("Falied to open input RK viscosity data file.");
   }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   load(rkRhoFile, rkMuFile, inFile);
+#pragma GCC diagnostic pop
 }
 //---------------------------------------------------------------------------//
 /*!
@@ -114,7 +117,10 @@ void R_Kister_Data_Store::load(const std::string &rkDataPath,
   if (!rkMuFile.is_open()) {
     throw std::runtime_error("Falied to open input RK viscosity data file.");
   }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   load(rkRhoFile, rkMuFile, inFile);
+#pragma GCC diagnostic pop
 }
 //---------------------------------------------------------------------------//
 /*!
@@ -123,7 +129,10 @@ void R_Kister_Data_Store::load(const std::string &rkDataPath,
 void R_Kister_Data_Store::load(std::istream &rkRhoFile, std::istream &rkMuFile,
                                std::istream &inFile) {
   // set up default store
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   d.load(inFile);
+#pragma GCC diagnostic pop
   // Set up space for the mixing models
   Vec_Name keys = d.getSaltKeys();
 
@@ -433,7 +442,7 @@ double R_Kister_Data_Store::rho(Id /* id */, Id /* data_id */,
  * temperature
  */
 double R_Kister_Data_Store::surfaceTension(Id /* id */, Id /* data_id */,
-                                           double temperature,
+                                           double /* temperature */,
                                            double /* pressure */) const {
   return -1.0;
 }
@@ -780,8 +789,8 @@ std::string R_Kister_Data_Store::to_json() const {
 std::string R_Kister_Data_Store::rk_to_json(
     std::vector<std::vector<RK_Polynomial>> m) const {
   nlohmann::json dat;
-  for (int j = 0; j < d.size(); ++j) {
-    for (int i = 0; i < d.size(); ++i) {
+  for (std::size_t j = 0; j < d.size(); ++j) {
+    for (std::size_t i = 0; i < d.size(); ++i) {
       if (!m[j][i].a_n.empty()) {
         Vec_Name outerName = d.names(j);
         if (!outerName[0].empty()) {
