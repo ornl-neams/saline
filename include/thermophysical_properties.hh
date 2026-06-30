@@ -15,8 +15,7 @@
 #endif
 #include "data_store.hh"
 
-namespace saline
-{
+namespace saline {
 
 //===========================================================================//
 /*!
@@ -28,120 +27,130 @@ namespace saline
  *   Pressure      - Kilopascal (kPa)
  *   Temperature   - Kelvin (K)
  *   Enthalpy      - Joule per mole (J/mole)
- *   Viscosity     - Centipoise (cP) or milli Newton-second per square Meter (mN.s/m^2)
- *   Specific Heat - Joules per Kelvin Mole (J/K mole)
- *   Density       - Grams per Cubic Centimeter (g/cc)
+ *   Viscosity     - Centipoise (cP) or milli Newton-second per square Meter
+ * (mN.s/m^2) Specific Heat - Joules per Kelvin Mole (J/K mole) Density       -
+ * Grams per Cubic Centimeter (g/cc)
  */
 //===========================================================================//
-class Thermophysical_Properties
-{
-  public:
+class Thermophysical_Properties {
+public:
+  //@{
+  //! Types
+  using Id = std::size_t;
+  using Name = std::string;
+  using Vec_Id = std::vector<Id>;
+  using Vec_Name = std::vector<Name>;
+  using Vec_Mole = std::vector<double>;
+  //@}
 
-    //@{
-    //! Types
-    using Id       = std::size_t;
-    using Name     = std::string;
-    using Vec_Id   = std::vector<Id>;
-    using Vec_Name = std::vector<Name>;
-    using Vec_Mole = std::vector<double>;
-    //@}
+  // Construct the cone shape
+  Thermophysical_Properties();
 
-    // Construct the cone shape
-    Thermophysical_Properties();
+  // >>> ACCESSORS
 
-    // >>> ACCESSORS
+  // specific heat
+  double cp(double temperature, double pressure = 101.325) const;
+  double cp_h(double enthalpy, double pressure = 101.325) const;
+  double cp_kg(double temperature, double pressure = 101.325) const;
+  double cp_h_kg(double enthalpy, double pressure = 101.325) const;
+  double cp_unc() const { return m_impl.cp_unc(); }
+  std::pair<double, double> cp_rng() const { return m_impl.cp_rng(); }
+  bool valid_cp() const;
 
-    // specific heat
-    double cp(double temperature, double pressure = 101.325) const;
-    double cp_h(double enthalpy, double pressure = 101.325) const;
-    double cp_kg(double temperature, double pressure = 101.325) const;
-    double cp_h_kg(double enthalpy, double pressure = 101.325) const;
-    double cp_unc() const {return m_impl.cp_unc();}
-    std::pair<double,double> cp_rng() const {return m_impl.cp_rng();}
-    bool valid_cp() const;
+  // viscosity
+  double mu(double temperature, double pressure = 101.325) const;
+  double mu_h(double enthalpy, double pressure = 101.325) const;
+  double mu_unc() const { return m_impl.mu_unc(); }
+  std::pair<double, double> mu_rng() const { return m_impl.mu_rng(); }
+  bool valid_mu() const;
 
-    // viscosity
-    double mu(double temperature, double pressure = 101.325) const;
-    double mu_h(double enthalpy, double pressure = 101.325) const;
-    double mu_unc() const {return m_impl.mu_unc();}
-    std::pair<double,double> mu_rng() const{return m_impl.mu_rng();}
-    bool valid_mu() const;
+  // conductivity
+  double k(double temperature, double pressure = 101.325) const;
+  double k_h(double enthalpy, double pressure = 101.325) const;
+  double k_unc() const { return m_impl.k_unc(); }
+  std::pair<double, double> k_rng() const { return m_impl.k_rng(); }
+  bool valid_k() const;
 
-    // conductivity
-    double k(double temperature, double pressure = 101.325) const;
-    double k_h(double enthalpy, double pressure = 101.325) const;
-    double k_unc() const {return m_impl.k_unc();}
-    std::pair<double,double> k_rng() const{return m_impl.k_rng();}
-    bool valid_k() const;
+  // density
+  double rho(double temperature, double pressure = 101.325) const;
+  double rho_h(double enthalpy, double pressure = 101.325) const;
+  double rho_kgm3(double temperature, double pressure = 101.325) const;
+  double rho_h_kgm3(double enthalpy, double pressure = 101.325) const;
+  double rho_unc() const { return m_impl.rho_unc(); }
+  std::pair<double, double> rho_rng() const { return m_impl.rho_rng(); }
+  bool valid_rho() const;
 
-    // density
-    double rho(double temperature, double pressure = 101.325) const;
-    double rho_h(double enthalpy, double pressure = 101.325) const;
-    double rho_kgm3(double temperature, double pressure = 101.325) const;
-    double rho_h_kgm3(double enthalpy, double pressure = 101.325) const;
-    double rho_unc() const {return m_impl.rho_unc();}
-    std::pair<double,double> rho_rng() const{return m_impl.rho_rng();}
-    bool valid_rho() const;
+  // Surface Tension
+  double surfaceTension(double temperature, double pressure = 101.325) const;
+  double surfaceTension_h(double enthalpy, double pressure = 101.325) const;
+  double surfaceTension_kgm3(double temperature,
+                             double pressure = 101.325) const;
+  double surfaceTension_h_kgm3(double enthalpy,
+                               double pressure = 101.325) const;
+  double surfaceTension_unc() const { return m_impl.surfaceTension_unc(); }
+  std::pair<double, double> surfaceTension_rng() const {
+    return m_impl.surfaceTension_rng();
+  }
+  bool valid_surfaceTension() const;
 
-    // Surface Tension
-    double surfaceTension(double temperature, double pressure = 101.325) const;
-    double surfaceTension_h(double enthalpy, double pressure = 101.325) const;
-    double surfaceTension_kgm3(double temperature, double pressure = 101.325) const;
-    double surfaceTension_h_kgm3(double enthalpy, double pressure = 101.325) const;
-    double surfaceTension_unc() const {return m_impl.surfaceTension_unc();}
-    std::pair<double,double> surfaceTension_rng() const{return m_impl.surfaceTension_rng();}
-    bool valid_surfaceTension() const;
+  // speed of sound
+  double speedOfSound(double temperature, double pressure = 101.325) const;
+  double speedOfSound_h(double enthalpy, double pressure = 101.325) const;
+  double speedOfSound_unc() const { return m_impl.speedOfSound_unc(); }
+  std::pair<double, double> speedOfSound_rng() const {
+    return m_impl.speedOfSound_rng();
+  }
+  bool valid_speedOfSound() const;
 
-    // enthalpy
-    double h_t(double temperature) const;
-    double h_t_kg(double temperature) const;
+  // enthalpy
+  double h_t(double temperature) const;
+  double h_t_kg(double temperature) const;
 
-    // temperature
-    double t_h(double enthalpy) const;
-    double t_h_kg(double enthalpy) const;
+  // temperature
+  double t_h(double enthalpy) const;
+  double t_h_kg(double enthalpy) const;
 
-    double t_melt() const;
-    double t_boil() const;
+  double t_melt() const;
+  double t_boil() const;
+  double molecularWeight() const;
 
-    // The list accessible salt names
-    Vec_Name getSaltKeys() const;
-    std::vector<std::vector<double>> getSaltComps(std::string names) const;
+  // The list accessible salt names
+  Vec_Name getSaltKeys() const;
+  std::vector<std::vector<double>> getSaltComps(std::string names) const;
 
-    // list of species for which properties are being tracked
-    const Vec_Name& species() const {return m_comp_names;}
+  // list of species for which properties are being tracked
+  const Vec_Name &species() const { return m_comp_names; }
 
-    // list of species mole % for which properties are being tracked
-    const Vec_Mole& composition() const {return m_impl.mole_percent();}
+  // list of species mole % for which properties are being tracked
+  const Vec_Mole &composition() const { return m_impl.mole_percent(); }
 
-    // set the mole % and select the composition
-    bool setComposition(const Vec_Name& names,
-                        const Vec_Mole& mole_percents);
+  // set the mole % and select the composition
+  bool setComposition(const Vec_Name &names, const Vec_Mole &mole_percents);
 
-    // convenience method for Fortran interface
-    // names is composition names separated by '-'
-    // The name count must be equal to the mole_percent_count
-    // returns true, iff the names were successfully processed, counts matched
-    //               AND data was found for the compound
-    bool setComposition(const std::string& names, double* mole_percents,
-                        int mole_percent_count);
+  // convenience method for Fortran interface
+  // names is composition names separated by '-'
+  // The name count must be equal to the mole_percent_count
+  // returns true, iff the names were successfully processed, counts matched
+  //               AND data was found for the compound
+  bool setComposition(const std::string &names, double *mole_percents,
+                      int mole_percent_count);
 
-    // interface for checking if salt is valid
-    bool isSaltValid(const Vec_Name& names) const;
-    bool isSaltValid(const std::string& names, int name_count);
+  // interface for checking if salt is valid
+  bool isSaltValid(const Vec_Name &names) const;
+  bool isSaltValid(const std::string &names, int name_count);
 
-    // initialize the properties data
-    bool initialize(Data_Store* d);
+  // initialize the properties data
+  bool initialize(Data_Store *d);
 
-  private:
+private:
+  // the most recent species used by the client (names in order of request)
+  Vec_Name m_comp_names;
 
-    // the most recent species used by the client (names in order of request)
-    Vec_Name m_comp_names;
+  // the data store backing this instance of material properties
+  Data_Store *m_data;
 
-    // the data store backing this instance of material properties
-    Data_Store* m_data;
-
-    // Our view/specific material implementation into the data store
-    Data_Store::View m_impl;
+  // Our view/specific material implementation into the data store
+  Data_Store::View m_impl;
 };
 } // namespace saline
 

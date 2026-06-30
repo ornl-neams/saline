@@ -1,11 +1,14 @@
 #include <algorithm>
+#include <cmath>
 #include <fstream>
+#include <iterator>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
 #include "nlohmann/json.hpp"
+#include "saline_bug.hh"
 #ifdef SALINE_USE_HDF5
 #include <hdf5.h>
 #endif
@@ -31,6 +34,10 @@ using Vec_Name = std::vector<Name>;
 using Vec_Mole = std::vector<double>;
 //@}
 
+// Boltzmann's constant 1.380649 × 10-23 m2 kg s-2 K-1
+static constexpr double BOLTZMANN_CONSTANT = 1.380649e-23;
+// Avogadro's Number
+static constexpr double AVOGADROS_NUMBER = 6.02214076e23;
 //----------------------------------------------------------------------------//
 /*!
  * \brief constructs the Redlich-Kister data store extension
@@ -61,6 +68,10 @@ void R_Kister_Data_Store::load(const std::string &fPath) {
   } else {
     from_json(inFile);
   }
+  auto d_keys = d.getSaltKeys();
+  std::copy_if(
+      d_keys.begin(), d_keys.end(), std::back_inserter(m_keys),
+      [](const std::string &s) { return s.find('-') == std::string::npos; });
 }
 
 //---------------------------------------------------------------------------//
@@ -91,6 +102,10 @@ void R_Kister_Data_Store::load(const std::string &rkDens,
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   load(rkRhoFile, rkMuFile, inFile);
 #pragma GCC diagnostic pop
+  auto d_keys = d.getSaltKeys();
+  std::copy_if(
+      d_keys.begin(), d_keys.end(), std::back_inserter(m_keys),
+      [](const std::string &s) { return s.find('-') == std::string::npos; });
 }
 //---------------------------------------------------------------------------//
 /*!
@@ -121,6 +136,10 @@ void R_Kister_Data_Store::load(const std::string &rkDataPath,
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   load(rkRhoFile, rkMuFile, inFile);
 #pragma GCC diagnostic pop
+  auto d_keys = d.getSaltKeys();
+  std::copy_if(
+      d_keys.begin(), d_keys.end(), std::back_inserter(m_keys),
+      [](const std::string &s) { return s.find('-') == std::string::npos; });
 }
 //---------------------------------------------------------------------------//
 /*!
@@ -260,6 +279,7 @@ Data_Store::View R_Kister_Data_Store::setView(const Vec_Name &names,
 
   end_members.resize(names.size());
   endMem_moleFracs = mole_percents;
+  salt_name = names;
 
   // For the functioning of this data store...views of end_members are stored
   for (size_t i = 0; i < names.size(); ++i) {
@@ -366,27 +386,62 @@ double R_Kister_Data_Store::mu_h(Id /* id */, Id /* data_id */,
  * \brief retrieve the conductivity for the selected compound based on
  * temperature
  */
-double R_Kister_Data_Store::k(Id /* id */, Id /* data_id */, double temperature,
+double R_Kister_Data_Store::k(Id id, Id data_id, double temperature,
                               double /* pressure */) const {
-  // Ideal mixing
-  double k_ideal = 0.0;
-  for (size_t i = 0; i < end_members.size(); ++i) {
-    k_ideal += end_members[i].k(temperature) * endMem_moleFracs[i];
+  // TODO DBC insist temperature is greater than t_melt
+
+  // Melt temperature of the mixture
+  double t_melt = melt(id, data_id);
+  saline_insist(t_melt > 0.0,
+                "Melting temperature is unknown for this composition");
+
+  // Mixture speed of sound (m * s^-1)
+  double mix_c0 = speedOfSound(id, data_id, t_melt);
+  saline_insist(mix_c0 > 0.0, "speed of sound is unknown for this composition");
+
+  // Mixture heat capacity (J k^-1 mol^-1)
+  double mix_cp = cp(id, data_id, t_melt);
+  saline_insist(mix_cp > 0.0, "heat capacity is unknown for this composition");
+
+  // Mixture volume
+  double mix_vol = 0.0;
+  std::vector<double> vol_fracs(end_members.size());
+  for (size_t i = 0; i < end_members.size(); i++) {
+    // Uses density and mass of the components
+    vol_fracs[i] = end_members[i].molecularWeight() /
+                   end_members[i].rho(t_melt) * endMem_moleFracs[i];
+    mix_vol += vol_fracs[i];
+  }
+  // volume fractions of the compoennts
+  std::transform(vol_fracs.begin(), vol_fracs.end(), vol_fracs.begin(),
+                 [mix_vol](double d) { return d / mix_vol; });
+
+  // Mixutre number density
+  // Weighted number of ions in the mixuture
+  double n_mix = n_ions(id, data_id);
+  // converted to m^-3
+  double mix_numdens = AVOGADROS_NUMBER * 1E9 * n_mix / mix_vol;
+
+  // mat Const
+  double alpha = 0.0;
+  for (size_t i = 0; i < end_members.size(); i++) {
+    // thermal expansivity
+    alpha += vol_fracs[i] * std::log(end_members[i].rho(t_melt + 1) /
+                                     end_members[i].rho(t_melt));
   }
 
-  // Excess
-  double k_excess = 0.0;
-  for (size_t j = 0; j < end_members.size() - 1; ++j) {
-    int j_id = end_members[j].id;
-    for (size_t i = j + 1; i < end_members.size(); ++i) {
-      int i_id = end_members[i].id;
-      RK_Polynomial excess_calc = m_k[j_id][i_id];
-      k_excess += excess_calc.getRK_solution(endMem_moleFracs[j],
-                                             endMem_moleFracs[i], temperature);
-    }
-  }
-  return k_ideal + k_excess;
+  // Gruneisen parameter (dimensionless)
+  // Mixture molar weight (in kg * mol^-1 )
+  double mix_mw = molecularWeight(id, data_id) / 1000.0;
+  // Mixture material constant (dimensionless)
+  double mix_complex = complexation(id, data_id);
+  double gamma = mix_mw * alpha * mix_c0 * mix_c0 / mix_cp;
+
+  return mix_complex * BOLTZMANN_CONSTANT * std::pow(mix_numdens, 2.0 / 3.0) *
+         mix_c0 *
+         (1.0 - (alpha * (gamma + (1.0 / 3.0)) * (temperature - t_melt)));
 }
+
 //----------------------------------------------------------------------------//
 /*!
  * \brief retrieve the conductivity for the selected compound based on enthalpy
@@ -435,6 +490,42 @@ double R_Kister_Data_Store::rho(Id /* id */, Id /* data_id */,
     }
   }
   return rho_ideal + rho_excess;
+}
+
+int R_Kister_Data_Store::complexation(Id /* id */, Id /* data_id */) const {
+  double mix_complex = 0.0;
+  for (size_t i = 0; i < end_members.size(); i++) {
+    // Also seems slightly unbound
+    mix_complex += end_members[i].complexation() * endMem_moleFracs[i];
+  }
+  return mix_complex;
+}
+
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the speed of sound for the selected compound based on
+ * temperature
+ */
+double R_Kister_Data_Store::n_ions(Id /* id */, Id /* data_id */) const {
+  double n_mix = 0;
+  for (size_t i = 0; i < end_members.size(); i++) {
+    // Also seems slightly unbound
+    n_mix += end_members[i].n_ions() * endMem_moleFracs[i];
+  }
+  return n_mix;
+}
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the speed of sound for the selected compound based on
+ * temperature
+ */
+double R_Kister_Data_Store::speedOfSound(Id /* id */, Id /* data_id */,
+                                         double temperature) const {
+  double mix_c0 = 0.0;
+  for (size_t i = 0; i < end_members.size(); i++) {
+    mix_c0 += end_members[i].speedOfSound(temperature) * endMem_moleFracs[i];
+  }
+  return mix_c0;
 }
 //----------------------------------------------------------------------------//
 /*!
@@ -500,9 +591,18 @@ double R_Kister_Data_Store::t_h(Id /* id */, Id /* data_id */,
  * \brief retrieve the melting temperature of the selected compound
  */
 double R_Kister_Data_Store::melt(Id /* id */, Id /* data_id */) const {
-  // TODO I am not sure what we are doing here. Deferring until I have an answer
-  double cp = 0.0;
-  return cp;
+  // We do not reliably have melting temperature beyond Ternaries right now
+  if (salt_name.size() > 3)
+    return 0.0;
+  // We cannot reliably estimate melting temperature
+  Id salt_id = d.names_to_id(salt_name);
+  if (!d.valid(salt_id)) {
+    return 0.0;
+  }
+
+  // A valid salt has at least one entry
+  Id comp_id = d.nearest(salt_id, endMem_moleFracs);
+  return d.melt(salt_id, comp_id);
 }
 
 //----------------------------------------------------------------------------//
@@ -510,7 +610,8 @@ double R_Kister_Data_Store::melt(Id /* id */, Id /* data_id */) const {
  * \brief retrieve the boiling temperature of the selected compound
  */
 double R_Kister_Data_Store::boil(Id /* id */, Id /* data_id */) const {
-  // TODO I am not sure what we are doing here. Deferring until I have an answer
+  // TODO I am not sure what we are doing here. Deferring until I have an
+  // answer
   double cp = 0.0;
   return cp;
 }
@@ -654,7 +755,8 @@ bool R_Kister_Data_Store::valid_cp(Id /* id */, Id /* data_id */) const {
 }
 //----------------------------------------------------------------------------//
 /*!
- * \brief retrieve the conductivity experimental range for the selected compound
+ * \brief retrieve the conductivity experimental range for the selected
+ * compound
  */
 std::pair<double, double> R_Kister_Data_Store::rho_rng(Id /* id */,
                                                        Id /* data_id */) const {
@@ -671,7 +773,8 @@ R_Kister_Data_Store::surfaceTension_rng(Id /* id */, Id /* data_id */) const {
 }
 //----------------------------------------------------------------------------//
 /*!
- * \brief retrieve the conductivity experimental range for the selected compound
+ * \brief retrieve the conductivity experimental range for the selected
+ * compound
  */
 std::pair<double, double> R_Kister_Data_Store::k_rng(Id /* id */,
                                                      Id /* data_id */) const {
@@ -817,14 +920,10 @@ std::string R_Kister_Data_Store::rk_to_json(
   return dat.dump();
 }
 
-/// TODO This data is inherently binary... perhaps this is a listing of only
-/// those combinations. The details of the operation and what they mean could be
-/// explained in the readme, and allow for the user make useful algorithms based
-/// on availability
+// Return the end-members that could be used to construct a salt
 Vec_Name R_Kister_Data_Store::getSaltKeys() const {
-  // TODO
-  Vec_Name keys;
-  return keys;
+  // We don't have a list of end-members yet
+  return m_keys;
 }
 
 /// TODO similarly, this is also "binary", so values are all values [0-100] -

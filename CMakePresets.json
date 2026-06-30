@@ -7,10 +7,11 @@
       "displayName": "Base",
       "description": "Base configuration, inherited by all other presets",
       "hidden": true,
-      "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/${presetName}",
+      "installDir": "${sourceDir}/install/${presetName}",
       "cacheVariables": {
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_Fortran_FLAGS": "-ffree-line-length-none"
       },
       "warnings": {
         "dev": true,
@@ -69,19 +70,19 @@
       "name": "linux-gcc-debug",
       "displayName": "linux gcc Debug (arm64)",
       "inherits": "debug",
-      "toolchainFile": "toolchains/linux-gcc-arm64.cmake"
+      "toolchainFile": "toolchains/linux-gcc-x86_64.cmake"
     },
     {
       "name": "linux-gcc-release",
       "displayName": "linux gcc Release (arm64)",
       "inherits": "release",
-      "toolchainFile": "toolchains/linux-gcc-arm64.cmake"
+      "toolchainFile": "toolchains/linux-gcc-x86_64.cmake"
     },
     {
       "name": "linux-gcc-relwithdebinfo",
       "displayName": "linux gcc RelWithDebInfo (arm64)",
       "inherits": "relwithdebinfo",
-      "toolchainFile": "toolchains/linux-gcc-arm64.cmake"
+      "toolchainFile": "toolchains/linux-gcc-x86_64.cmake"
     },
     {
       "name": "win-ifort-debug",
@@ -134,6 +135,12 @@
       }
     },
     {
+      "name": "vs2022-release",
+      "displayName": "VS 2022 Release",
+      "description": "Release build using Visual Studio 2022 (multi-config)",
+      "inherits": "vs2022-debug"
+    },
+    {
       "name": "xcode-debug",
       "displayName": "Xcode Debug",
       "description": "Debug build using Xcode (multi-config)",
@@ -143,6 +150,12 @@
       "cacheVariables": {
         "CMAKE_CONFIGURATION_TYPES": "Debug;Release;RelWithDebInfo"
       }
+    },
+    {
+      "name": "xcode-release",
+      "displayName": "Xcode Release",
+      "description": "Release build using Xcode (multi-config)",
+      "inherits": "xcode-debug"
     }
   ],
 
@@ -256,7 +269,7 @@
     {
       "name": "vs2022-release",
       "displayName": "Build VS 2022 Release",
-      "configurePreset": "vs2022-debug",
+      "configurePreset": "vs2022-release",
       "configuration": "Release",
       "targets" : ["all","SalinePy_wheel" ]
     },
@@ -270,7 +283,7 @@
     {
       "name": "xcode-release",
       "displayName": "Build Xcode Release",
-      "configurePreset": "xcode-debug",
+      "configurePreset": "xcode-release",
       "configuration": "Release",
       "targets" : ["all","SalinePy_wheel" ]
     }

@@ -136,6 +136,21 @@ public:
   // molecular weight
   double molecularWeight(Id id, Id data_id) const;
 
+  // Speed of sound
+  double speedOfSound(Id id, Id data_id, double temperature) const;
+  double speedOfSound_h(Id id, Id data_id, double enthalpy,
+                        double pressure = 101.325) const;
+  virtual bool valid_speedOfSound(Id id, Id data_id) const;
+  double speedOfSound_unc(Id id, Id data_id) const;
+  std::pair<double, double> speedOfSound_rng(Id id, Id data_id) const;
+  std::string speedOfSound_ref(Id id, Id data_id) const;
+
+  // number of ions
+  double n_ions(Id id, Id data_id) const;
+
+  // anion/cation ratio
+  int complexation(Id id, Id data_id) const;
+
   // melting temperature
   double melt(Id id, Id data_id) const;
   double melt_unc(Id id, Id data_id) const;
@@ -154,7 +169,8 @@ public:
 
   void load(const std::string &fPath);
   void from_json(std::istream &inFile);
-  [[deprecated("Use load(std::string &fPath) instead with a file path instead.")]]
+  [[deprecated(
+      "Use load(std::string &fPath) instead with a file path instead.")]]
   void load(std::istream &inFile);
 
   View setView(const Vec_Name &names, const Vec_Mole &mole_percents);
@@ -177,6 +193,7 @@ public:
   Vec_Name getSaltKeys() const;
   std::vector<std::vector<double>> getSaltComps(Vec_Name names) const;
   std::string to_json() const;
+  std::string to_json_by_id(Id id, Id data_id) const;
 
 private:
   class Data {
@@ -198,6 +215,22 @@ private:
 
     // molecular weight
     double molecularWeight() const { return m_mole_weight; }
+
+    // number of ions
+    double n_ions() const { return m_n_ions; }
+
+    // anion/cation ratio
+    int complexation() const { return m_complexation; }
+
+    // speed of sound (Default FLiNaK https://doi.org/10.1063/5.0088059,
+    // slightly adapted)
+    double speedOfSound(double t) const { return m_co_a - (m_co_b * t); }
+    double speedOfSound_h(double h) const { return speedOfSound(h_to_t(h)); }
+    bool valid_speedOfSound() const {
+      return ((m_co_a != 0.0) || (m_co_b != 0.0));
+    }
+    double speedOfSound_unc() const { return m_co_unc; }
+    std::string speedOfSound_ref() const { return m_co_ref; }
 
     // surface tension
     double surfaceTension(double t) const { return m_st_a - (m_st_b * t); }
@@ -295,7 +328,9 @@ private:
     std::string m_melt_doi;
 
     // Molecular Weight
-    double m_mole_weight;
+    double m_mole_weight = -1.0;
+    int m_n_ions = -1;
+    int m_complexation = -1;
 
     // Boiling Temperature
     double m_boil = 0.0;
@@ -352,6 +387,15 @@ private:
     std::pair<double, double> m_st_rng;
     std::string m_st_ref;
     std::string m_st_doi;
+
+    // speed of sound
+    double m_co_a = 0.0;
+    double m_co_b = 0.0;
+    double m_co_unc = 0.0;
+    DataQualifier m_co_unc_qualifier;
+    std::pair<double, double> m_co_rng;
+    std::string m_co_ref;
+    std::string m_co_doi;
 
     // enthalpy to temperature table
     std::vector<double> m_h;

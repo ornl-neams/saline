@@ -7,19 +7,18 @@
 //---------------------------------------------------------------------------//
 
 #include "thermophysical_properties.hh"
-#include "utils.hh"
 #include "saline_bug.hh"
+#include "utils.hh"
 
-namespace saline
-{
-    //@{
-    //! Types
-    using Id       = std::size_t;
-    using Name     = std::string;
-    using Vec_Id   = std::vector<Id>;
-    using Vec_Name = std::vector<Name>;
-    using Vec_Mole = std::vector<double>;
-    //@}
+namespace saline {
+//@{
+//! Types
+using Id = std::size_t;
+using Name = std::string;
+using Vec_Id = std::vector<Id>;
+using Vec_Name = std::vector<Name>;
+using Vec_Mole = std::vector<double>;
+//@}
 
 //---------------------------------------------------------------------------//
 // CONSTRUCTORS
@@ -27,11 +26,7 @@ namespace saline
 /*!
  * \brief Constructor.
  */
-Thermophysical_Properties::Thermophysical_Properties()
-    : m_data(nullptr)
-{
-
-}
+Thermophysical_Properties::Thermophysical_Properties() : m_data(nullptr) {}
 
 //---------------------------------------------------------------------------//
 // ACCESSORS
@@ -41,233 +36,240 @@ Thermophysical_Properties::Thermophysical_Properties()
 /*!
  * \brief specific heat given temperature and pressure, returns units J/(mol*K)
  */
-double Thermophysical_Properties::cp(double temperature, double pressure) const
-{
-    return m_impl.cp(temperature, pressure);
+double Thermophysical_Properties::cp(double temperature,
+                                     double pressure) const {
+  return m_impl.cp(temperature, pressure);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * \brief specific heat given enthalpy and pressure, returns units J/(mol*K)
  */
-double Thermophysical_Properties::cp_h(double enthalpy, double pressure) const
-{
-    return m_impl.cp_h(enthalpy, pressure);
+double Thermophysical_Properties::cp_h(double enthalpy, double pressure) const {
+  return m_impl.cp_h(enthalpy, pressure);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * \brief specific heat given temperature and pressure, returns units J/(kg*K)
  */
-double Thermophysical_Properties::cp_kg(double temperature, double pressure) const
-{
-    return m_impl.cp(temperature, pressure) * ( 1000.0/m_impl.molecularWeight());
+double Thermophysical_Properties::cp_kg(double temperature,
+                                        double pressure) const {
+  return m_impl.cp(temperature, pressure) * (1000.0 / m_impl.molecularWeight());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * \brief specific heat given enthalpy and pressure, returns units J/(kg*K)
  */
-double Thermophysical_Properties::cp_h_kg(double enthalpy, double pressure) const
-{
-    return m_impl.cp_h(enthalpy, pressure) * ( 1000.0/m_impl.molecularWeight());
+double Thermophysical_Properties::cp_h_kg(double enthalpy,
+                                          double pressure) const {
+  return m_impl.cp_h(enthalpy, pressure) * (1000.0 / m_impl.molecularWeight());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * \brief viscosity given temperature and pressure
  */
-double Thermophysical_Properties::mu(double temperature, double pressure) const
-{
-    return m_impl.mu(temperature, pressure);
+double Thermophysical_Properties::mu(double temperature,
+                                     double pressure) const {
+  return m_impl.mu(temperature, pressure);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * \brief viscosity given enthalpy and pressure
  */
-double Thermophysical_Properties::mu_h(double enthalpy, double pressure) const
-{
-    return m_impl.mu_h(enthalpy, pressure);
+double Thermophysical_Properties::mu_h(double enthalpy, double pressure) const {
+  return m_impl.mu_h(enthalpy, pressure);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * \brief conductivity given temperature and pressure
  */
-double Thermophysical_Properties::k(double temperature, double pressure) const
-{
-    return m_impl.k(temperature, pressure);
+double Thermophysical_Properties::k(double temperature, double pressure) const {
+  return m_impl.k(temperature, pressure);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * \brief conductivity given enthalpy and pressure
  */
-double Thermophysical_Properties::k_h(double enthalpy, double pressure) const
-{
-    return m_impl.k_h(enthalpy, pressure);
+double Thermophysical_Properties::k_h(double enthalpy, double pressure) const {
+  return m_impl.k_h(enthalpy, pressure);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * \brief density given temperature and pressure
  */
-double Thermophysical_Properties::rho(double temperature, double pressure) const
-{
-    return m_impl.rho(temperature, pressure);
+double Thermophysical_Properties::rho(double temperature,
+                                      double pressure) const {
+  return m_impl.rho(temperature, pressure);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * \brief density given enthalpy and pressure
  */
-double Thermophysical_Properties::rho_h(double enthalpy, double pressure) const
-{
-    return m_impl.rho_h(enthalpy, pressure);
+double Thermophysical_Properties::rho_h(double enthalpy,
+                                        double pressure) const {
+  return m_impl.rho_h(enthalpy, pressure);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * \brief density in kg/m^3 for given temperature and pressure
  */
-double Thermophysical_Properties::rho_kgm3(double temperature, double pressure) const
-{
-    return m_impl.rho(temperature, pressure) * 1000.0;
+double Thermophysical_Properties::rho_kgm3(double temperature,
+                                           double pressure) const {
+  return m_impl.rho(temperature, pressure) * 1000.0;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * \brief density in kg/m^3 for given enthalpy and pressure
  */
-double Thermophysical_Properties::rho_h_kgm3(double enthalpy, double pressure) const
-{
-    return m_impl.rho_h(enthalpy, pressure) * 1000.0;
+double Thermophysical_Properties::rho_h_kgm3(double enthalpy,
+                                             double pressure) const {
+  return m_impl.rho_h(enthalpy, pressure) * 1000.0;
 }
 
 //---------------------------------------------------------------------------//
 /*!
+ * \brief speed of sound given temperature and pressure
+ */
+double Thermophysical_Properties::speedOfSound(double temperature,
+                                               double pressure) const {
+  return m_impl.speedOfSound(temperature);
+}
+//---------------------------------------------------------------------------//
+/*!
+ * \brief speed of sound given enthalpy and pressure
+ */
+double Thermophysical_Properties::speedOfSound_h(double enthalpy,
+                                                 double pressure) const {
+  return m_impl.speedOfSound_h(enthalpy, pressure);
+}
+//---------------------------------------------------------------------------//
+/*!
  * \brief surface tension given temperature and pressure
  */
-double Thermophysical_Properties::surfaceTension(double temperature, double pressure) const
-{
-    return m_impl.surfaceTension(temperature, pressure);
+double Thermophysical_Properties::surfaceTension(double temperature,
+                                                 double pressure) const {
+  return m_impl.surfaceTension(temperature, pressure);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * \brief surface tension given enthalpy and pressure
  */
-double Thermophysical_Properties::surfaceTension_h(double enthalpy, double pressure) const
-{
-    return m_impl.surfaceTension_h(enthalpy, pressure);
+double Thermophysical_Properties::surfaceTension_h(double enthalpy,
+                                                   double pressure) const {
+  return m_impl.surfaceTension_h(enthalpy, pressure);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * \brief
  */
-double Thermophysical_Properties::surfaceTension_kgm3(double temperature, double pressure) const
-{
-    return m_impl.surfaceTension(temperature, pressure) * 1000.0;
+double Thermophysical_Properties::surfaceTension_kgm3(double temperature,
+                                                      double pressure) const {
+  return m_impl.surfaceTension(temperature, pressure) * 1000.0;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief 
+ * \brief
  */
-double Thermophysical_Properties::surfaceTension_h_kgm3(double enthalpy, double pressure) const
-{
-    return m_impl.surfaceTension_h(enthalpy, pressure) * 1000.0;
+double Thermophysical_Properties::surfaceTension_h_kgm3(double enthalpy,
+                                                        double pressure) const {
+  return m_impl.surfaceTension_h(enthalpy, pressure) * 1000.0;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * \brief enthalpy in J/mol given temperature
  */
-double Thermophysical_Properties::h_t(double temperature) const
-{
-    return m_impl.h_t(temperature);
+double Thermophysical_Properties::h_t(double temperature) const {
+  return m_impl.h_t(temperature);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * \brief enthalpy in J/kg given temperature
  */
-double Thermophysical_Properties::h_t_kg(double temperature) const
-{
-    return m_impl.h_t(temperature) * (1000.0/m_impl.molecularWeight());
+double Thermophysical_Properties::h_t_kg(double temperature) const {
+  return m_impl.h_t(temperature) * (1000.0 / m_impl.molecularWeight());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * \brief temperature given enthalpy in units J/mol
  */
-double Thermophysical_Properties::t_h(double enthalpy) const
-{
-    return m_impl.t_h(enthalpy);
+double Thermophysical_Properties::t_h(double enthalpy) const {
+  return m_impl.t_h(enthalpy);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * \brief temperature given enthalpy in units J/kg
  */
-double Thermophysical_Properties::t_h_kg(double enthalpy) const
-{
-    return m_impl.t_h(enthalpy * (m_impl.molecularWeight()/1000.0));
+double Thermophysical_Properties::t_h_kg(double enthalpy) const {
+  return m_impl.t_h(enthalpy * (m_impl.molecularWeight() / 1000.0));
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ *  \brief returns the molecular weight of the set composition
+ */
+double Thermophysical_Properties::molecularWeight() const {
+  return m_impl.molecularWeight();
+}
 //---------------------------------------------------------------------------//
 /*!
  *  \brief returns the melting temperature of the set composition
  */
-double Thermophysical_Properties::t_melt() const
-{
-  return m_impl.melt();
+double Thermophysical_Properties::t_melt() const { return m_impl.melt(); }
+
+//---------------------------------------------------------------------------//
+/*!
+ *  \brief returns whether there is valid data for the property
+ */
+bool Thermophysical_Properties::valid_speedOfSound() const {
+  return m_impl.valid_speedOfSound();
 }
 
 //---------------------------------------------------------------------------//
 /*!
  *  \brief returns whether there is valid data for the property
  */
-bool Thermophysical_Properties::valid_k() const
-{
-  return m_impl.valid_k();
-}
+bool Thermophysical_Properties::valid_k() const { return m_impl.valid_k(); }
 
 //---------------------------------------------------------------------------//
 /*!
  *  \brief returns whether there is valid data for the property
  */
-bool Thermophysical_Properties::valid_mu() const
-{
-  return m_impl.valid_mu();
-}
+bool Thermophysical_Properties::valid_mu() const { return m_impl.valid_mu(); }
 
 //---------------------------------------------------------------------------//
 /*!
  *  \brief returns whether there is valid data for the property
  */
-bool Thermophysical_Properties::valid_cp() const
-{
-  return m_impl.valid_cp();
-}
+bool Thermophysical_Properties::valid_cp() const { return m_impl.valid_cp(); }
 
 //---------------------------------------------------------------------------//
 /*!
  *  \brief returns whether there is valid data for the property
  */
-bool Thermophysical_Properties::valid_rho() const
-{
-  return m_impl.valid_rho();
-}
+bool Thermophysical_Properties::valid_rho() const { return m_impl.valid_rho(); }
 
 //---------------------------------------------------------------------------//
 /*!
  *  \brief returns whether there is valid data for the property
  */
-bool Thermophysical_Properties::valid_surfaceTension() const
-{
+bool Thermophysical_Properties::valid_surfaceTension() const {
   return m_impl.valid_surfaceTension();
 }
 
@@ -275,48 +277,43 @@ bool Thermophysical_Properties::valid_surfaceTension() const
 /*!
  *  \brief returns the boiling temperature of the set composition
  */
-double Thermophysical_Properties::t_boil() const
-{
-  return m_impl.boil();
-}
+double Thermophysical_Properties::t_boil() const { return m_impl.boil(); }
 
 //---------------------------------------------------------------------------//
 /*!
  * \set the mole % and select the composition
  */
-bool Thermophysical_Properties::setComposition(const Vec_Name& names,
-                        const Vec_Mole& mole_percents)
-{
-    saline_require(names.size() == mole_percents.size());
+bool Thermophysical_Properties::setComposition(const Vec_Name &names,
+                                               const Vec_Mole &mole_percents) {
+  saline_require(names.size() == mole_percents.size());
 
-    // The data store keeps all the records sorted
-    auto sp = utils::getSortPermutation(names);
-    auto sort_names = utils::applySortPermuation(names,sp);
-    auto sort_percents = utils::applySortPermuation(mole_percents,sp);
+  // The data store keeps all the records sorted
+  auto sp = utils::getSortPermutation(names);
+  auto sort_names = utils::applySortPermuation(names, sp);
+  auto sort_percents = utils::applySortPermuation(mole_percents, sp);
 
-    m_impl = m_data->setView(sort_names,sort_percents);
-    // Store values as appropriate
-    if ( !m_impl.nullView() )
-    {
-      m_comp_names = names;
-    } else {
-      m_comp_names.clear();
-    }
-    return !m_impl.nullView();
+  m_impl = m_data->setView(sort_names, sort_percents);
+  // Store values as appropriate
+  if (!m_impl.nullView()) {
+    m_comp_names = names;
+  } else {
+    m_comp_names.clear();
+  }
+  return !m_impl.nullView();
 }
 
-bool Thermophysical_Properties::setComposition(const std::string& names,
-                                            double* mole_percents,
-                                            int mole_percent_count)
-{
-    saline_require(mole_percent_count > 0);
-    auto comps = utils::split("-",names);
-    // mole_percent_count can be called from Fortran. Once we are sure its greater
-    // than zero we can treat it as size_t
-    if (comps.size() != (size_t)mole_percent_count) return false;
+bool Thermophysical_Properties::setComposition(const std::string &names,
+                                               double *mole_percents,
+                                               int mole_percent_count) {
+  saline_require(mole_percent_count > 0);
+  auto comps = utils::split("-", names);
+  // mole_percent_count can be called from Fortran. Once we are sure its greater
+  // than zero we can treat it as size_t
+  if (comps.size() != (size_t)mole_percent_count)
+    return false;
 
-    Vec_Mole mp(mole_percents, mole_percents + mole_percent_count);
-    return setComposition(comps, mp);
+  Vec_Mole mp(mole_percents, mole_percents + mole_percent_count);
+  return setComposition(comps, mp);
 }
 
 //---------------------------------------------------------------------------//
@@ -324,14 +321,12 @@ bool Thermophysical_Properties::setComposition(const std::string& names,
  * \brief initialize this properties data store
  * \returns true, iff Data_Store is non-null and contains data
  */
-bool Thermophysical_Properties::initialize(Data_Store* d)
-{
-    if (d != nullptr && d->size() > 0)
-    {
-        m_data = d;
-        return true;
-    }
-    return false;
+bool Thermophysical_Properties::initialize(Data_Store *d) {
+  if (d != nullptr && d->size() > 0) {
+    m_data = d;
+    return true;
+  }
+  return false;
 }
 
 //---------------------------------------------------------------------------//
@@ -339,20 +334,20 @@ bool Thermophysical_Properties::initialize(Data_Store* d)
  * \brief checks that the requested salt is valid
  * \returns true, iff the salt named is included in the loaded data_store
  */
-bool Thermophysical_Properties::isSaltValid(const Vec_Name& names) const
-{
-    auto sp = utils::getSortPermutation(names);
-    auto sort_names = utils::applySortPermuation(names,sp);
-    return m_data->valid(sort_names);
+bool Thermophysical_Properties::isSaltValid(const Vec_Name &names) const {
+  auto sp = utils::getSortPermutation(names);
+  auto sort_names = utils::applySortPermuation(names, sp);
+  return m_data->valid(sort_names);
 }
 
-bool Thermophysical_Properties::isSaltValid(const std::string& names, int name_count)
-{
+bool Thermophysical_Properties::isSaltValid(const std::string &names,
+                                            int name_count) {
   saline_require(name_count > 0);
-  auto comps = utils::split("-",names);
-    // name_count can be called from from Fortran. Once we are sure its greater
-    // than zero we can treat it as size_t
-  if(comps.size() != (size_t)name_count) return false;
+  auto comps = utils::split("-", names);
+  // name_count can be called from from Fortran. Once we are sure its greater
+  // than zero we can treat it as size_t
+  if (comps.size() != (size_t)name_count)
+    return false;
 
   return isSaltValid(comps);
 }
@@ -360,11 +355,9 @@ bool Thermophysical_Properties::isSaltValid(const std::string& names, int name_c
 //---------------------------------------------------------------------------//
 /*!
  */
-Vec_Name Thermophysical_Properties::getSaltKeys() const
-{
+Vec_Name Thermophysical_Properties::getSaltKeys() const {
   Vec_Name keys;
-  if (m_data != nullptr && m_data->size() > 0)
-  {
+  if (m_data != nullptr && m_data->size() > 0) {
     keys = m_data->getSaltKeys();
   }
   return keys;
@@ -373,17 +366,15 @@ Vec_Name Thermophysical_Properties::getSaltKeys() const
 //---------------------------------------------------------------------------//
 /*!
  */
-std::vector<std::vector<double>> Thermophysical_Properties::getSaltComps(std::string names) const
-{
+std::vector<std::vector<double>>
+Thermophysical_Properties::getSaltComps(std::string names) const {
   std::vector<std::vector<double>> mp;
-  auto comps = utils::split("-",names);
-  if (m_data != nullptr && m_data->size() > 0)
-  {
-    if(isSaltValid(comps))
-    {
+  auto comps = utils::split("-", names);
+  if (m_data != nullptr && m_data->size() > 0) {
+    if (isSaltValid(comps)) {
       auto sp = utils::getSortPermutation(comps);
-      auto sort_names = utils::applySortPermuation(comps,sp);
-      //This doesn't really have any meaning for synthetic data
+      auto sort_names = utils::applySortPermuation(comps, sp);
+      // This doesn't really have any meaning for synthetic data
       mp = m_data->getSaltComps(sort_names);
     }
   }

@@ -104,6 +104,21 @@ public:
     return "----";
   }
 
+  // Speed of sound
+  double speedOfSound(Id id, Id data_id, double temperature) const;
+  double speedOfSound_h(Id id, Id data_id, double enthalpy,
+                        double pressure = 101.325) const {
+    return -1.0;
+  }
+  virtual bool valid_speedOfSound(Id id, Id data_id) const { return false; }
+  double speedOfSound_unc(Id /* id */, Id /* data_id */) const { return .2; }
+  std::pair<double, double> speedOfSound_rng(Id id, Id data_id) const {
+    return {0.0, 0.0};
+  }
+  std::string speedOfSound_ref(Id /* id */, Id /* data_id */) const {
+    return "----";
+  }
+
   // enthalpy
   double h_t(Id id, Id data_id, double temperature) const;
 
@@ -115,8 +130,14 @@ public:
   double melt_unc(Id /* id */, Id /* data_id */) const { return 1.0; }
   std::string melt_ref(Id /* id */, Id /* data_id */) const { return "----"; }
 
-  // melting temperature
+  // molecular weight of the salt compound
   double molecularWeight(Id id, Id data_id) const;
+
+  // number of ions
+  double n_ions(Id id, Id data_id) const;
+
+  // anion/cation ratio
+  int complexation(Id id, Id data_id) const;
 
   // boiling temperature
   double boil(Id id, Id data_id) const;
@@ -148,9 +169,11 @@ public:
 private:
   // Data_Store providing the base information
   Default_Data_Store d;
+  Vec_Name m_keys;
 
   // >>> DATA
   std::vector<View> end_members;
+  Vec_Name salt_name;
   Vec_Mole endMem_moleFracs;
 
   class RK_Polynomial {

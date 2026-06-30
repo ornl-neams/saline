@@ -4,11 +4,23 @@
 #include "r_kister_data_store.hh"
 #include "thermophysical_properties.hh"
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <string>
 
 using namespace saline;
+
+std::filesystem::path makeTempFile(const char *contents) {
+  auto path = std::filesystem::temp_directory_path() / "my_test_file.txt";
+
+  std::ofstream out(path, std::ios::binary);
+  out << contents;
+  out.close();
+
+  return path;
+}
 
 static const char *tst_data = R"ORNL_format(//
 //Pure Salts
@@ -49,6 +61,81 @@ ZrF4  , NaF     , -1.186600E+00 , +2.107500E-04 , +2.082200E-01 , -4.726400E-04 
 static const char *tst_visc_rk = R"ORNL_format(//
 NaCl , MgCl2 , -0.1719  , -0.0007552 , 2.30E-07  , -3.753   , 0.004986  , -1.52E-06 ,  0 ,  0 ,  0 , 973   , 1203.2 , """Bondarenko 1965 [20]"""
 )ORNL_format";
+
+TEST(rk_data_store, tst_kinetic_theory_K) {
+  static const char *tst_k_theory = R"ORNL_format(
+  {
+    "MSTDBTP": {
+      "evaluated" : {
+        "S1": {
+          "1": {
+            "melt": { "reference": "ref1", "abs_uncertainty": 0.01, "uncertainty_notes": "None", "value": 900.0, "value_notes": "None" },
+            "number_of_ions" : 4,
+            "degrees_complexation" : 1,
+            "molecular_weight": 300.0,
+            "heat_capacity": { "range": [ 0.0, 0.0 ], "reference": "ref1", "pct_uncertainty": 0.015, "uncertainty_notes": "None", "values": [ 65.0, 0.0, 0.0, 0.0 ] },
+            "speed_of_sound": { "range": [ 0.0, 0.0 ], "reference": "ref2", "pct_uncertainty": 0.015, "uncertainty_notes": "None", "values": [ 2500, 0.28846154, 0.01 ] },
+            "density": { "range": [ 500.0, 1000.0 ], "reference": "ref1", "pct_uncertainty": 0.01, "uncertainty_notes": "None", "values": [ 1.0, 0.0002, 0.01 ] }
+          }
+        },
+        "S2": {
+          "1": {
+            "melt": { "reference": "ref2", "abs_uncertainty": 0.01, "uncertainty_notes": "None", "value": 1000.0, "value_notes": "None" },
+            "number_of_ions" : 4,
+            "degrees_complexation" : 1,
+            "molecular_weight": 450.0,
+            "heat_capacity": { "range": [ 0.0, 0.0 ], "reference": "ref2", "pct_uncertainty": 0.015, "uncertainty_notes": "None", "values": [ 65.0, 0.0, 0.0, 0.0 ] },
+            "speed_of_sound": { "range": [ 0.0, 0.0 ], "reference": "ref2", "pct_uncertainty": 0.015, "uncertainty_notes": "None", "values": [ 2200, 0.28846154, 0.01 ] },
+            "density": { "range": [ 500.0, 1000.0 ], "reference": "ref2", "pct_uncertainty": 0.01, "uncertainty_notes": "None", "values": [ 2.0, 0.0005, 0.01 ] }
+          }
+        },
+        "S1-S2": {
+          "0.33-0.67": {
+            "melt": { "reference": "ref12", "abs_uncertainty": 0.01, "uncertainty_notes": "None", "value": 1000.0, "value_notes": "None" },
+            "number_of_ions" : 4,
+            "degrees_complexation" : 1,
+            "molecular_weight": 400,
+            "heat_capacity": { "range": [ 0.0, 0.0 ], "reference": "ref12", "pct_uncertainty": 0.015, "uncertainty_notes": "None", "values": [ 65.0, 0.0, 0.0, 0.0 ] },
+            "density": { "range": [ 500.0, 1000.0 ], "reference": "ref12", "pct_uncertainty": 0.01, "uncertainty_notes": "None", "values": [ 2.0, 0.0005, 0.01 ] }
+          }
+        },
+        "S3": {
+          "1": {
+            "melt": { "reference": "ref3", "abs_uncertainty": 0.01, "uncertainty_notes": "None", "value": 800.0, "value_notes": "None" },
+            "number_of_ions" : 4,
+            "degrees_complexation" : 1,
+            "molecular_weight": 133.3405,
+            "heat_capacity": { "range": [ 0.0, 0.0 ], "reference": "ref3", "pct_uncertainty": 0.015, "uncertainty_notes": "None", "values": [ 65.0, 0.0, 0.0, 0.0 ] },
+            "density": { "range": [ 500.0, 1000.0 ], "reference": "ref3", "pct_uncertainty": 0.01, "uncertainty_notes": "None", "values": [ 1.0, 0.002, 0.01 ] }
+          }
+        }
+    } } })ORNL_format";
+
+  R_Kister_Data_Store d;
+  auto path = makeTempFile(tst_k_theory);
+  d.load(path.string());
+  Thermophysical_Properties tp;
+  ASSERT_TRUE(tp.initialize(&d));
+  tp.setComposition({"S1", "S2"}, {0.33, 0.67});
+  double melt_ref = 1000.0;
+  EXPECT_FLOAT_EQ(tp.t_melt(), melt_ref);
+  double mw_ref = 400.50;
+  EXPECT_FLOAT_EQ(tp.molecularWeight(), mw_ref);
+  // sum_of_masses / sum_of_volumes
+  // 0.5 * ( 300 + 500) / ( ( 150 /.85) + ( 250/ 1.625) )
+  double rho_ref = 1.12148083;
+  EXPECT_FLOAT_EQ(tp.rho(1300.0), rho_ref);
+  EXPECT_FLOAT_EQ(tp.cp(1300.0), 65.0);
+  double co_ref = 2010.53846;
+  EXPECT_FLOAT_EQ(tp.speedOfSound(melt_ref), co_ref);
+  std::cout << tp.k(1300) << std::endl;
+  double NA = 6.02214076e23;
+  double KB = 1.380649e-23;
+  double k_ref = 3.6992421;
+  EXPECT_FLOAT_EQ(tp.k(1300.0), k_ref);
+
+  std::filesystem::remove(path);
+}
 
 TEST(rk_data_store, load_json) {
   static constexpr double mGas_const = 8.314462618;

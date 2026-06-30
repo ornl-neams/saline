@@ -492,6 +492,13 @@ bool Default_Data_Store::valid_surfaceTension(Id id, Id data_id) const {
 /*!
  * \brief returns whether or not the selected data is valid
  */
+bool Default_Data_Store::valid_speedOfSound(Id id, Id data_id) const {
+  return compounds[id].data[data_id].valid_speedOfSound();
+}
+//---------------------------------------------------------------------------//
+/*!
+ * \brief returns whether or not the selected data is valid
+ */
 bool Default_Data_Store::valid_rho(Id id, Id data_id) const {
   return compounds[id].data[data_id].valid_rho();
 }
@@ -542,7 +549,6 @@ double Default_Data_Store::cp_h(Id id, Id data_id, double enthalpy,
  */
 std::pair<double, double> Default_Data_Store::cp_rng(Id id, Id data_id) const {
   const auto &d = compounds[id].data[data_id];
-  // k(t) = a + b * t
   return d.m_cp_rng;
 }
 //----------------------------------------------------------------------------//
@@ -584,7 +590,6 @@ double Default_Data_Store::mu_h(Id id, Id data_id, double enthalpy,
  */
 std::pair<double, double> Default_Data_Store::mu_rng(Id id, Id data_id) const {
   const auto &d = compounds[id].data[data_id];
-  // k(t) = a + b * t
   return d.m_mu_rng;
 }
 //----------------------------------------------------------------------------//
@@ -613,7 +618,6 @@ std::string Default_Data_Store::mu_ref(Id id, Id data_id) const {
 double Default_Data_Store::k(Id id, Id data_id, double t,
                              double /* p */) const {
   const auto &d = compounds[id].data[data_id];
-  // k(t) = a + b * t
   return d.k(t);
 }
 double Default_Data_Store::k_h(Id id, Id data_id, double enthalpy,
@@ -628,7 +632,6 @@ double Default_Data_Store::k_h(Id id, Id data_id, double enthalpy,
  */
 std::pair<double, double> Default_Data_Store::k_rng(Id id, Id data_id) const {
   const auto &d = compounds[id].data[data_id];
-  // k(t) = a + b * t
   return d.m_k_rng;
 }
 //----------------------------------------------------------------------------//
@@ -637,7 +640,6 @@ std::pair<double, double> Default_Data_Store::k_rng(Id id, Id data_id) const {
  */
 double Default_Data_Store::k_unc(Id id, Id data_id) const {
   const auto &d = compounds[id].data[data_id];
-  // k(t) = a + b * t
   return d.k_unc();
 }
 
@@ -647,7 +649,6 @@ double Default_Data_Store::k_unc(Id id, Id data_id) const {
  */
 std::string Default_Data_Store::k_ref(Id id, Id data_id) const {
   const auto &d = compounds[id].data[data_id];
-  // k(t) = a + b * t
   return d.k_ref();
 }
 
@@ -672,7 +673,6 @@ double Default_Data_Store::rho_h(Id id, Id data_id, double enthalpy,
  */
 std::pair<double, double> Default_Data_Store::rho_rng(Id id, Id data_id) const {
   const auto &d = compounds[id].data[data_id];
-  // k(t) = a + b * t
   return d.m_rho_rng;
 }
 //----------------------------------------------------------------------------//
@@ -702,6 +702,48 @@ double Default_Data_Store::surfaceTension(Id id, Id data_id, double t,
   const auto &d = compounds[id].data[data_id];
   return d.surfaceTension(t);
 }
+
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the surface tension for the selected compound based on
+ * temperature
+ */
+double Default_Data_Store::speedOfSound(Id id, Id data_id, double t) const {
+  const auto &d = compounds[id].data[data_id];
+  return d.speedOfSound(t);
+}
+double Default_Data_Store::speedOfSound_h(Id id, Id data_id, double enthalpy,
+                                          double /* p */) const {
+  const auto &d = compounds[id].data[data_id];
+  return d.speedOfSound_h(enthalpy);
+}
+
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the conductivity experimental range for the selected compound
+ */
+std::pair<double, double>
+Default_Data_Store::speedOfSound_rng(Id id, Id data_id) const {
+  const auto &d = compounds[id].data[data_id];
+  return d.m_co_rng;
+}
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the density uncertainty for the selected compound
+ */
+double Default_Data_Store::speedOfSound_unc(Id id, Id data_id) const {
+  const auto &d = compounds[id].data[data_id];
+  return d.speedOfSound_unc();
+}
+
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieve the density reference for the selected compound
+ */
+std::string Default_Data_Store::speedOfSound_ref(Id id, Id data_id) const {
+  const auto &d = compounds[id].data[data_id];
+  return d.speedOfSound_ref();
+}
 double Default_Data_Store::surfaceTension_h(Id id, Id data_id, double enthalpy,
                                             double /* p */) const {
   const auto &d = compounds[id].data[data_id];
@@ -716,7 +758,6 @@ double Default_Data_Store::surfaceTension_h(Id id, Id data_id, double enthalpy,
 std::pair<double, double>
 Default_Data_Store::surfaceTension_rng(Id id, Id data_id) const {
   const auto &d = compounds[id].data[data_id];
-  // k(t) = a + b * t
   return d.m_st_rng;
 }
 //----------------------------------------------------------------------------//
@@ -822,6 +863,24 @@ double Default_Data_Store::molecularWeight(Id id, Id data_id) const {
 
 //----------------------------------------------------------------------------//
 /*!
+ * \brief retrieves the molecular weight for the provided salt
+ */
+int Default_Data_Store::complexation(Id id, Id data_id) const {
+  const auto &d = compounds[id].data[data_id];
+  return d.complexation();
+}
+
+//----------------------------------------------------------------------------//
+/*!
+ * \brief retrieves the molecular weight for the provided salt
+ */
+double Default_Data_Store::n_ions(Id id, Id data_id) const {
+  const auto &d = compounds[id].data[data_id];
+  return d.n_ions();
+}
+
+//----------------------------------------------------------------------------//
+/*!
  * \brief retrieves the mole percent
  */
 const Default_Data_Store::Vec_Mole &
@@ -851,9 +910,21 @@ void Default_Data_Store::from_json(std::istream &inFile) {
           Default_Data_Store::Data &d = getDataReference(saltname, compname);
           std::string note;
           std::vector<double> data;
-          if (props.contains("molecularWeight")) {
-            props["molecularWeight"].get_to(d.m_mole_weight);
+
+          // Required parameters for the json file
+          if (props.contains("molecular_weight")) {
+            props["molecular_weight"].get_to(d.m_mole_weight);
           }
+          saline_insist(d.m_mole_weight > 0.0,
+                        "'molecular_weight' is a required value for ");
+          if (props.contains("number_of_ions")) {
+            props["number_of_ions"].get_to(d.m_n_ions);
+          }
+          if (props.contains("degrees_complexation")) {
+            props["degrees_complexation"].get_to(d.m_complexation);
+          }
+
+          // Things that may or may not be present
           if (props.contains("melt")) {
             props["melt"].at("value").get_to(d.m_melt);
             props["melt"].at("abs_uncertainty").get_to(d.m_melt_unc);
@@ -946,6 +1017,18 @@ void Default_Data_Store::from_json(std::istream &inFile) {
             props["surface_tension"].at("reference").get_to(d.m_st_ref);
             d.m_st_doi = props["surface_tension"].value("DOI", "");
           }
+          if (props.contains("speed_of_sound")) {
+            props["speed_of_sound"].at("values").get_to(data);
+            d.m_co_a = data[0];
+            d.m_co_b = data[1];
+            props["density"].at("pct_uncertainty").get_to(d.m_co_unc);
+            d.m_co_unc /= 100.0;
+            props["density"].at("uncertainty_notes").get_to(note);
+            d.m_co_unc_qualifier = parseNote(note);
+            props["density"].at("range").get_to(d.m_co_rng);
+            props["density"].at("reference").get_to(d.m_co_ref);
+            d.m_co_doi = props["density"].value("DOI", "");
+          }
         } else {
           std::cout << saltname << " is not a usable dataset at " << compname
                     << "!" << std::endl;
@@ -988,6 +1071,23 @@ std::string Default_Data_Store::to_json() const {
   }
   return j.dump();
 }
+std::string Default_Data_Store::to_json_by_id(Id id, Id data_id) const {
+  nlohmann::json j;
+  auto dat = compounds[id].data[data_id];
+  std::ostringstream oss;
+  oss << std::setprecision(10);
+  if (!dat.m_mole_percents.empty()) {
+    // Convert all but the last element to avoid a trailing ","
+    std::copy(dat.m_mole_percents.begin(), dat.m_mole_percents.end() - 1,
+              std::ostream_iterator<double>(oss, "-"));
+
+    // Now add the last element with no delimiter
+    oss << dat.m_mole_percents.back();
+  }
+  to_json(dat);
+  j = nlohmann::json::parse(to_json(dat));
+  return j.dump();
+}
 
 //----------------------------------------------------------------------------//
 /*!
@@ -1011,7 +1111,7 @@ std::string Default_Data_Store::to_json(Default_Data_Store::Data &d) const {
   default:
     break;
   }
-  j["molecularWeight"] = d.m_mole_weight;
+  j["molecular_weight"] = d.m_mole_weight;
 
   if (d.m_melt != 0.0) {
     j["melt"] = {

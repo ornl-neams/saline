@@ -163,6 +163,7 @@ TEST(default_data_store, load_json) {
             "S1": {
                 "1": {
                     "boil": { "reference": "ref1", "abs_uncertainty": 0.0, "uncertainty_notes": "None", "value": 1000.0, "value_notes": "None" },
+                    "molecular_weight": 300.0,
                     "heat_capacity": { "range": [ 0.0, 0.0 ], "reference": "ref1", "pct_uncertainty": 1.5, "uncertainty_notes": "None", "values": [ 65.0, 0.0, 0.0, 0.0 ] },
                     "thermal_conductivity": { "range": [ 500.0, 1000.0 ], "reference": "ref1", "pct_uncertainty": 20.0, "uncertainty_notes": "None", "values": [ 1.8, -0.00039 ] },
                     "melt": { "reference": "ref1", "abs_uncertainty": 1.0, "uncertainty_notes": "None", "value": 500.0, "value_notes": "None" },
@@ -174,6 +175,7 @@ TEST(default_data_store, load_json) {
             "S1-S2": {
                 "0.36-0.64": {
                     "boil": { "reference": "ref2", "abs_uncertainty": 0.0, "uncertainty_notes": "None", "value": 1000.0, "value_notes": "None" },
+                    "molecular_weight": 300.0,
                     "heat_capacity": { "range": [ 0.0, 0.0 ], "reference": "ref2", "pct_uncertainty": 0.1, "uncertainty_notes": "None", "values": [ 68.0, 0.0, 0.0, 0.0 ] },
                     "thermal_conductivity": { "range": [ 600.0, 900.0 ], "reference": "ref2", "pct_uncertainty": 0.2, "uncertainty_notes": "None", "values": [ 1.2, -0.00028 ] },
                     "melt": { "reference": "ref2", "abs_uncertainty": 0.5, "uncertainty_notes": "None", "value": 500.0, "value_notes": "None" },
