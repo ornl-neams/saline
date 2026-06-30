@@ -1,7 +1,7 @@
 import unittest
 import tempfile
 import math
-from SalinePy import Default_Data_Store, Thermophysical_Properties
+import SalinePy 
 
 tst_json = { "MSTDBTP": {
         "evaluated" : {
@@ -9,6 +9,7 @@ tst_json = { "MSTDBTP": {
                 "1": {
                     "boil": { "reference": "ref1", "abs_uncertainty": 0.0, "uncertainty_notes": "None", "value": 1000.0, "value_notes": "None" },
                     "heat_capacity": { "range": [ 0.0, 0.0 ], "reference": "ref1", "pct_uncertainty": 1.5, "uncertainty_notes": "None", "values": [ 65.0, 0.0, 0.0, 0.0 ] },
+                    "molecular_weight": 10.0,
                     "thermal_conductivity": { "range": [ 500.0, 1000.0 ], "reference": "ref1", "pct_uncertainty": 20.0, "uncertainty_notes": "None", "values": [ 1.8, -0.00039 ] },
                     "melt": { "reference": "ref1", "abs_uncertainty": 1.0, "uncertainty_notes": "None", "value": 500.0, "value_notes": "None" },
                     "viscosity": { "range": [ 500.0, 1000.0 ], "reference": "ref1", "pct_uncertainty": 1.0, "uncertainty_notes": "None", "values": [ 0.5, 2.0E+04 ] },
@@ -16,8 +17,21 @@ tst_json = { "MSTDBTP": {
                     "surface_tension": { "range": [ 500.0, 1000.0 ], "reference": "ref1", "pct_uncertainty": 1.0, "uncertainty_notes": "None", "values": [ 1.0, 0.002 ] }
                 }
             },
+            "S2": {
+                "1": {
+                    "boil": { "reference": "ref1", "abs_uncertainty": 0.0, "uncertainty_notes": "None", "value": 1000.0, "value_notes": "None" },
+                    "molecular_weight": 100.0,
+                    "heat_capacity": { "range": [ 0.0, 0.0 ], "reference": "ref1", "pct_uncertainty": 1.5, "uncertainty_notes": "None", "values": [ 65.0, 0.0, 0.0, 0.0 ] },
+                    "thermal_conductivity": { "range": [ 500.0, 1000.0 ], "reference": "ref1", "pct_uncertainty": 20.0, "uncertainty_notes": "None", "values": [ 1.8, -0.00039 ] },
+                    "melt": { "reference": "ref1", "abs_uncertainty": 1.0, "uncertainty_notes": "None", "value": 500.0, "value_notes": "None" },
+                    "viscosity": { "range": [ 500.0, 1000.0 ], "reference": "ref1", "pct_uncertainty": 1.0, "uncertainty_notes": "None", "values": [ 0.5, 2.0E+04 ] },
+                    "density": { "range": [ 500.0, 1000.0 ], "reference": "ref1", "pct_uncertainty": 1.0, "uncertainty_notes": "None", "values": [ 2.0, 0.004 ] } ,
+                    "surface_tension": { "range": [ 500.0, 1000.0 ], "reference": "ref1", "pct_uncertainty": 1.0, "uncertainty_notes": "None", "values": [ 1.0, 0.002 ] }
+                }
+            },
             "S1-S2": {
                 "0.36-0.64": {
+                    "molecular_weight": 100.0,
                     "boil": { "reference": "ref2", "abs_uncertainty": 0.0, "uncertainty_notes": "None", "value": 1000.0, "value_notes": "None" },
                     "heat_capacity": { "range": [ 0.0, 0.0 ], "reference": "ref2", "pct_uncertainty": 0.1, "uncertainty_notes": "None", "values": [ 68.0, 0.0, 0.0, 0.0 ] },
                     "thermal_conductivity": { "range": [ 600.0, 900.0 ], "reference": "ref2", "pct_uncertainty": 0.2, "uncertainty_notes": "None", "values": [ 1.2, -0.00028 ] },
@@ -52,9 +66,9 @@ class FixturesTest(unittest.TestCase):
         tstDat.write(tst_data_rk)
         tstDat.close()
 
-        self.d = Default_Data_Store()
+        self.d = SalinePy.Default_Data_Store()
         self.d.load(tstDat.name)
-        self.tp = Thermophysical_Properties()
+        self.tp = SalinePy.Thermophysical_Properties()
         self.assertTrue(self.tp.initialize(self.d))
 
         # Set up a composition
@@ -99,19 +113,25 @@ class FixturesTest(unittest.TestCase):
         from pathlib import Path
         import json
 
-        self.d = Default_Data_Store()
         with tempfile.NamedTemporaryFile(delete=False) as tstJSON:
             jbin = json.dumps(tst_json, indent=4, ensure_ascii=False).encode("utf-8")
             tstJSON.write(jbin)
             tstJSON.close()
             f_path = Path(tstJSON.name)
 
+        self.d = SalinePy.Default_Data_Store()
         self.d.load(f_path.__str__())
-        self.tp = Thermophysical_Properties()
+        self.tp = SalinePy.Thermophysical_Properties()
         self.assertTrue(self.tp.initialize(self.d))
+
+        self.dr = SalinePy.R_Kister_Data_Store()
+        self.dr.load(f_path.__str__())
+        self.tpr = SalinePy.Thermophysical_Properties()
+        self.assertTrue(self.tpr.initialize(self.dr))
 
         # Set up a composition
         self.assertTrue(self.tp.setComposition(["S1","S2"],[0.36,0.64]))
+        self.assertTrue(self.tpr.setComposition(["S1","S2"],[0.36,0.64]))
 
         # Set temperature range
         tks = [500.00, 750.00, 800.00, 850.00, 900.00, 950.00, 1000.00]
@@ -123,6 +143,7 @@ class FixturesTest(unittest.TestCase):
             self.assertAlmostEqual(1.25 * math.exp(2.0e+4 / (mGas_const * t_k)),self.tp.mu(t_k),delta=6.e-3)
             self.assertAlmostEqual(1.2 + (-2.8E-04 * t_k),self.tp.k(t_k),delta=6.e-3)
             self.assertAlmostEqual(2.0 - (-0.004 * t_k),self.tp.surfaceTension(t_k),delta=6.e-3)
+            print(self.tpr.rho(t_k))
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

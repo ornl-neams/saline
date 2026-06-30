@@ -44,6 +44,9 @@ gtest_discover_tests(tstdefault_data_store DISCOVERY_MODE PRE_TEST)
 
 add_executable(tstrk_data_store tstrk_data_store.cc)
 target_link_libraries(tstrk_data_store PRIVATE saline-cpp GTest::gtest_main nlohmann_json::nlohmann_json)
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9)
+  target_link_libraries(tstrk_data_store PRIVATE stdc++fs)
+endif()
 gtest_discover_tests(tstrk_data_store DISCOVERY_MODE PRE_TEST)
 
 if( ${PROJECT_NAME}_ENABLE_hdf5 )

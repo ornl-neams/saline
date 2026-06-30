@@ -67,6 +67,7 @@ build_windows:
       - windows_x86.tar.gz
 
 build_linux:
+  image: savannah.ornl.gov/mstdb/saline_img
   stage: build
   variables:
     GIT_SUBMODULE_STRATEGY: normal
@@ -75,19 +76,11 @@ build_linux:
   tags:
     - docker
   script:
-    - cmake
-      -S $CI_PROJECT_DIR
-      -B build
-      -D CMAKE_BUILD_TYPE=RELEASE
-      -D saline_ENABLE_Fortran=ON
-      -D CMAKE_Fortran_FLAGS:STRING="-ffree-line-length-none"
-      -D saline_ENABLE_Python=ON
-      -D saline_ENABLE_hdf5=ON
-    - cmake --build "$CI_PROJECT_DIR/build"
-    - cmake --build "$CI_PROJECT_DIR/build" --target SalinePy_wheel
-    - ctest --test-dir build --output-on-failure
-    - cmake --install build --prefix install
-    - auditwheel repair -w ${CI_PROJECT_DIR}/install/wheelhouse --plat manylinux_2_28_x86_64 ${CI_PROJECT_DIR}/build/src/python/dist/salinepy*.whl
+    - cmake --preset linux-gcc-release
+    - cmake --build --preset linux-gcc-release
+    - ctest --preset linux-gcc-release  --output-on-failure
+    - cmake --build --preset linux-gcc-release --target install 
+    - auditwheel repair -w ${CI_PROJECT_DIR}/install/wheelhouse --plat manylinux_2_28_x86_64 ${CI_PROJECT_DIR}/build/linux-gcc-release/src/python/dist/salinepy*.whl
     - tar -czf linux_x86.tar.gz install
   artifacts:
     name: linux_x86
