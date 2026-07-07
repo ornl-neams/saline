@@ -45,10 +45,8 @@ build_windows:
   tags:
     - windows
   script:
-    - $env:MAMBA_ROOT_PREFIX="$CI_PROJECT_DIR/tools/micromamba"
-    - . $CI_PROJECT_DIR/ci/setup_mamba.ps1
-    - micromamba activate saline_39
-    - pip install build delvewheel
+    - . $CI_PROJECT_DIR/ci/setup_env.ps1
+    - . $CI_BUILDS_DIR/.venvs/saline/Scripts/activate.ps1
     - cmake -S $CI_PROJECT_DIR -B build
       -Dsaline_ENABLE_Fortran=OFF
       -Dsaline_ENABLE_Python=ON
