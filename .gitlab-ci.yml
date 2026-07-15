@@ -19,13 +19,12 @@ build_macos:
   tags:
     - macOS
   script:
-    - ls "$CI_PROJECT_DIR/.."
-    - cat "$CI_PROJECT_DIR/../saline_venv/bin/activate"
-    - source "$CI_PROJECT_DIR/../saline_venv/bin/activate"
+    - . "$CI_PROJECT_DIR/../saline_venv/bin/activate"
     - cmake -S $CI_PROJECT_DIR -B "$CI_PROJECT_DIR/build" -DCMAKE_BUILD_TYPE=RELEASE
+      -DCMAKE_Fortran_COMPILER="/opt/homebrew/bin/gfortran"
       -Dsaline_ENABLE_Fortran=ON -DCMAKE_Fortran_FLAGS:STRING="-ffree-line-length-none"
       -Dsaline_ENABLE_Python=ON -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0
-      -DPython_EXECUTABLE="/opt/homebrew/bin/python3.9" -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+      -DPython_EXECUTABLE=`which python3` -DCMAKE_POLICY_VERSION_MINIMUM=3.5
     - cmake --build "$CI_PROJECT_DIR/build"
     - cmake --build "$CI_PROJECT_DIR/build" --target SalinePy_wheel
     - ctest --test-dir "$CI_PROJECT_DIR/build"
@@ -45,10 +44,8 @@ build_windows:
   tags:
     - windows
   script:
-    - $env:MAMBA_ROOT_PREFIX="$CI_PROJECT_DIR/tools/micromamba"
-    - . $CI_PROJECT_DIR/ci/setup_mamba.ps1
-    - micromamba activate saline_39
-    - pip install build delvewheel
+    - . $CI_PROJECT_DIR/ci/setup_env.ps1
+    - . $CI_BUILDS_DIR/.venvs/saline/Scripts/activate.ps1
     - cmake -S $CI_PROJECT_DIR -B build
       -Dsaline_ENABLE_Fortran=OFF
       -Dsaline_ENABLE_Python=ON
@@ -67,7 +64,7 @@ build_windows:
       - windows_x86.tar.gz
 
 build_linux:
-  image: savannah.ornl.gov/mstdb/saline_img
+  image: savannah.ornl.gov/mstdb/saline_img@sha256:7dd78d6fa1c9343744909575c8dec11cc709541e01677dc2b7a0db106121df21
   stage: build
   variables:
     GIT_SUBMODULE_STRATEGY: normal
