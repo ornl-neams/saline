@@ -519,11 +519,13 @@ double R_Kister_Data_Store::n_ions(Id /* id */, Id /* data_id */) const {
  * \brief retrieve the speed of sound for the selected compound based on
  * temperature
  */
-double R_Kister_Data_Store::speedOfSound(Id /* id */, Id /* data_id */,
+double R_Kister_Data_Store::speedOfSound(Id id, Id data_id,
                                          double temperature) const {
   double mix_c0 = 0.0;
-  for (size_t i = 0; i < end_members.size(); i++) {
-    mix_c0 += end_members[i].speedOfSound(temperature) * endMem_moleFracs[i];
+  if (valid_speedOfSound(id, data_id)) {
+    for (size_t i = 0; i < end_members.size(); i++) {
+      mix_c0 += end_members[i].speedOfSound(temperature) * endMem_moleFracs[i];
+    }
   }
   return mix_c0;
 }
@@ -752,6 +754,16 @@ bool R_Kister_Data_Store::valid_k(Id /* id */, Id /* data_id */) const {
 bool R_Kister_Data_Store::valid_cp(Id /* id */, Id /* data_id */) const {
   return (std::all_of(end_members.begin(), end_members.end(),
                       [](Data_Store::View v) { return v.valid_cp(); }));
+}
+//---------------------------------------------------------------------------//
+/*!
+ * \brief returns whether or not the selected data is valid
+ */
+bool R_Kister_Data_Store::valid_speedOfSound(Id /* id */,
+                                             Id /* data_id */) const {
+  return (
+      std::all_of(end_members.begin(), end_members.end(),
+                  [](Data_Store::View v) { return v.valid_speedOfSound(); }));
 }
 //----------------------------------------------------------------------------//
 /*!

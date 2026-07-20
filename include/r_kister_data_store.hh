@@ -110,7 +110,7 @@ public:
                         double pressure = 101.325) const {
     return -1.0;
   }
-  virtual bool valid_speedOfSound(Id id, Id data_id) const { return false; }
+  virtual bool valid_speedOfSound(Id id, Id data_id) const;
   double speedOfSound_unc(Id /* id */, Id /* data_id */) const { return .2; }
   std::pair<double, double> speedOfSound_rng(Id id, Id data_id) const {
     return {0.0, 0.0};

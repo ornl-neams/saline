@@ -226,9 +226,7 @@ private:
     // slightly adapted)
     double speedOfSound(double t) const { return m_co_a - (m_co_b * t); }
     double speedOfSound_h(double h) const { return speedOfSound(h_to_t(h)); }
-    bool valid_speedOfSound() const {
-      return ((m_co_a != 0.0) || (m_co_b != 0.0));
-    }
+    bool valid_speedOfSound() const { return (m_co_a != 0.0); }
     double speedOfSound_unc() const { return m_co_unc; }
     std::string speedOfSound_ref() const { return m_co_ref; }
 
