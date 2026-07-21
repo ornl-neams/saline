@@ -74,7 +74,7 @@ TEST(rk_data_store, tst_kinetic_theory_K) {
             "degrees_complexation" : 1,
             "molecular_weight": 300.0,
             "heat_capacity": { "range": [ 0.0, 0.0 ], "reference": "ref1", "pct_uncertainty": 0.015, "uncertainty_notes": "None", "values": [ 65.0, 0.0, 0.0, 0.0 ] },
-            "speed_of_sound": { "range": [ 0.0, 0.0 ], "reference": "ref2", "pct_uncertainty": 0.015, "uncertainty_notes": "None", "value": [ 2500, 0.28846154, 0.00 ] },
+            "speed_of_sound": { "reference": "ref2", "pct_uncertainty": 0.015, "uncertainty_notes": "None", "value": 2500 },
             "density": { "range": [ 500.0, 1000.0 ], "reference": "ref1", "pct_uncertainty": 0.01, "uncertainty_notes": "None", "values": [ 1.0, 0.0002, 0.01 ] }
           }
         },
@@ -85,7 +85,7 @@ TEST(rk_data_store, tst_kinetic_theory_K) {
             "degrees_complexation" : 1,
             "molecular_weight": 450.0,
             "heat_capacity": { "range": [ 0.0, 0.0 ], "reference": "ref2", "pct_uncertainty": 0.015, "uncertainty_notes": "None", "values": [ 65.0, 0.0, 0.0, 0.0 ] },
-            "speed_of_sound": { "range": [ 0.0, 0.0 ], "reference": "ref2", "pct_uncertainty": 0.015, "uncertainty_notes": "None", "value": [ 2200, 1.28846154, 0.00 ] },
+            "speed_of_sound": { "reference": "ref2", "pct_uncertainty": 0.015, "uncertainty_notes": "None", "value": 2200 },
             "density": { "range": [ 500.0, 1000.0 ], "reference": "ref2", "pct_uncertainty": 0.01, "uncertainty_notes": "None", "values": [ 2.0, 0.0005, 0.01 ] }
           }
         },
