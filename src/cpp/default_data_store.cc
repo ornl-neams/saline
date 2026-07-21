@@ -1018,16 +1018,7 @@ void Default_Data_Store::from_json(std::istream &inFile) {
             d.m_st_doi = props["surface_tension"].value("DOI", "");
           }
           if (props.contains("speed_of_sound")) {
-            props["speed_of_sound"].at("value").get_to(data);
-            d.m_co_a = data[0];
-            // d.m_co_b = data[1];
-            props["density"].at("pct_uncertainty").get_to(d.m_co_unc);
-            d.m_co_unc /= 100.0;
-            props["density"].at("uncertainty_notes").get_to(note);
-            d.m_co_unc_qualifier = parseNote(note);
-            props["density"].at("range").get_to(d.m_co_rng);
-            props["density"].at("reference").get_to(d.m_co_ref);
-            d.m_co_doi = props["density"].value("DOI", "");
+            props["speed_of_sound"].at("value").get_to(d.m_co_a);
           }
         } else {
           std::cout << saltname << " is not a usable dataset at " << compname
