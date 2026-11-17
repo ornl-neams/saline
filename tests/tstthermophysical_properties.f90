@@ -3,6 +3,8 @@ program tstThermophysicalProperties
    use default_data_store_M
    use r_kister_data_store_M
    use thermophysical_properties_M
+   use saline_error_M
+   use, intrinsic :: ieee_arithmetic, only: ieee_is_nan
 
    implicit none
    logical :: l_found = .false.
@@ -12,10 +14,41 @@ program tstThermophysicalProperties
    if (.not. l_found) then
       call gen_test_data()
    end if
-   call tst_DefaultData()
+    call tst_DefaultData()
+    call tst_Errors()
    call tst_RKData()
 
 contains
+
+    subroutine tst_Errors()
+       type(Default_Data_Store) :: data
+       type(Thermophysical_Properties) :: tp
+       logical :: failed, selected
+       character(len=2048) :: message
+       real(kind=8) :: value
+       call tp%initialize()
+       value = tp%rho(900.0_8, 101.325_8)
+       call saline_get_error(failed, message)
+       if (.not. failed .or. len_trim(message) == 0 .or. .not. ieee_is_nan(value)) stop 1
+       call data%initialize()
+       call data%load("saline-nonexistent-directory/properties.json")
+       call saline_get_error(failed, message)
+       if (.not. failed .or. len_trim(message) == 0) stop 1
+       call data%load("tstData.csv")
+       call saline_get_error(failed, message)
+       if (failed) stop 1
+       call tp%init_data_store(data)
+       selected = tp%set_composition("ThF4", [1.0_8], 1)
+       if (.not. selected) stop 1
+       value = tp%h_t(900.0_8)
+       call saline_get_error(failed, message)
+       if (.not. failed .or. .not. ieee_is_nan(value)) stop 1
+       value = tp%rho(900.0_8, 101.325_8)
+       call saline_get_error(failed, message)
+       if (failed .or. ieee_is_nan(value)) stop 1
+       call tp%destroy()
+       call data%destroy()
+    end subroutine tst_Errors
 
    !
    subroutine tst_DefaultData()

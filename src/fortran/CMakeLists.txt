@@ -13,11 +13,10 @@ add_library(ForSaline OBJECT)
 # already defined interface.
 target_sources(ForSaline
   PRIVATE
-    data_storeInterface.cpp
-    default_data_storeInterface.cpp
-    r_kister_data_storeInterface.cpp
-    thermophysical_propertiesInterface.cpp
+    safe_interfaces.cpp
   INTERFACE
+    "$<INSTALL_INTERFACE:saline_error_M.f90>"
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/saline_error_M.f90>"
     "$<INSTALL_INTERFACE:data_store_I.f90>"
     "$<INSTALL_INTERFACE:data_store_M.f90>"
     "$<INSTALL_INTERFACE:default_data_store_I.f90>"

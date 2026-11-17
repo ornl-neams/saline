@@ -27,16 +27,35 @@ static constexpr double mGas_const = 8.314462618;
 /*!
  * \brief translate enumeration to data note
  */
+namespace {
+constexpr std::pair<DataQualifier, const char *> qualifier_notes[] = {
+    {DataQualifier::NONE, "None"},
+    {DataQualifier::PRESSURIZED, "Pressurized"},
+    {DataQualifier::SUBLIMATES, "Sublimates"},
+    {DataQualifier::LIQUIDGAS, "LiquidGas"},
+    {DataQualifier::NONSPECIFIC, "Uncharacterized"},
+    {DataQualifier::MODELED, "Modeled"},
+    {DataQualifier::EVALUATED, "Evaluated"},
+    {DataQualifier::REPORTED, "Reported"},
+    // Retain the external format's spelling for round-trip compatibility.
+    {DataQualifier::UNCERTAINTY_PENDING_EVALUATION,
+     "Uncertanity needs to be further evaluated"}};
+
+const char *qualifierNote(DataQualifier qualifier) {
+  for (const auto &entry : qualifier_notes)
+    if (entry.first == qualifier)
+      return entry.second;
+  return "None";
+}
+} // namespace
+
 DataQualifier parseNote(std::string note) {
-  if (note == "Pressurized") {
-    return DataQualifier::PRESSURIZED;
-  } else if (note == "Sublimates") {
-    return DataQualifier::SUBLIMATES;
-  } else if (note == "LiquidGas") {
-    return DataQualifier::LIQUIDGAS;
-  } else if (note == "Uncharacterized") {
-    return DataQualifier::NONSPECIFIC;
-  }
+  // Also accept the corrected spelling without requiring upstream changes.
+  if (note == "Uncertainty needs to be further evaluated")
+    return DataQualifier::UNCERTAINTY_PENDING_EVALUATION;
+  for (const auto &entry : qualifier_notes)
+    if (note == entry.second)
+      return entry.first;
   return DataQualifier::NONE;
 }
 
@@ -211,6 +230,8 @@ void Default_Data_Store::from_h5(hid_t file) {
  */
 void Default_Data_Store::load(const std::string &fPath) {
   std::ifstream inFile(fPath.data(), std::ios::binary);
+  if (!inFile.is_open())
+    throw std::runtime_error("Failed to open input file: " + fPath);
   if (utils::is_hdf5_file(fPath)) {
 #ifdef SALINE_USE_HDF5
     hid_t file = H5Fopen(fPath.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
@@ -218,7 +239,8 @@ void Default_Data_Store::load(const std::string &fPath) {
 #else
     throw std::runtime_error("Saline is not configured to use HDF5!");
 #endif
-  } else if (utils::sniff_json(inFile)) {
+  } else if ((fPath.size() >= 5 && fPath.substr(fPath.size() - 5) == ".json") ||
+             utils::sniff_json(inFile)) {
     from_json(inFile);
   } else if (inFile.is_open()) {
 #pragma GCC diagnostic push
@@ -383,20 +405,28 @@ void Default_Data_Store::setup_enthalpy_tables() {
  * \brief calculate the values of the enthalpy interpolation tables
  */
 void Default_Data_Store::Data::calc_h_t(size_t table_size) {
-  if (m_melt == 0 || m_boil == 0)
+  m_h.clear();
+  m_e = std::numeric_limits<double>::quiet_NaN();
+  if (!valid_cp() || !std::isfinite(m_melt) || m_melt <= 0)
     return;
-  m_h.resize(table_size);
-  m_dt = (m_boil - m_melt) / m_h.size();
   double melt2 = m_melt * m_melt;
   double melt3 = m_melt * melt2;
   // E = a * melt + b/2 * melt^2  + d/3 * melt^3 - c / melt;
   m_e = m_cp_a * m_melt + m_cp_b / 2.0 * melt2 + m_cp_d / 3.0 * melt3 -
         m_cp_c / m_melt;
+  if (!std::isfinite(m_boil) || m_boil <= m_melt || table_size < 2)
+    return;
+  m_h.resize(table_size);
+  // Retain the legacy grid spacing for compatible interpolation results.
+  m_dt = (m_boil - m_melt) / m_h.size();
   // h(melt) = 0
   m_h[0] = 0.0;
-  size_t i = 1;
-  for (double t = m_melt + m_dt; t < m_boil && i < m_h.size(); t += m_dt, ++i) {
-    m_h[i] = h_t(t);
+  for (size_t i = 1; i < m_h.size(); ++i) {
+    m_h[i] = h_t(m_melt + i * m_dt);
+    if (!std::isfinite(m_h[i]) || m_h[i] <= m_h[i - 1]) {
+      m_h.clear();
+      return;
+    }
   }
 }
 
@@ -405,6 +435,10 @@ void Default_Data_Store::Data::calc_h_t(size_t table_size) {
  * \brief helper function to calculate the enthalpy integration
  */
 double Default_Data_Store::Data::h_t(double t) const {
+  if (!std::isfinite(m_e))
+    throw std::runtime_error("Enthalpy requires heat capacity and a positive melting temperature");
+  if (!std::isfinite(t) || t <= 0)
+    throw std::invalid_argument("Enthalpy requires a finite positive temperature");
   double t2 = t * t;
   double t3 = t * t2;
   // h(t) = a * t + b/2 t^2 - c / t + d/3 * t^3 - E;
@@ -416,16 +450,19 @@ double Default_Data_Store::Data::h_t(double t) const {
  * \brief retrieve the enthalpy for the selected compound based on temperature
  */
 double Default_Data_Store::Data::h_to_t(double h) const {
-  if (m_h.empty())
-    return std::numeric_limits<double>::quiet_NaN();
+  if (m_h.size() < 2)
+    throw std::runtime_error("Inverse enthalpy requires an increasing enthalpy table and valid melting/boiling bounds");
+  if (!std::isfinite(h))
+    throw std::invalid_argument("Enthalpy must be finite");
 
   auto x = std::lower_bound(m_h.begin(), m_h.end(), h);
 
-  if (h < 0)
+  if (x == m_h.begin())
     x = m_h.begin();
-
   else if (x == m_h.end())
     x = m_h.end() - 2;
+  else
+    --x;
 
   double y0 = m_melt + std::distance(m_h.begin(), x) * m_dt;
   double y1 = y0 + m_dt;
@@ -433,7 +470,10 @@ double Default_Data_Store::Data::h_to_t(double h) const {
   x++;
   double x1 = *x;
 
-  return y0 + (h - x0) * (y1 - y0) / (x1 - x0);
+  double temperature = y0 + (h - x0) * (y1 - y0) / (x1 - x0);
+  if (!std::isfinite(temperature) || temperature <= 0)
+    throw std::runtime_error("Inverse enthalpy produced an invalid temperature");
+  return temperature;
 }
 
 //----------------------------------------------------------------------------//
@@ -725,7 +765,7 @@ double Default_Data_Store::speedOfSound_h(Id id, Id data_id, double enthalpy,
 std::pair<double, double>
 Default_Data_Store::speedOfSound_rng(Id id, Id data_id) const {
   const auto &d = compounds[id].data[data_id];
-  return d.m_co_rng;
+  return d.m_co_rng.value_or(std::make_pair(0.0, 0.0));
 }
 //----------------------------------------------------------------------------//
 /*!
@@ -894,18 +934,74 @@ Default_Data_Store::mole_percent(Id id, Id data_id) const {
  *
  */
 void Default_Data_Store::from_json(std::istream &inFile) {
+  Default_Data_Store candidate;
+  candidate.read_json_records(inFile);
+  compounds.swap(candidate.compounds);
+}
+
+void Default_Data_Store::read_json_records(std::istream &inFile) {
   nlohmann::json json_in;
+  std::string path = "/MSTDBTP/evaluated";
   try {
     inFile >> json_in;
-  } catch (const nlohmann::json::parse_error &e) {
-    std::cerr << "JSON parse error: " << e.what() << '\n';
-    return;
-  }
+    const auto &evaluated = json_in.at("MSTDBTP").at("evaluated");
+    if (!evaluated.is_object() || evaluated.empty())
+      throw std::runtime_error("expected a nonempty object");
 
-  for (auto &[saltname, node] : json_in["MSTDBTP"]["evaluated"].items()) {
+  for (auto &[saltname, node] : evaluated.items()) {
+    path = "/MSTDBTP/evaluated/" + saltname;
+    if (!node.is_object() || node.empty())
+      throw std::runtime_error("expected a nonempty composition object");
     if (node.is_object()) {
       // compositions
       for (auto &[compname, props] : node.items()) {
+        path = "/MSTDBTP/evaluated/" + saltname + "/" + compname;
+        if (!props.is_object())
+          throw std::runtime_error("expected a property object");
+        const auto record_path = path;
+        // Legacy CSV may omit pure-salt fractions; JSON keys must be numeric.
+        if (utils::split("-", saltname).size() == 1) {
+          size_t used = 0;
+          const double fraction = std::stod(compname, &used);
+          if (used != compname.size() || !std::isfinite(fraction) || fraction <= 0)
+            throw std::runtime_error("invalid pure-salt composition key");
+        }
+        for (const auto &spec : std::vector<std::pair<std::string, size_t>>{
+                 {"density", 2}, {"viscosity", 2},
+                 {"thermal_conductivity", 2}, {"heat_capacity", 4},
+                 {"surface_tension", 2}}) {
+          if (!props.contains(spec.first))
+            continue;
+          path = record_path + "/" + spec.first + "/values";
+          const auto &values = props.at(spec.first).at("values");
+          if (!values.is_array() ||
+              (values.size() != spec.second &&
+               !(spec.first == "viscosity" && values.size() == 3)))
+            throw std::runtime_error("invalid coefficient count");
+          for (const auto &value : values)
+            if (!value.is_number() || !std::isfinite(value.get<double>()))
+              throw std::runtime_error("coefficients must be finite numbers");
+          path = record_path + "/" + spec.first + "/range";
+          const auto &range = props.at(spec.first).at("range");
+          if (!range.is_array() || range.size() != 2)
+            throw std::runtime_error("expected two range bounds");
+          for (const auto &bound : range)
+            if (!bound.is_number() || !std::isfinite(bound.get<double>()) || bound.get<double>() < 0)
+              throw std::runtime_error("range bounds must be finite nonnegative numbers");
+          // Zero bounds occur in existing datasets as unknown-bound sentinels.
+          if (range[0].get<double>() > 0 && range[1].get<double>() > 0 &&
+              range[0].get<double>() > range[1].get<double>())
+            throw std::runtime_error("range bounds are reversed");
+          path = record_path + "/" + spec.first + "/pct_uncertainty";
+          const auto &unc = props.at(spec.first).at("pct_uncertainty");
+          if (!unc.is_number() || !std::isfinite(unc.get<double>()) || unc.get<double>() < 0)
+            throw std::runtime_error("uncertainty must be a finite nonnegative number");
+        }
+        path = record_path;
+        for (const auto &field : props.items()) {
+          if (field.value().is_number_float() && !std::isfinite(field.value().get<double>()))
+            throw std::runtime_error("Numeric values must be finite");
+        }
         if (props.is_object()) {
           Default_Data_Store::Data &d = getDataReference(saltname, compname);
           std::string note;
@@ -915,7 +1011,7 @@ void Default_Data_Store::from_json(std::istream &inFile) {
           if (props.contains("molecular_weight")) {
             props["molecular_weight"].get_to(d.m_mole_weight);
           }
-          saline_insist(d.m_mole_weight > 0.0,
+          saline_insist(std::isfinite(d.m_mole_weight) && d.m_mole_weight > 0.0,
                         "'molecular_weight' is a required value for ");
           if (props.contains("number_of_ions")) {
             props["number_of_ions"].get_to(d.m_n_ions);
@@ -1018,7 +1114,49 @@ void Default_Data_Store::from_json(std::istream &inFile) {
             d.m_st_doi = props["surface_tension"].value("DOI", "");
           }
           if (props.contains("speed_of_sound")) {
-            props["speed_of_sound"].at("value").get_to(d.m_co_a);
+            path = record_path + "/speed_of_sound/value";
+            const auto &sound = props.at("speed_of_sound");
+            const auto &value = sound.at("value");
+            if (!value.is_number() || !std::isfinite(value.get<double>()) ||
+                value.get<double>() <= 0)
+              throw std::runtime_error("speed of sound must be a finite positive number");
+            value.get_to(d.m_co_a);
+            // Preserve free-form notes, including the measurement state, verbatim.
+            for (const auto &field : {"reference", "DOI", "value_notes", "uncertainty_notes"}) {
+              if (!sound.contains(field))
+                continue;
+              path = record_path + "/speed_of_sound/" + field;
+              auto text = sound.at(field).get<std::string>();
+              if (std::string(field) == "reference") d.m_co_ref = text;
+              else if (std::string(field) == "DOI") d.m_co_doi = text;
+              else if (std::string(field) == "value_notes") d.m_co_value_notes = text;
+              else {
+                d.m_co_unc_notes = text;
+                d.m_co_unc_qualifier = parseNote(text);
+              }
+            }
+            if (sound.contains("pct_uncertainty")) {
+              path = record_path + "/speed_of_sound/pct_uncertainty";
+              const auto &unc = sound.at("pct_uncertainty");
+              if (!unc.is_number() || !std::isfinite(unc.get<double>()) || unc.get<double>() < 0)
+                throw std::runtime_error("uncertainty must be a finite nonnegative number");
+              d.m_co_unc = unc.get<double>() / 100.0;
+            }
+            if (sound.contains("range")) {
+              path = record_path + "/speed_of_sound/range";
+              const auto &range = sound.at("range");
+              if (!range.is_array() || range.size() != 2)
+                throw std::runtime_error("expected two range bounds");
+              for (const auto &bound : range)
+                if (!bound.is_number() || !std::isfinite(bound.get<double>()) || bound.get<double>() < 0)
+                  throw std::runtime_error("range bounds must be finite nonnegative numbers");
+              const double low = range[0].get<double>();
+              const double high = range[1].get<double>();
+              if (low > 0 && high > 0 && low > high)
+                throw std::runtime_error("range bounds are reversed");
+              d.m_co_rng = std::make_pair(low, high);
+            }
+            path = record_path;
           }
         } else {
           std::cout << saltname << " is not a usable dataset at " << compname
@@ -1030,6 +1168,9 @@ void Default_Data_Store::from_json(std::istream &inFile) {
     }
   }
   setup_enthalpy_tables();
+  } catch (const std::exception &e) {
+    throw std::runtime_error("Invalid property JSON at " + path + ": " + e.what());
+  }
 }
 
 //----------------------------------------------------------------------------//
@@ -1086,33 +1227,14 @@ std::string Default_Data_Store::to_json_by_id(Id id, Id data_id) const {
  */
 std::string Default_Data_Store::to_json(Default_Data_Store::Data &d) const {
   nlohmann::json j;
-  std::string m_melt_qualifier_str = "None";
-  switch (d.m_melt_qualifier) {
-  case DataQualifier::PRESSURIZED:
-    m_melt_qualifier_str = "Pressurized";
-    break;
-  case DataQualifier::SUBLIMATES:
-    m_melt_qualifier_str = "Sublimates";
-    break;
-  case DataQualifier::LIQUIDGAS:
-    m_melt_qualifier_str = "LiquidGas";
-    break;
-  case DataQualifier::NONSPECIFIC:
-    m_melt_qualifier_str = "Uncharacterized";
-  default:
-    break;
-  }
   j["molecular_weight"] = d.m_mole_weight;
 
   if (d.m_melt != 0.0) {
     j["melt"] = {
         {"value", d.m_melt},
-        {"value_notes", m_melt_qualifier_str},
+        {"value_notes", qualifierNote(d.m_melt_qualifier)},
         {"abs_uncertainty", d.m_melt_unc},
-        {"uncertainty_notes",
-         (d.m_melt_unc_qualifier == DataQualifier::NONSPECIFIC)
-             ? "Uncharacterized"
-             : "None"},
+        {"uncertainty_notes", qualifierNote(d.m_melt_unc_qualifier)},
         {"reference", d.m_melt_ref},
         {"DOI", d.m_melt_doi},
     };
@@ -1120,14 +1242,9 @@ std::string Default_Data_Store::to_json(Default_Data_Store::Data &d) const {
   if (d.m_boil != 0.0) {
     j["boil"] = {
         {"value", d.m_boil},
-        {"value_notes", (d.m_boil_qualifier == DataQualifier::SUBLIMATES)
-                            ? "Sublimates"
-                            : "None"},
+        {"value_notes", qualifierNote(d.m_boil_qualifier)},
         {"abs_uncertainty", d.m_boil_unc},
-        {"uncertainty_notes",
-         (d.m_boil_unc_qualifier == DataQualifier::NONSPECIFIC)
-             ? "Uncharacterized"
-             : "None"},
+        {"uncertainty_notes", qualifierNote(d.m_boil_unc_qualifier)},
         {"reference", d.m_boil_ref},
         {"DOI", d.m_boil_doi},
     };
@@ -1137,10 +1254,7 @@ std::string Default_Data_Store::to_json(Default_Data_Store::Data &d) const {
         {"values", {d.m_rho_a, d.m_rho_b}},
         {"range", d.m_rho_rng},
         {"pct_uncertainty", d.m_rho_unc * 100.00},
-        {"uncertainty_notes",
-         (d.m_rho_unc_qualifier == DataQualifier::NONSPECIFIC)
-             ? "Uncharacterized"
-             : "None"},
+        {"uncertainty_notes", qualifierNote(d.m_rho_unc_qualifier)},
         {"reference", d.m_rho_ref},
         {"DOI", d.m_rho_doi},
     };
@@ -1149,10 +1263,7 @@ std::string Default_Data_Store::to_json(Default_Data_Store::Data &d) const {
     j["viscosity"] = {
         {"range", d.m_mu_rng},
         {"pct_uncertainty", d.m_mu_unc * 100.00},
-        {"uncertainty_notes",
-         (d.m_mu_unc_qualifier == DataQualifier::NONSPECIFIC)
-             ? "Uncharacterized"
-             : "None"},
+        {"uncertainty_notes", qualifierNote(d.m_mu_unc_qualifier)},
         {"reference", d.m_mu_ref},
         {"DOI", d.m_mu_doi},
     };
@@ -1167,9 +1278,7 @@ std::string Default_Data_Store::to_json(Default_Data_Store::Data &d) const {
         {"values", {d.m_k_a, d.m_k_b}},
         {"range", d.m_k_rng},
         {"pct_uncertainty", d.m_k_unc * 100.00},
-        {"uncertainty_notes",
-         (d.m_k_unc_qualifier == DataQualifier::NONSPECIFIC) ? "Uncharacterized"
-                                                             : "None"},
+        {"uncertainty_notes", qualifierNote(d.m_k_unc_qualifier)},
         {"reference", d.m_k_ref},
         {"DOI", d.m_k_doi},
     };
@@ -1179,10 +1288,7 @@ std::string Default_Data_Store::to_json(Default_Data_Store::Data &d) const {
         {"values", {d.m_cp_a, d.m_cp_b, d.m_cp_c, d.m_cp_d}},
         {"range", d.m_cp_rng},
         {"pct_uncertainty", d.m_cp_unc * 100.00},
-        {"uncertainty_notes",
-         (d.m_cp_unc_qualifier == DataQualifier::NONSPECIFIC)
-             ? "Uncharacterized"
-             : "None"},
+        {"uncertainty_notes", qualifierNote(d.m_cp_unc_qualifier)},
         {"reference", d.m_cp_ref},
         {"DOI", d.m_cp_doi},
     };
@@ -1192,13 +1298,20 @@ std::string Default_Data_Store::to_json(Default_Data_Store::Data &d) const {
         {"values", {d.m_st_a, d.m_st_b}},
         {"range", d.m_st_rng},
         {"pct_uncertainty", d.m_st_unc * 100.00},
-        {"uncertainty_notes",
-         (d.m_st_unc_qualifier == DataQualifier::NONSPECIFIC)
-             ? "Uncharacterized"
-             : "None"},
+        {"uncertainty_notes", qualifierNote(d.m_st_unc_qualifier)},
         {"reference", d.m_st_ref},
         {"DOI", d.m_st_doi},
     };
+  }
+  if (d.valid_speedOfSound()) {
+    j["speed_of_sound"] = {{"value", d.m_co_a}};
+    auto &sound = j["speed_of_sound"];
+    if (d.m_co_ref) sound["reference"] = *d.m_co_ref;
+    if (d.m_co_doi) sound["DOI"] = *d.m_co_doi;
+    if (d.m_co_value_notes) sound["value_notes"] = *d.m_co_value_notes;
+    if (d.m_co_unc_notes) sound["uncertainty_notes"] = *d.m_co_unc_notes;
+    if (d.m_co_unc) sound["pct_uncertainty"] = *d.m_co_unc * 100.0;
+    if (d.m_co_rng) sound["range"] = *d.m_co_rng;
   }
   return j.dump();
 }
@@ -1233,17 +1346,29 @@ Default_Data_Store::Data &
 Default_Data_Store::getDataReference(std::string names, std::string fracs) {
   // Retrieve the chemical symbols from the salt description
   auto symbols = utils::split("-", names);
+  if (symbols.empty() || std::any_of(symbols.begin(), symbols.end(),
+                                    [](const std::string &s) { return s.empty(); }))
+    throw std::invalid_argument("Composition requires nonempty species names");
+  auto unique_symbols = symbols;
+  std::sort(unique_symbols.begin(), unique_symbols.end());
+  if (std::adjacent_find(unique_symbols.begin(), unique_symbols.end()) != unique_symbols.end())
+    throw std::invalid_argument("Duplicate species in composition");
 
   // mole fraction of each salt
   Vec_Mole molfrac;
   if (symbols.size() == 1) {
-    // This is for pure salt and might benefit from some error checking
     molfrac.push_back(1.0);
   } else {
     // Parse out the mole fractions
     for (auto mp : utils::split("-", fracs)) {
-      molfrac.push_back(std::stod(mp));
+      size_t used = 0;
+      double fraction = std::stod(mp, &used);
+      if (used != mp.size() || !std::isfinite(fraction) || fraction < 0)
+        throw std::invalid_argument("Invalid mole fraction");
+      molfrac.push_back(fraction);
     }
+    if (molfrac.size() != symbols.size())
+      throw std::invalid_argument("Species and mole fraction counts differ");
     // Sort symbols alphabetically arranged mole fractions as needed
     auto sp = utils::getSortPermutation(symbols);
     utils::applySortPermuation_inPlace(symbols, sp);

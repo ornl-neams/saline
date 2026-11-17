@@ -14,7 +14,7 @@ file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/MANIFEST.in DESTINATION ${CMAKE_CURRENT_BI
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/README.md   DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/setup.cfg   DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 file(COPY ${saline_SOURCE_DIR}/LICENSE            DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/SalinePy.i  DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+configure_file(SalinePy.i SalinePy.i COPYONLY)
 
 # Run swig manually vice using setuptools for better control of options
 add_custom_command(
@@ -25,6 +25,12 @@ add_custom_command(
     SalinePy.py
   DEPENDS
     saline-cpp
+    "${CMAKE_CURRENT_SOURCE_DIR}/SalinePy.i"
+    "${CMAKE_CURRENT_BINARY_DIR}/SalinePy.i"
+    "${saline_SOURCE_DIR}/include/data_store.hh"
+    "${saline_SOURCE_DIR}/include/default_data_store.hh"
+    "${saline_SOURCE_DIR}/include/r_kister_data_store.hh"
+    "${saline_SOURCE_DIR}/include/thermophysical_properties.hh"
   VERBATIM
 )
 # Generate the python interface

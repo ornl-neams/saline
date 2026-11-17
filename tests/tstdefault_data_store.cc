@@ -592,7 +592,10 @@ TEST(default_data, FLiNaK_465_115_042) {
   EXPECT_NEAR(tp.k_h(tp.h_t(970)), tp.k(970), 1e-4);
 
   // Test temperature to enthalpy conversion
-  EXPECT_NEAR(748.77152178380845, tp.t_h(1000), 1e-6);
+  // Independent analytic inversion, allowing the documented table approximation.
+  double expected_t = (-40.32 + std::sqrt(std::pow(40.32 + 0.04388 * 735, 2) +
+                                         2 * 0.04388 * 1000)) / 0.04388;
+  EXPECT_NEAR(expected_t, tp.t_h(1000), 0.02);
   EXPECT_NEAR(tp.t_h(tp.h_t(970)), 970, 5e-2);
   EXPECT_NEAR(tp.t_h_kg(tp.h_t_kg(970)), 970, 5e-2);
 

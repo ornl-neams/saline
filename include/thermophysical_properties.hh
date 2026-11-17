@@ -122,7 +122,7 @@ public:
   const Vec_Name &species() const { return m_comp_names; }
 
   // list of species mole % for which properties are being tracked
-  const Vec_Mole &composition() const { return m_impl.mole_percent(); }
+  const Vec_Mole &composition() const;
 
   // set the mole % and select the composition
   bool setComposition(const Vec_Name &names, const Vec_Mole &mole_percents);
@@ -145,6 +145,7 @@ public:
 private:
   // the most recent species used by the client (names in order of request)
   Vec_Name m_comp_names;
+  Vec_Mole m_comp_fractions;
 
   // the data store backing this instance of material properties
   Data_Store *m_data;

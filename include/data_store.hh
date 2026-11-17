@@ -142,6 +142,8 @@ public:
     // mole percents
     const Vec_Mole &mole_percent() const;
 
+  private:
+    const Data_Store *checked_store() const;
   }; // Data_Store::View
 
   // >>> ACCESSORS
@@ -260,6 +262,9 @@ public:
   virtual bool valid(Vec_Name &names) const = 0;
   virtual bool valid(Name &name) const = 0;
   virtual bool valid(Id id) const = 0;
+  virtual bool valid_record(Id id, Id record) const {
+    return valid(id) && record != std::numeric_limits<Id>::max();
+  }
 
 private:
   // >>> DATA

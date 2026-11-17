@@ -9,6 +9,9 @@
 #include "thermophysical_properties.hh"
 #include "saline_bug.hh"
 #include "utils.hh"
+#include <algorithm>
+#include <cmath>
+#include <stdexcept>
 
 namespace saline {
 //@{
@@ -285,27 +288,51 @@ double Thermophysical_Properties::t_boil() const { return m_impl.boil(); }
  */
 bool Thermophysical_Properties::setComposition(const Vec_Name &names,
                                                const Vec_Mole &mole_percents) {
-  saline_require(names.size() == mole_percents.size());
+  if (!m_data)
+    throw std::runtime_error("Initialize a data store before selecting a composition");
+  if (names.empty() || names.size() != mole_percents.size())
+    throw std::invalid_argument("Composition requires matching nonempty names and fractions");
+  double total = 0.0;
+  for (size_t i = 0; i < names.size(); ++i) {
+    if (names[i].empty() || !std::isfinite(mole_percents[i]) || mole_percents[i] < 0)
+      throw std::invalid_argument("Invalid species name or mole fraction");
+    total += mole_percents[i];
+  }
+  if (!std::isfinite(total) || total <= 0)
+    throw std::invalid_argument("Composition must have a positive finite total");
 
   // The data store keeps all the records sorted
   auto sp = utils::getSortPermutation(names);
   auto sort_names = utils::applySortPermuation(names, sp);
   auto sort_percents = utils::applySortPermuation(mole_percents, sp);
+  if (std::adjacent_find(sort_names.begin(), sort_names.end()) != sort_names.end())
+    throw std::invalid_argument("Duplicate species in composition");
 
-  m_impl = m_data->setView(sort_names, sort_percents);
-  // Store values as appropriate
-  if (!m_impl.nullView()) {
-    m_comp_names = names;
-  } else {
-    m_comp_names.clear();
-  }
-  return !m_impl.nullView();
+  auto selected = m_data->setView(sort_names, sort_percents);
+  if (selected.nullView())
+    return false;
+  const auto &effective = selected.mole_percent();
+  Vec_Mole fractions(names.size());
+  for (size_t i = 0; i < sp.size(); ++i)
+    fractions[sp[i]] = effective.at(i);
+  m_impl = selected;
+  m_comp_fractions = std::move(fractions);
+  m_comp_names = names;
+  return true;
+}
+
+const Thermophysical_Properties::Vec_Mole &
+Thermophysical_Properties::composition() const {
+  if (m_impl.nullView())
+    throw std::runtime_error("No composition selected");
+  return m_comp_fractions;
 }
 
 bool Thermophysical_Properties::setComposition(const std::string &names,
                                                double *mole_percents,
                                                int mole_percent_count) {
-  saline_require(mole_percent_count > 0);
+  if (mole_percent_count <= 0 || !mole_percents)
+    throw std::invalid_argument("Composition requires a positive count and nonnull fractions");
   auto comps = utils::split("-", names);
   // mole_percent_count can be called from Fortran. Once we are sure its greater
   // than zero we can treat it as size_t
@@ -324,6 +351,9 @@ bool Thermophysical_Properties::setComposition(const std::string &names,
 bool Thermophysical_Properties::initialize(Data_Store *d) {
   if (d != nullptr && d->size() > 0) {
     m_data = d;
+    m_impl = Data_Store::View{};
+    m_comp_names.clear();
+    m_comp_fractions.clear();
     return true;
   }
   return false;
@@ -335,6 +365,8 @@ bool Thermophysical_Properties::initialize(Data_Store *d) {
  * \returns true, iff the salt named is included in the loaded data_store
  */
 bool Thermophysical_Properties::isSaltValid(const Vec_Name &names) const {
+  if (!m_data)
+    return false;
   auto sp = utils::getSortPermutation(names);
   auto sort_names = utils::applySortPermuation(names, sp);
   return m_data->valid(sort_names);

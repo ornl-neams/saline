@@ -7,12 +7,14 @@
  * \note   Copyright (c) 2020 Oak Ridge National Laboratory, UT-Battelle, LLC.
  */
 //---------------------------------------------------------------------------//
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <istream>
 #include <limits>
 #include <ostream>
 #include <string>
+#include <stdexcept>
 #include <vector>
 
 #include "data_store.hh"
@@ -108,7 +110,7 @@ public:
   double speedOfSound(Id id, Id data_id, double temperature) const;
   double speedOfSound_h(Id id, Id data_id, double enthalpy,
                         double pressure = 101.325) const {
-    return -1.0;
+    throw std::runtime_error("Redlich-Kister speed of sound from enthalpy is unsupported");
   }
   virtual bool valid_speedOfSound(Id id, Id data_id) const;
   double speedOfSound_unc(Id /* id */, Id /* data_id */) const { return .2; }
@@ -157,6 +159,11 @@ public:
 
   // is the salt valid
   bool valid(Id id) const;
+  bool valid_record(Id id, Id record) const override {
+    return valid(id) && record == 0 && !end_members.empty() &&
+           std::all_of(end_members.begin(), end_members.end(),
+                       [](const View &v) { return !v.nullView(); });
+  }
   bool valid(Vec_Name &names) const;
   bool valid(Name &name) const;
 
@@ -167,6 +174,7 @@ public:
   std::string to_json() const;
 
 private:
+  void read_json_records(std::istream &inFile);
   // Data_Store providing the base information
   Default_Data_Store d;
   Vec_Name m_keys;
@@ -184,8 +192,8 @@ private:
     std::vector<double> c_n;
 
     // Bound of polynomial validity
-    double t_min;
-    double t_max;
+    double t_min = 0.0;
+    double t_max = 0.0;
     std::string algorithm;
     std::string reference;
 

@@ -14,6 +14,7 @@
 #include <limits>
 #include <list>
 #include <ostream>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -52,7 +53,12 @@ enum DataQualifier {
   SUBLIMATES,
   LIQUIDGAS,
   // */
-  NONSPECIFIC // This is targeted at uncharacterized data (uncertainty).
+  NONSPECIFIC, // This is targeted at uncharacterized data (uncertainty).
+  // Append new values to preserve the numeric values of existing qualifiers.
+  MODELED,
+  EVALUATED,
+  REPORTED,
+  UNCERTAINTY_PENDING_EVALUATION
 };
 
 class Default_Data_Store : public Data_Store {
@@ -168,6 +174,8 @@ public:
   std::size_t constituent_count(Id id) const;
 
   void load(const std::string &fPath);
+  // Replace JSON data atomically. Invalid input throws std::runtime_error;
+  // existing records remain unchanged on failure.
   void from_json(std::istream &inFile);
   [[deprecated(
       "Use load(std::string &fPath) instead with a file path instead.")]]
@@ -177,6 +185,9 @@ public:
 
   // is the id valid
   bool valid(Id id) const { return id < size(); };
+  bool valid_record(Id id, Id record) const override {
+    return valid(id) && record < compounds[id].data.size();
+  }
   bool valid(Vec_Name &names) const { return valid(names_to_id(names)); };
   bool valid(Name &name) const { return valid(name_to_id(name)); };
 
@@ -227,8 +238,8 @@ private:
     double speedOfSound(double t) const { return m_co_a - (m_co_b * t); }
     double speedOfSound_h(double h) const { return speedOfSound(h_to_t(h)); }
     bool valid_speedOfSound() const { return (m_co_a != 0.0); }
-    double speedOfSound_unc() const { return m_co_unc; }
-    std::string speedOfSound_ref() const { return m_co_ref; }
+    double speedOfSound_unc() const { return m_co_unc.value_or(0.0); }
+    std::string speedOfSound_ref() const { return m_co_ref.value_or(""); }
 
     // surface tension
     double surfaceTension(double t) const { return m_st_a - (m_st_b * t); }
@@ -319,9 +330,9 @@ private:
 
     // Melting Temperature
     double m_melt = 0.0;
-    DataQualifier m_melt_qualifier;
+    DataQualifier m_melt_qualifier = NONE;
     double m_melt_unc = 0.0;
-    DataQualifier m_melt_unc_qualifier;
+    DataQualifier m_melt_unc_qualifier = NONE;
     std::string m_melt_ref;
     std::string m_melt_doi;
 
@@ -332,9 +343,9 @@ private:
 
     // Boiling Temperature
     double m_boil = 0.0;
-    DataQualifier m_boil_qualifier;
+    DataQualifier m_boil_qualifier = NONE;
     double m_boil_unc = 0.0;
-    DataQualifier m_boil_unc_qualifier;
+    DataQualifier m_boil_unc_qualifier = NONE;
     std::string m_boil_ref;
     std::string m_boil_doi;
 
@@ -342,7 +353,7 @@ private:
     double m_rho_a = 0.0;
     double m_rho_b = 0.0;
     double m_rho_unc = 0.0;
-    DataQualifier m_rho_unc_qualifier;
+    DataQualifier m_rho_unc_qualifier = NONE;
     std::pair<double, double> m_rho_rng;
     std::string m_rho_ref;
     std::string m_rho_doi;
@@ -352,7 +363,7 @@ private:
     double m_mu_b = 0.0;
     double m_mu_c = std::numeric_limits<double>::quiet_NaN();
     double m_mu_unc = 0.0;
-    DataQualifier m_mu_unc_qualifier;
+    DataQualifier m_mu_unc_qualifier = NONE;
     std::pair<double, double> m_mu_rng;
     std::string m_mu_ref;
     std::string m_mu_doi;
@@ -361,7 +372,7 @@ private:
     double m_k_a = 0.0;
     double m_k_b = 0.0;
     double m_k_unc = 0.0;
-    DataQualifier m_k_unc_qualifier;
+    DataQualifier m_k_unc_qualifier = NONE;
     std::pair<double, double> m_k_rng;
     std::string m_k_ref;
     std::string m_k_doi;
@@ -372,7 +383,7 @@ private:
     double m_cp_c = 0.0;
     double m_cp_d = 0.0;
     double m_cp_unc = 0.0;
-    DataQualifier m_cp_unc_qualifier;
+    DataQualifier m_cp_unc_qualifier = NONE;
     std::pair<double, double> m_cp_rng;
     std::string m_cp_ref;
     std::string m_cp_doi;
@@ -381,7 +392,7 @@ private:
     double m_st_a = 0.0;
     double m_st_b = 0.0;
     double m_st_unc = 0.0;
-    DataQualifier m_st_unc_qualifier;
+    DataQualifier m_st_unc_qualifier = NONE;
     std::pair<double, double> m_st_rng;
     std::string m_st_ref;
     std::string m_st_doi;
@@ -389,20 +400,22 @@ private:
     // speed of sound
     double m_co_a = 0.0;
     double m_co_b = 0.0;
-    double m_co_unc = 0.0;
-    DataQualifier m_co_unc_qualifier;
-    std::pair<double, double> m_co_rng;
-    std::string m_co_ref;
-    std::string m_co_doi;
+    std::optional<double> m_co_unc;
+    DataQualifier m_co_unc_qualifier = NONE;
+    std::optional<std::pair<double, double>> m_co_rng;
+    std::optional<std::string> m_co_ref;
+    std::optional<std::string> m_co_doi;
+    std::optional<std::string> m_co_value_notes;
+    std::optional<std::string> m_co_unc_notes;
 
     // enthalpy to temperature table
     std::vector<double> m_h;
 
     // delta temperature
-    double m_dt;
+    double m_dt = 0.0;
 
     // h(t)'s E simplification (a * melt + b * melt^2  + d * melt^3 - c / melt)
-    double m_e;
+    double m_e = std::numeric_limits<double>::quiet_NaN();
   };
 
   std::string to_json(Data &d) const;
@@ -414,6 +427,7 @@ private:
 
 private:
   // >>> DATA
+  void read_json_records(std::istream &inFile);
   void parse_data_qualifier(std::string &, DataQualifier &);
   void parse_data_token(std::string &, double &);
   void parse_range_token(std::string &, std::pair<double, double> &);

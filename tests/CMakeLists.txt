@@ -34,6 +34,10 @@ target_link_libraries(tstsaline_bug PRIVATE GTest::gtest_main nlohmann_json::nlo
 gtest_discover_tests(tstsaline_bug DISCOVERY_MODE PRE_TEST)
 
 # C++ Library tests
+add_executable(tstcorrectness tstcorrectness.cc)
+target_link_libraries(tstcorrectness PRIVATE saline-cpp GTest::gtest_main nlohmann_json::nlohmann_json)
+gtest_discover_tests(tstcorrectness DISCOVERY_MODE PRE_TEST)
+
 add_executable(tstutils tstutils.cc)
 target_link_libraries(tstutils PRIVATE saline-cpp GTest::gtest_main nlohmann_json::nlohmann_json)
 gtest_discover_tests(tstutils DISCOVERY_MODE PRE_TEST)

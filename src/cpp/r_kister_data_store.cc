@@ -50,12 +50,11 @@ R_Kister_Data_Store::R_Kister_Data_Store() {}
  */
 void R_Kister_Data_Store::load(const std::string &fPath) {
   std::ifstream inFile(fPath, std::ios::binary);
-  d.load(fPath);
   if (!inFile) {
-    std::cerr << "Failed to open file: " << fPath << " !\n";
-    return;
+    throw std::runtime_error("Failed to open input file: " + fPath);
   }
   if (utils::is_hdf5_file(fPath)) {
+    d.load(fPath);
 #ifdef SALINE_USE_HDF5
     // Open the HDF5 file
     hid_t file = H5Fopen(fPath.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
@@ -67,6 +66,7 @@ void R_Kister_Data_Store::load(const std::string &fPath) {
 #endif
   } else {
     from_json(inFile);
+    return;
   }
   auto d_keys = d.getSaltKeys();
   std::copy_if(
@@ -270,7 +270,14 @@ void R_Kister_Data_Store::load(std::istream &rkRhoFile, std::istream &rkMuFile,
  * \brief finds and sets the required information for modeling a requested salt
  */
 Data_Store::View R_Kister_Data_Store::setView(const Vec_Name &names,
-                                              const Vec_Mole &mole_percents) {
+                                               const Vec_Mole &mole_percents) {
+  if (names.empty() || names.size() != mole_percents.size())
+    throw std::invalid_argument("Composition requires matching nonempty names and fractions");
+  for (const auto &name : names) {
+    auto key = name;
+    if (!d.valid(key))
+      return {};
+  }
   // Clear the old end members
   end_members.clear();
 
@@ -289,8 +296,9 @@ Data_Store::View R_Kister_Data_Store::setView(const Vec_Name &names,
   }
 
   if (std::all_of(end_members.begin(), end_members.end(),
-                  [](Data_Store::View v) { return !v.nullView(); })) {
+                   [](Data_Store::View v) { return !v.nullView(); })) {
     v = view(0);
+    v.rec_id = 0;
   }
   return v;
 }
@@ -338,9 +346,7 @@ double R_Kister_Data_Store::cp(Id /* id */, Id /* data_id */,
 double R_Kister_Data_Store::cp_h(Id /* id */, Id /* data_id */,
                                  double /* enthalpy */,
                                  double /* pressure */) const {
-  // TODO waiting on enthalpy calculation flow
-  double cp = 0.0;
-  return cp;
+  throw std::runtime_error("Redlich-Kister heat capacity from enthalpy is unsupported");
 }
 
 //----------------------------------------------------------------------------//
@@ -376,9 +382,7 @@ double R_Kister_Data_Store::mu(Id /* id */, Id /* data_id */,
 double R_Kister_Data_Store::mu_h(Id /* id */, Id /* data_id */,
                                  double /* enthalpy */,
                                  double /* pressure */) const {
-  // TODO waiting on enthalpy calculation flow
-  double cp = 0.0;
-  return cp;
+  throw std::runtime_error("Redlich-Kister viscosity from enthalpy is unsupported");
 }
 
 //----------------------------------------------------------------------------//
@@ -449,9 +453,7 @@ double R_Kister_Data_Store::k(Id id, Id data_id, double temperature,
 double R_Kister_Data_Store::k_h(Id /* id */, Id /* data_id */,
                                 double /* enthalpy */,
                                 double /* pressure */) const {
-  // TODO waiting on enthalpy calculation flow
-  double cp = 0.0;
-  return cp;
+  throw std::runtime_error("Redlich-Kister conductivity from enthalpy is unsupported");
 }
 
 //----------------------------------------------------------------------------//
@@ -537,7 +539,7 @@ double R_Kister_Data_Store::speedOfSound(Id id, Id data_id,
 double R_Kister_Data_Store::surfaceTension(Id /* id */, Id /* data_id */,
                                            double /* temperature */,
                                            double /* pressure */) const {
-  return -1.0;
+  throw std::runtime_error("Redlich-Kister surface tension is unsupported");
 }
 
 //----------------------------------------------------------------------------//
@@ -547,12 +549,7 @@ double R_Kister_Data_Store::surfaceTension(Id /* id */, Id /* data_id */,
 double R_Kister_Data_Store::rho_h(Id /* id */, Id /* data_id */,
                                   double /* enthalpy */,
                                   double /* pressure */) const {
-  // Ideal mixing
-  double h_ideal = 0.0;
-
-  // Excess
-  double h_excess = 0.0;
-  return h_ideal + h_excess;
+  throw std::runtime_error("Redlich-Kister density from enthalpy is unsupported");
 }
 //----------------------------------------------------------------------------//
 /*!
@@ -562,7 +559,7 @@ double R_Kister_Data_Store::rho_h(Id /* id */, Id /* data_id */,
 double R_Kister_Data_Store::surfaceTension_h(Id /* id */, Id /* data_id */,
                                              double /* enthalpy */,
                                              double /* pressure */) const {
-  return -1.0;
+  throw std::runtime_error("Redlich-Kister surface tension from enthalpy is unsupported");
 }
 
 //----------------------------------------------------------------------------//
@@ -572,9 +569,7 @@ double R_Kister_Data_Store::surfaceTension_h(Id /* id */, Id /* data_id */,
 // enthalpy
 double R_Kister_Data_Store::h_t(Id /* id */, Id /* data_id */,
                                 double /* temperature */) const {
-  // TODO waiting on enthalpy calculation flow
-  double cp = 0.0;
-  return cp;
+  throw std::runtime_error("Redlich-Kister enthalpy is unsupported");
 }
 
 //----------------------------------------------------------------------------//
@@ -583,9 +578,7 @@ double R_Kister_Data_Store::h_t(Id /* id */, Id /* data_id */,
  */
 double R_Kister_Data_Store::t_h(Id /* id */, Id /* data_id */,
                                 double /* enthalpy */) const {
-  // TODO waiting on enthalpy calculation flow
-  double cp = 0.0;
-  return cp;
+  throw std::runtime_error("Redlich-Kister inverse enthalpy is unsupported");
 }
 
 //----------------------------------------------------------------------------//
@@ -727,9 +720,7 @@ bool R_Kister_Data_Store::valid_rho(Id /* id */, Id /* data_id */) const {
  */
 bool R_Kister_Data_Store::valid_surfaceTension(Id /* id */,
                                                Id /* data_id */) const {
-  return (
-      std::all_of(end_members.begin(), end_members.end(),
-                  [](Data_Store::View v) { return v.valid_surfaceTension(); }));
+  return false;
 }
 //---------------------------------------------------------------------------//
 /*!
@@ -832,13 +823,67 @@ bool R_Kister_Data_Store::valid(Name &name) const {
 }
 
 void R_Kister_Data_Store::from_json(std::istream &inFile) {
+  R_Kister_Data_Store candidate;
+  try {
+    candidate.read_json_records(inFile);
+  } catch (const std::exception &e) {
+    throw std::runtime_error(std::string("Invalid RK JSON: ") + e.what());
+  }
+  using std::swap;
+  swap(d, candidate.d);
+  m_rho.swap(candidate.m_rho);
+  m_mu.swap(candidate.m_mu);
+  m_cp.swap(candidate.m_cp);
+  m_k.swap(candidate.m_k);
+  m_keys.swap(candidate.m_keys);
+  end_members.clear();
+  endMem_moleFracs.clear();
+  salt_name.clear();
+}
+
+void R_Kister_Data_Store::read_json_records(std::istream &inFile) {
 
   nlohmann::json json_in;
   try {
     inFile >> json_in;
   } catch (const nlohmann::json::parse_error &e) {
-    std::cerr << "JSON parse error: " << e.what() << '\n';
-    return;
+    throw std::runtime_error(std::string("Invalid RK JSON: ") + e.what());
+  }
+  std::istringstream base(json_in.dump());
+  d.from_json(base);
+  for (const auto &key : d.getSaltKeys())
+    if (key.find('-') == std::string::npos)
+      m_keys.push_back(key);
+
+  // Validate all estimate arrays and end-member IDs before indexing matrices.
+  if (json_in.at("MSTDBTP").contains("estimates")) {
+    const auto &rk = json_in.at("MSTDBTP").at("estimates").at("RK");
+    for (const auto &kind : {"Density", "Viscosity"}) {
+      if (!rk.contains(kind) || rk.at(kind).is_null()) continue;
+      if (!rk.at(kind).is_object())
+        throw std::runtime_error(std::string("Invalid RK object: ") + kind);
+      for (const auto &entry : rk.at(kind).items()) {
+        const auto names = utils::split("-", entry.key());
+        const auto context = std::string("/MSTDBTP/estimates/RK/") + kind + "/" + entry.key();
+        if (names.size() != 2 || names[0] == names[1] ||
+            !d.valid(d.names_to_id({names[0]})) || !d.valid(d.names_to_id({names[1]})))
+          throw std::runtime_error(context + ": expected two known distinct end members");
+        const auto &node = entry.value();
+        if (!node.is_object() || !node.contains("A") || !node.at("A").is_array())
+          throw std::runtime_error(context + ": expected coefficient array A");
+        const size_t count = node.at("A").size();
+        for (const auto &coefficient : {"A", "B", "C"}) {
+          if (std::string(coefficient) == "C" && std::string(kind) == "Density" && !node.contains("C"))
+            continue;
+          if (!node.contains(coefficient) || !node.at(coefficient).is_array() ||
+              node.at(coefficient).size() != count)
+            throw std::runtime_error(context + ": coefficient array lengths must match");
+          for (const auto &value : node.at(coefficient))
+            if (!value.is_number() || !std::isfinite(value.get<double>()))
+              throw std::runtime_error(context + ": coefficients must be finite numbers");
+        }
+      }
+    }
   }
 
   Vec_Name keys = d.getSaltKeys();

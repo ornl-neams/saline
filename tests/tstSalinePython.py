@@ -60,6 +60,93 @@ LiF-BeF2-ThF4  , 61.9697  , 0.727-0.157-0.116    , 826.20  , 0.00   , Cantor1973
 
 class FixturesTest(unittest.TestCase):
 
+    def test_speed_of_sound_metadata(self):
+        import copy
+        import json
+        from pathlib import Path
+        data = copy.deepcopy(tst_json)
+        sound = {"value": 2500, "reference": "Sound reference", "DOI": "sound-doi",
+                 "value_notes": "At the melting point", "uncertainty_notes": "Reported",
+                 "pct_uncertainty": 2.5, "range": [500, 1000]}
+        data["MSTDBTP"]["evaluated"]["S1"]["1"]["speed_of_sound"] = sound
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "sound.json"
+            path.write_text(json.dumps(data))
+            for cls in (SalinePy.Default_Data_Store, SalinePy.R_Kister_Data_Store):
+                store = cls()
+                store.load(str(path))
+                result = json.loads(store.to_json())["MSTDBTP"]["evaluated"]["S1"]["1"]
+                self.assertEqual(sound, result["speed_of_sound"])
+            store = SalinePy.Default_Data_Store()
+            store.load(str(path))
+            tp = SalinePy.Thermophysical_Properties()
+            self.assertTrue(tp.initialize(store))
+            self.assertTrue(tp.setComposition(["S1"], [1]))
+            self.assertTrue(tp.valid_speedOfSound())
+            self.assertEqual(2500, tp.speedOfSound(900))
+            self.assertAlmostEqual(0.025, tp.speedOfSound_unc())
+            bounds = tp.speedOfSound_rng()
+            self.assertEqual((500, 1000), tuple(bounds))
+            self.assertEqual("Sound reference", store.speedOfSound_ref(0, 0))
+            data["MSTDBTP"]["evaluated"]["S1"]["1"]["speed_of_sound"]["range"] = [1000, 500]
+            path.write_text(json.dumps(data))
+            with self.assertRaisesRegex(RuntimeError, "speed_of_sound/range"):
+                store.load(str(path))
+            self.assertEqual(2500, tp.speedOfSound(900))
+
+    def test_qualifiers_survive_json_round_trip(self):
+        import copy
+        import json
+        from pathlib import Path
+        for note, qualifier in (
+                ("Modeled", SalinePy.MODELED),
+                ("Evaluated", SalinePy.EVALUATED),
+                ("Reported", SalinePy.REPORTED),
+                ("Uncertanity needs to be further evaluated",
+                 SalinePy.UNCERTAINTY_PENDING_EVALUATION)):
+            with self.subTest(note=note), tempfile.TemporaryDirectory() as directory:
+                self.assertNotEqual(SalinePy.NONE, qualifier)
+                data = copy.deepcopy(tst_json)
+                record = data["MSTDBTP"]["evaluated"]["S1"]["1"]
+                record["melt"]["value_notes"] = note
+                record["density"]["uncertainty_notes"] = note
+                path = Path(directory) / "properties.json"
+                path.write_text(json.dumps(data))
+                for cls in (SalinePy.Default_Data_Store, SalinePy.R_Kister_Data_Store):
+                    store = cls()
+                    store.load(str(path))
+                    result = json.loads(store.to_json())["MSTDBTP"]["evaluated"]["S1"]["1"]
+                    self.assertEqual(note, result["melt"]["value_notes"])
+                    self.assertEqual(note, result["density"]["uncertainty_notes"])
+
+    def test_errors_are_python_exceptions(self):
+        import copy
+        import json
+        tp = SalinePy.Thermophysical_Properties()
+        with self.assertRaises(RuntimeError):
+            tp.rho(900)
+        store = SalinePy.Default_Data_Store()
+        with tempfile.TemporaryDirectory() as directory:
+            from pathlib import Path
+            path = Path(directory) / "properties.json"
+            path.write_text(json.dumps(tst_json))
+            store.load(str(path))
+            self.assertTrue(tp.initialize(store))
+            self.assertTrue(tp.setComposition(["S2", "S1"], [0.64, 0.36]))
+            self.assertEqual(list(tp.composition()), [0.64, 0.36])
+            before = tp.rho(900)
+            bad = copy.deepcopy(tst_json)
+            bad["MSTDBTP"]["evaluated"]["S1"]["1"]["density"]["values"] = []
+            path.write_text(json.dumps(bad))
+            with self.assertRaisesRegex(RuntimeError, "density/values"):
+                store.load(str(path))
+            self.assertEqual(before, tp.rho(900))
+            with self.assertRaises(ValueError):
+                tp.setComposition(["S1", "S1"], [0.5, 0.5])
+            rk = SalinePy.R_Kister_Data_Store()
+            with self.assertRaisesRegex(RuntimeError, "unsupported"):
+                rk.h_t(0, 0, 900)
+
     def test_LiFNaFKF_465_115_042(self):
         # Initialize
         tstDat = tempfile.NamedTemporaryFile(delete=False)
@@ -106,7 +193,10 @@ class FixturesTest(unittest.TestCase):
             self.assertAlmostEqual(k_calc_ref[i],self.tp.k(t_k),delta=5.e-4)
 
         self.assertAlmostEqual(self.tp.k_h(self.tp.h_t(970)),self.tp.k(970),delta=1.e-4)
-        self.assertAlmostEqual(748.77152178380845, self.tp.t_h(1000),delta=1.e-6)
+        # Independent analytic inversion of integral(cp), h(Tmelt)=0.
+        a, b, melt = 40.32, 0.04388, 735.0
+        expected = (-a + math.sqrt((a + b * melt)**2 + 2 * b * 1000)) / b
+        self.assertAlmostEqual(expected, self.tp.t_h(1000), delta=0.02)
         self.assertAlmostEqual(self.tp.t_h(self.tp.h_t(970)),970,delta=5.e-2)
 
     def test_JSON(self):

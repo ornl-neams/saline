@@ -25,8 +25,10 @@ Data_Store::View Data_Store::view(Id id) const {
  * \brief assigns the data data ID of the nearest matching composition
  */
 void Data_Store::View::assign_record(const Vec_Mole &mp) {
-  saline_require(!mp.empty());
-  saline_require(mp.size() == d->constituent_count(id));
+  if (!d || !d->valid(id))
+    throw std::runtime_error("Cannot select a record on an invalid view");
+  if (mp.empty() || mp.size() != d->constituent_count(id))
+    throw std::invalid_argument("Composition size does not match the material");
 
   rec_id = d->nearest(id, mp);
 }
@@ -36,6 +38,8 @@ void Data_Store::View::assign_record(const Vec_Mole &mp) {
  * \brief obtain the data store id for the given single component compound
  */
 std::size_t Data_Store::View::constituent_count() const {
+  if (!d || !d->valid(id))
+    throw std::runtime_error("Invalid material view");
   return d->constituent_count(id);
 }
 
@@ -45,7 +49,13 @@ std::size_t Data_Store::View::constituent_count() const {
  */
 // view is null if data is null and data id is valid
 bool Data_Store::View::nullView() const {
-  return d == nullptr || (d != nullptr && !d->valid(id));
+  return d == nullptr || !d->valid_record(id, rec_id);
+}
+
+const Data_Store *Data_Store::View::checked_store() const {
+  if (nullView())
+    throw std::runtime_error("Property evaluation requires a valid selected material");
+  return d;
 }
 
 //---------------------------------------------------------------------------//
@@ -53,7 +63,7 @@ bool Data_Store::View::nullView() const {
  * \brief retrieves the heat capacity for the View object based on temperature
  */
 double Data_Store::View::cp(double temperature, double pressure) const {
-  return d->cp(id, rec_id, temperature, pressure);
+  return checked_store()->cp(id, rec_id, temperature, pressure);
 }
 
 //---------------------------------------------------------------------------//
@@ -61,31 +71,31 @@ double Data_Store::View::cp(double temperature, double pressure) const {
  * \brief retrieves the heat capacity for the View object based on enthalpy
  */
 double Data_Store::View::cp_h(double enthalpy, double pressure) const {
-  return d->cp_h(id, rec_id, enthalpy, pressure);
+  return checked_store()->cp_h(id, rec_id, enthalpy, pressure);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * \brief Retrieves the validity of the view data
  */
-bool Data_Store::View::valid_cp() const { return d->valid_cp(id, rec_id); }
+bool Data_Store::View::valid_cp() const { return checked_store()->valid_cp(id, rec_id); }
 //----------------------------------------------------------------------------//
 /*!
  * \brief retrieves the heat capacity uncertainty for the view object
  */
-double Data_Store::View::cp_unc() const { return d->cp_unc(id, rec_id); }
+double Data_Store::View::cp_unc() const { return checked_store()->cp_unc(id, rec_id); }
 //----------------------------------------------------------------------------//
 /*!
  * \brief retrieves the heat capacity experimental range for the view object
  */
 std::pair<double, double> Data_Store::View::cp_rng() const {
-  return d->cp_rng(id, rec_id);
+  return checked_store()->cp_rng(id, rec_id);
 }
 //----------------------------------------------------------------------------//
 /*!
  * \brief retrieves the heat capacity reference for the view object
  */
-std::string Data_Store::View::cp_ref() const { return d->cp_ref(id, rec_id); }
+std::string Data_Store::View::cp_ref() const { return checked_store()->cp_ref(id, rec_id); }
 
 //---------------------------------------------------------------------------//
 /*!
@@ -93,7 +103,7 @@ std::string Data_Store::View::cp_ref() const { return d->cp_ref(id, rec_id); }
  */
 // viscosity
 double Data_Store::View::mu(double temperature, double pressure) const {
-  return d->mu(id, rec_id, temperature, pressure);
+  return checked_store()->mu(id, rec_id, temperature, pressure);
 }
 
 //---------------------------------------------------------------------------//
@@ -101,31 +111,31 @@ double Data_Store::View::mu(double temperature, double pressure) const {
  * \brief retrieves the viscosity for the View object based on enthalpy
  */
 double Data_Store::View::mu_h(double enthalpy, double pressure) const {
-  return d->mu_h(id, rec_id, enthalpy, pressure);
+  return checked_store()->mu_h(id, rec_id, enthalpy, pressure);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * \brief Retrieves the validity of the view data
  */
-bool Data_Store::View::valid_mu() const { return d->valid_mu(id, rec_id); }
+bool Data_Store::View::valid_mu() const { return checked_store()->valid_mu(id, rec_id); }
 //----------------------------------------------------------------------------//
 /*!
  * \brief retrieves the viscosity experimental range for the view object
  */
 std::pair<double, double> Data_Store::View::mu_rng() const {
-  return d->mu_rng(id, rec_id);
+  return checked_store()->mu_rng(id, rec_id);
 }
 //----------------------------------------------------------------------------//
 /*!
  * \brief retrieves the viscosity uncertainty for the view object
  */
-double Data_Store::View::mu_unc() const { return d->mu_unc(id, rec_id); }
+double Data_Store::View::mu_unc() const { return checked_store()->mu_unc(id, rec_id); }
 //----------------------------------------------------------------------------//
 /*!
  * \brief retrieves the viscosity reference for the view object
  */
-std::string Data_Store::View::mu_ref() const { return d->mu_ref(id, rec_id); }
+std::string Data_Store::View::mu_ref() const { return checked_store()->mu_ref(id, rec_id); }
 
 //---------------------------------------------------------------------------//
 /*!
@@ -134,7 +144,7 @@ std::string Data_Store::View::mu_ref() const { return d->mu_ref(id, rec_id); }
  */
 // conductivity
 double Data_Store::View::k(double temperature, double pressure) const {
-  return d->k(id, rec_id, temperature, pressure);
+  return checked_store()->k(id, rec_id, temperature, pressure);
 }
 
 //----------------------------------------------------------------------------//
@@ -143,32 +153,32 @@ double Data_Store::View::k(double temperature, double pressure) const {
  * enthalpy
  */
 double Data_Store::View::k_h(double enthalpy, double pressure) const {
-  return d->k_h(id, rec_id, enthalpy, pressure);
+  return checked_store()->k_h(id, rec_id, enthalpy, pressure);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * \brief Retrieves the validity of the view data
  */
-bool Data_Store::View::valid_k() const { return d->valid_k(id, rec_id); }
+bool Data_Store::View::valid_k() const { return checked_store()->valid_k(id, rec_id); }
 //----------------------------------------------------------------------------//
 /*!
  * \brief retrieves the thermal conductivity uncertainty for the view object
  */
-double Data_Store::View::k_unc() const { return d->k_unc(id, rec_id); }
+double Data_Store::View::k_unc() const { return checked_store()->k_unc(id, rec_id); }
 //----------------------------------------------------------------------------//
 /*!
  * \brief retrieves the thermal conductivity experimental range for the view
  * object
  */
 std::pair<double, double> Data_Store::View::k_rng() const {
-  return d->k_rng(id, rec_id);
+  return checked_store()->k_rng(id, rec_id);
 }
 //----------------------------------------------------------------------------//
 /*!
  * \brief retrieves the thermal conductivity reference for the view object
  */
-std::string Data_Store::View::k_ref() const { return d->k_ref(id, rec_id); }
+std::string Data_Store::View::k_ref() const { return checked_store()->k_ref(id, rec_id); }
 
 //----------------------------------------------------------------------------//
 /*!
@@ -176,7 +186,7 @@ std::string Data_Store::View::k_ref() const { return d->k_ref(id, rec_id); }
  */
 // density
 double Data_Store::View::rho(double temperature, double pressure) const {
-  return d->rho(id, rec_id, temperature, pressure);
+  return checked_store()->rho(id, rec_id, temperature, pressure);
 }
 
 //----------------------------------------------------------------------------//
@@ -184,31 +194,31 @@ double Data_Store::View::rho(double temperature, double pressure) const {
  * \brief retrieves the density for the View object based on enthalpy
  */
 double Data_Store::View::rho_h(double enthalpy, double pressure) const {
-  return d->rho_h(id, rec_id, enthalpy, pressure);
+  return checked_store()->rho_h(id, rec_id, enthalpy, pressure);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * \brief Retrieves the validity of the view data
  */
-bool Data_Store::View::valid_rho() const { return d->valid_rho(id, rec_id); }
+bool Data_Store::View::valid_rho() const { return checked_store()->valid_rho(id, rec_id); }
 //----------------------------------------------------------------------------//
 /*!
  * \brief retrieves the density experimental range for the view object
  */
 std::pair<double, double> Data_Store::View::rho_rng() const {
-  return d->rho_rng(id, rec_id);
+  return checked_store()->rho_rng(id, rec_id);
 }
 //----------------------------------------------------------------------------//
 /*!
  * \brief retrieves the density uncertainty for the view object
  */
-double Data_Store::View::rho_unc() const { return d->rho_unc(id, rec_id); }
+double Data_Store::View::rho_unc() const { return checked_store()->rho_unc(id, rec_id); }
 //----------------------------------------------------------------------------//
 /*!
  * \brief retrieves the density reference for the view object
  */
-std::string Data_Store::View::rho_ref() const { return d->rho_ref(id, rec_id); }
+std::string Data_Store::View::rho_ref() const { return checked_store()->rho_ref(id, rec_id); }
 
 //----------------------------------------------------------------------------//
 /*!
@@ -216,7 +226,7 @@ std::string Data_Store::View::rho_ref() const { return d->rho_ref(id, rec_id); }
  */
 double Data_Store::View::surfaceTension(double temperature,
                                         double pressure) const {
-  return d->surfaceTension(id, rec_id, temperature, pressure);
+  return checked_store()->surfaceTension(id, rec_id, temperature, pressure);
 }
 
 //----------------------------------------------------------------------------//
@@ -224,7 +234,7 @@ double Data_Store::View::surfaceTension(double temperature,
  * \brief retrieves the speed of sound for the View object based on temperature
  */
 double Data_Store::View::speedOfSound(double temperature) const {
-  return d->speedOfSound(id, rec_id, temperature);
+  return checked_store()->speedOfSound(id, rec_id, temperature);
 }
 //----------------------------------------------------------------------------//
 /*!
@@ -232,7 +242,7 @@ double Data_Store::View::speedOfSound(double temperature) const {
  */
 double Data_Store::View::speedOfSound_h(double enthalpy,
                                         double pressure) const {
-  return d->speedOfSound_h(id, rec_id, enthalpy, pressure);
+  return checked_store()->speedOfSound_h(id, rec_id, enthalpy, pressure);
 }
 
 //---------------------------------------------------------------------------//
@@ -240,28 +250,28 @@ double Data_Store::View::speedOfSound_h(double enthalpy,
  * \brief Retrieves the validity of the view data
  */
 bool Data_Store::View::valid_speedOfSound() const {
-  return d->valid_speedOfSound(id, rec_id);
+  return checked_store()->valid_speedOfSound(id, rec_id);
 }
 //----------------------------------------------------------------------------//
 /*!
  * \brief retrieves the speed of sound experimental range for the view object
  */
 std::pair<double, double> Data_Store::View::speedOfSound_rng() const {
-  return d->speedOfSound_rng(id, rec_id);
+  return checked_store()->speedOfSound_rng(id, rec_id);
 }
 //----------------------------------------------------------------------------//
 /*!
  * \brief retrieves the speed of sound uncertainty for the view object
  */
 double Data_Store::View::speedOfSound_unc() const {
-  return d->speedOfSound_unc(id, rec_id);
+  return checked_store()->speedOfSound_unc(id, rec_id);
 }
 //----------------------------------------------------------------------------//
 /*!
  * \brief retrieves the speed of sound reference for the view object
  */
 std::string Data_Store::View::speedOfSound_ref() const {
-  return d->speedOfSound_ref(id, rec_id);
+  return checked_store()->speedOfSound_ref(id, rec_id);
 }
 
 //----------------------------------------------------------------------------//
@@ -270,7 +280,7 @@ std::string Data_Store::View::speedOfSound_ref() const {
  */
 double Data_Store::View::surfaceTension_h(double enthalpy,
                                           double pressure) const {
-  return d->surfaceTension_h(id, rec_id, enthalpy, pressure);
+  return checked_store()->surfaceTension_h(id, rec_id, enthalpy, pressure);
 }
 
 //---------------------------------------------------------------------------//
@@ -278,28 +288,28 @@ double Data_Store::View::surfaceTension_h(double enthalpy,
  * \brief Retrieves the validity of the view data
  */
 bool Data_Store::View::valid_surfaceTension() const {
-  return d->valid_surfaceTension(id, rec_id);
+  return checked_store()->valid_surfaceTension(id, rec_id);
 }
 //----------------------------------------------------------------------------//
 /*!
  * \brief retrieves the surface tension experimental range for the view object
  */
 std::pair<double, double> Data_Store::View::surfaceTension_rng() const {
-  return d->surfaceTension_rng(id, rec_id);
+  return checked_store()->surfaceTension_rng(id, rec_id);
 }
 //----------------------------------------------------------------------------//
 /*!
  * \brief retrieves the surface tension uncertainty for the view object
  */
 double Data_Store::View::surfaceTension_unc() const {
-  return d->surfaceTension_unc(id, rec_id);
+  return checked_store()->surfaceTension_unc(id, rec_id);
 }
 //----------------------------------------------------------------------------//
 /*!
  * \brief retrieves the surface tension reference for the view object
  */
 std::string Data_Store::View::surfaceTension_ref() const {
-  return d->surfaceTension_ref(id, rec_id);
+  return checked_store()->surfaceTension_ref(id, rec_id);
 }
 
 //----------------------------------------------------------------------------//
@@ -307,7 +317,7 @@ std::string Data_Store::View::surfaceTension_ref() const {
  * \brief retrieves the enthalpy based on the temperature for the View object
  */
 double Data_Store::View::h_t(double temperature) const {
-  return d->h_t(id, rec_id, temperature);
+  return checked_store()->h_t(id, rec_id, temperature);
 }
 
 //----------------------------------------------------------------------------//
@@ -315,43 +325,43 @@ double Data_Store::View::h_t(double temperature) const {
  * \brief retrieves the temperature based on the enthalpy for the View object
  */
 double Data_Store::View::t_h(double enthalpy) const {
-  return d->t_h(id, rec_id, enthalpy);
+  return checked_store()->t_h(id, rec_id, enthalpy);
 }
 
 //----------------------------------------------------------------------------//
 /*!
  * \brief retrieves the melting temperature for the View object
  */
-double Data_Store::View::melt() const { return d->melt(id, rec_id); }
+double Data_Store::View::melt() const { return checked_store()->melt(id, rec_id); }
 //----------------------------------------------------------------------------//
 /*!
  * \brief retrieves the melting temperature uncertainty for the view object
  */
-double Data_Store::View::melt_unc() const { return d->melt_unc(id, rec_id); }
+double Data_Store::View::melt_unc() const { return checked_store()->melt_unc(id, rec_id); }
 //----------------------------------------------------------------------------//
 /*!
  * \brief retrieves the melting temperature reference for the view object
  */
 std::string Data_Store::View::melt_ref() const {
-  return d->melt_ref(id, rec_id);
+  return checked_store()->melt_ref(id, rec_id);
 }
 
 //----------------------------------------------------------------------------//
 /*!
  * \brief retrieves the boiling temperature for the view object
  */
-double Data_Store::View::boil() const { return d->boil(id, rec_id); }
+double Data_Store::View::boil() const { return checked_store()->boil(id, rec_id); }
 //----------------------------------------------------------------------------//
 /*!
  * \brief retrieves the boiling temperature uncertainty for the view object
  */
-double Data_Store::View::boil_unc() const { return d->boil_unc(id, rec_id); }
+double Data_Store::View::boil_unc() const { return checked_store()->boil_unc(id, rec_id); }
 //----------------------------------------------------------------------------//
 /*!
  * \brief retrieves the boiling temperature reference for the view object
  */
 std::string Data_Store::View::boil_ref() const {
-  return d->boil_ref(id, rec_id);
+  return checked_store()->boil_ref(id, rec_id);
 }
 
 //----------------------------------------------------------------------------//
@@ -359,7 +369,7 @@ std::string Data_Store::View::boil_ref() const {
  * \brief retrieves the molecular weight of the view object
  */
 double Data_Store::View::molecularWeight() const {
-  return d->molecularWeight(id, rec_id);
+  return checked_store()->molecularWeight(id, rec_id);
 }
 
 //----------------------------------------------------------------------------//
@@ -367,21 +377,21 @@ double Data_Store::View::molecularWeight() const {
  * \brief retrieves the molecular weight of the view object
  */
 int Data_Store::View::complexation() const {
-  return d->complexation(id, rec_id);
+  return checked_store()->complexation(id, rec_id);
 }
 
 //----------------------------------------------------------------------------//
 /*!
  * \brief retrieves the molecular weight of the view object
  */
-double Data_Store::View::n_ions() const { return d->n_ions(id, rec_id); }
+double Data_Store::View::n_ions() const { return checked_store()->n_ions(id, rec_id); }
 
 //---------------------------------------------------------------------------//
 /*!
  * \brief retrieves mole percent for the View
  */
 const Data_Store::Vec_Mole &Data_Store::View::mole_percent() const {
-  return d->mole_percent(id, rec_id);
+  return checked_store()->mole_percent(id, rec_id);
 }
 
 } // namespace saline
